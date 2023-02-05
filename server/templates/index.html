@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Micah Baker</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+	</head>
+	<body onload="main()">
+		<div class="page">
+			<div class="header">
+				<img src="{{ url_for('static', filename='title.svg') }}">
+			</div>
+			<div class="menu">
+				{% for button in buttons %}
+				<div class="button"
+				     style="width: {{ 100 / nbuttons - 1 }}%;"
+				     onclick="location.href = '{{ button.url }}'">
+					<h1>{{ button.title }}</h1>
+				</div>
+				{% endfor %}
+			</div>
+			<div class="content">
+				<h1>Welcome To My Personal Website</h1>
+				<p>This is currently in the works;
+				you can expect a blog about the projects that
+				I'm currently working on to show up one day.</p>
+			</div>
+			<div class="footer">
+				<h1>(c) 2022 Micah Baker</h1>
+				<a href="mailto: micahb923@gmail.com">micahb923@gmail.com</a>
+			</div>
+		</div>
+	</body>
+</html>

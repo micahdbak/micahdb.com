@@ -1,0 +1,84 @@
+body {
+	margin: 0px;
+	background-color: white;
+	font-family: sans-serif;
+}
+
+.page {
+	margin-bottom: 50vh;
+	margin: auto;
+	min-height: 100vh;
+	background-color: white;
+}
+
+.header {
+	padding: 32px;
+	background-color: white;
+	color: #808080;
+}
+.header img {
+	display: block;
+	margin: auto;
+	height: 64px;
+}
+
+.menu {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: auto;
+	max-width: 768px;
+}
+.menu .button {
+	border: 1px solid #e8e8e8;
+	border-radius: 4px;
+	background-color: #e8e8e8;
+}
+.menu .button:hover {
+	cursor: pointer;
+	border: 1px solid #000000;
+	box-shadow: 0px 4px 16px #00000008;
+	background-image: none;
+	background-color: white;
+}
+.menu .button h1 {
+	text-align: center;
+	line-height: 8px;
+	font-size: 14pt;
+	font-family: monospace;
+	font-weight: lighter;
+	color: #404040;
+}
+
+.content {
+	margin: auto;
+	margin-top: 32px;
+	max-width: 768px;
+}
+.content h1 {
+	font-size: 16pt;
+	font-weight: lighter;
+}
+hr {
+	border: none;
+	border-bottom: 1px solid black;
+}
+
+.footer {
+	position: absolute;
+	bottom: 0;
+	padding: 16px;
+	width: 100%;
+	background-color: black;
+	color: white;
+	line-height: 8px;
+	text-align: center;
+}
+.footer h1 {
+	font-size: 12pt;
+}
+.footer a {
+	color: white;
+	font-weight: lighter;
+	font-size: 12pt;
+}
