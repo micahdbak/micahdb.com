@@ -1,0 +1,98 @@
+[
+	{
+		"name": "micahbaker.xyz",
+		"date": {
+			"from": [ 2023, 6 ],
+			"to":   [ 2023, 6 ]
+		},
+		"tags": [ "JavaScript", "HTML", "CSS" ],
+		"link": "https://github.com/micahdbak/micahdbak.github.io",
+		"points": [],
+		"desc": ""
+	},
+	{
+		"name": "Quadrangles",
+		"date": {
+			"from": [ 2023, 6 ],
+			"to":   [ 2023, 6 ]
+		},
+		"tags": [ "Go", "PostgreSQL", "JavaScript", "HTML", "CSS", "Linux" ],
+		"link": "https://github.com/quadrangles-ca/",
+		"points": [
+			"Developed a robust and highly concurrent API using Go.",
+			"WebSockets are used to post comments in real-time to online users."
+		],
+		"desc": ""
+	},
+	{
+		"name": "goblitz.net",
+		"date": {
+			"from": [ 2023, 5 ],
+			"to":   [ 2023, 5 ]
+		},
+		"tags": [ "Go", "React", "Node.js", "JavaScript", "HTML", "CSS", "Linux" ],
+		"link": "https://github.com/micahdbak/goblitz",
+		"points": [
+			"Designed an in-memory database and API using Go.",
+			"Frontend is created with React and deployed with Node.js."
+		],
+		"desc": ""
+	},
+	{
+		"name": "Yell Networking Library",
+		"date": {
+			"from": [ 2023, 2 ],
+			"to":   [ 2023, 4 ]
+		},
+		"tags": [ "C", "Networking", "Sockets", "POSIX Multi-Threading", "Linux" ],
+		"link": "https://github.com/micahdbak/yell",
+		"points": [
+			"Received Best Paper Honorable Mention from Undergraduate Research Symposium at SFU.",
+			"Created decentralized networking library with peer-discovery and binary communication for C and C++ programs.",
+			"Library operates parallel to dependant programs because of implemented POSIX multithreading."
+		],
+		"desc": ""
+	},
+	{
+		"name": "Computing Science Forums",
+		"date": {
+			"from": [ 2023, 1 ],
+			"to":   [ 2023, 1 ]
+		},
+		"tags": [ "C", "Sockets", "Python", "Flask", "HTML", "CSS", "JavaScript", "Linux" ],
+		"link": "https://github.com/micahdbak/nwhacks2023",
+		"points": [
+			"Worked with hackathon team to design a database that stores uploaded content.",
+			"This database (written in C) is capable of communicating with a Flask server through sockets."
+		],
+		"desc": ""
+	},
+	{
+		"name": "Exeirus Alternative Reality Game",
+		"date": {
+			"from": [ 2023, 1 ],
+			"to":   [ 2023, 1 ]
+		},
+		"tags": [ "C", "Python", "Flask", "HTML", "CSS", "JavaScript", "Linux" ],
+		"link": "https://github.com/micahdbak/exeirus",
+		"points": [
+			"Lead a month-long event where participants solve cryptography puzzles competitively.",
+			"Acting as the project manager, I oversaw the development of games written in JavaScript, and C programs for encryption and decryption of text."
+		],
+		"desc": ""
+	},
+	{
+		"name": "qsim",
+		"date": {
+			"from": [ 2022, 1 ],
+			"to":   [ 2022, 1 ]
+		},
+		"tags": [ "C", "POSIX Multi-Threading", "Linux" ],
+		"link": "https://github.com/micahdbak/qsim",
+		"points": [
+			"Predicts trajectories of particles using mathematical formulae for gravitational and electromagnetic forces.",
+			"Implemented file format to describe experiments and particle information with high numerical precision."
+		],
+		"desc": ""
+	}
+]

@@ -1,0 +1,14 @@
+Hello, world!
+
+My name is Micah Baker. I am a passionate software developer, with a keen
+interest in systems programming, networking, and a little bit of design. I am
+in my second year of studying Computing Science at Simon Fraser University.
+In this website, you will be able to find projects that I have worked on, and
+projects that I have completed.
+
+I am currently looking for my first co-op term for Fall 2023. Please continue
+to the Contact section if you would like to reach out to me for offers.
+
+Best,
+
+Micah
