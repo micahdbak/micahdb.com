@@ -21,11 +21,20 @@ const MONTHS = [
 ];
 const TAG_COLORS = [
 	"#ff8080",
+	"#e0a080",
 	"#a0a080",
+	"#a0e080",
 	"#80ff80",
+	"#80e0a0",
 	"#80a0a0",
+	"#80a0e0",
 	"#8080ff",
-	"#a080a0"
+	"#a080e0",
+	"#a080a0",
+	"#808080",
+	"#a0a0a0",
+	"#e0e0e0",
+	"#ffffff"
 ];
 const THEMES = {
 	"light": {
@@ -66,7 +75,7 @@ window.onload = async () => {
 	let message;
 	try {
 		message = await fetch("message.txt");
-		message = await message.json();
+		message = await message.text();
 	} catch {
 		message = "Sorry... There was an error fetching this message.";
 	}
