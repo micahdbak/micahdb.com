@@ -1,0 +1,46 @@
+<!doctype HTML>
+<html>
+	<head>
+		<title>Micah Baker</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Noto+Color+Emoji&family=Noto+Emoji&display=swap" rel="stylesheet" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="index.css" />
+		<script src="index.js"></script>
+	</head>
+	<body>
+		<div id="top"></div>
+		<header id="header">
+			<h1>Micah Baker</h1>
+			<div id="buttons" class="group">
+				<a href="#about" class="btn">About</a>
+				<button class="btn dropdown">
+					Projects <img src="dropdown.svg" />
+					<div id="projects-buttons" class="dropdown-body">
+						<a href="#projects">Projects</a>
+					</div>
+				</button>
+				<a href="#contact" class="btn">Contact</a>
+			</div>
+			<button class="btn icon" onclick="toggleTheme(this)">💤</button>
+		</header>
+		<div id="display" class="display">
+			<pre id="console">micah@localhost~$&nbsp;</pre>
+		</div>
+		<div id="sections">
+			<section id="about">
+				<h1>About</h1>
+				<p>Hi there! My name is Micah Baker.</p>
+			</section>
+			<section id="projects">
+				<h1>Projects</h1>
+				<p>I am always working on some sort of project to further my skill.</p>
+			</section>
+			<section id="contact">
+				<h1>Contact</h1>
+				<p>Contact information will be available shortly.</p>
+			</section>
+		</div>
+	</body>
+</html>

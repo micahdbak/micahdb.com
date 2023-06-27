@@ -1,2 +1,0 @@
-graft server/templates
-global-exclude *.pyc

@@ -1,0 +1,249 @@
+:root {
+	--fg: #141414;
+	--sp: #a080a0;
+	--bb: #c0c0c0;
+	--bs: #e0e0e0;
+	--bg: #f0f0f0;
+	--bp: #f8f8f8;
+	--bf: #ffffff;
+
+	--cons-fg: #e0e0e0;
+	--cons-bg: #101010;
+	--tag-fg: black;
+}
+::selection {
+	color: var(--fg);
+	background-color: var(--bs);
+}
+* {
+	transition: background-color ease 0.25s;
+}
+html {
+	scroll-behavior: smooth;
+}
+body {
+	margin: 0;
+	padding: 0;
+	background-color: var(--bg);
+	color: var(--fg);
+	font-family: "Inter", sans-serif;
+}
+h1, h2, h3, p {
+	margin: 4px 0;
+}
+a {
+	color: var(--sp);
+}
+header {
+	z-index: 50;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	margin: auto;
+	border-bottom: 1px solid var(--bg);
+	padding: 32px calc(max(48px, (100vw - 960px) / 2));
+	width: calc(min(960px, 100vw - 96px));
+	height: 32px;
+	background-color: var(--bg);
+	transition:
+		background-color ease 0.25s,
+		border-bottom ease 0.25s;
+}
+header.scroll {
+	position: sticky;
+	top: 0;
+	border-bottom: 1px solid var(--bb);
+}
+header .group {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	width: fit-content;
+	height: fit-content;
+}
+header h1 {
+	font-size: 16pt;
+	font-weight: 400;
+}
+.btn {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	flex-wrap: wrap;
+	margin: 0 8px;
+	border: 0;
+	border-radius: 24px;
+	padding: 0 24px;
+	background-color: var(--bs);
+	color: var(--fg);
+	font-size: 14pt;
+	font-weight: 400;
+	text-decoration: none;
+	height: 48px;
+	line-height: 16px;
+}
+.btn.icon {
+	border-radius: 50%;
+	padding: 0;
+	width: 48px;
+	height: 48px;
+	font-family: "Inter", "Noto Emoji", sans-serif;
+}
+.btn:hover {
+	box-shadow: 0 0 0 1px var(--bb);
+	background-color: var(--bp);
+	cursor: pointer;
+}
+.btn:focus {
+	outline: none;
+}
+.btn.selected {
+	box-shadow: 0 0 0 1px var(--bb);
+	background-color: var(--bf);
+	color: var(--fg);
+}
+.dropdown img {
+	display: inline-block;
+	margin-left: 8px;
+	width: 16px;
+	height: 16px;
+	transition: transform ease 0.5s;
+}
+.dropdown .dropdown-body {
+	visibility: hidden;
+	position: absolute;
+	z-index: 51;
+	top: 80px;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	border-radius: 8px;
+	border: 1px solid var(--bs);
+	padding: 8px;
+	background-color: var(--bp);
+}
+.dropdown .dropdown-body:hover {
+	cursor: default;
+}
+.dropdown .dropdown-body a {
+	display: block;
+	padding: 2px;
+	margin: 2px;
+	color: var(--fg);
+	text-decoration: none;
+	font-size: 12pt;
+	font-weight: 400;
+}
+.dropdown .dropdown-body a:hover {
+	cursor: pointer;
+	background-color: var(--bf);
+	text-decoration: underline;
+}
+.dropdown.selected .dropdown-body {
+	visibility: visible;
+}
+.dropdown.selected img {
+	transform: rotate(180deg);
+}
+.display {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	width: 100vw;
+	height: calc(100vh - 96px); /* header is 96px tall */
+	transition:
+		background-color ease 0.25s,
+		height ease 1s;
+}
+.display.scroll {
+	height: 50vh;
+}
+.display pre {
+	border-radius: 8px;
+	border: 1px solid var(--bs);
+	padding: 16px 20px;
+	background-color: var(--cons-bg);
+	color: var(--cons-fg);
+	font-size: 12pt;
+	font-family: "IBM Plex Mono", monospace;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+.purple {
+	color: var(--sp);
+}
+.monospace {
+	font-family: "IBM Plex Mono", monospace;
+}
+section {
+	margin: auto;
+	padding-bottom: 64px;
+	max-width: 960px;
+}
+section h1 {
+	margin: 32px 0;
+	padding: 16px 0;
+	width: 100%;
+	font-size: 24pt;
+	font-weight: 400;
+}
+section h2, h3, p {
+	margin: 16px 0;
+	line-height: 24px;
+}
+section h2 {
+	font-size: 16pt;
+	font-weight: 400;
+}
+section h2.project {
+	margin-bottom: 8px;
+	line-height: 16px;
+}
+section h2.project span.tag {
+	display: inline-block;
+	border-radius: 8px;
+	border: 1px solid var(--bs);
+	padding: 4px 8px;
+	width: fit-content;
+	color: var(--tag-fg);
+	font-weight: 400;
+	font-size: 12pt;
+}
+section h2.project a {
+	font-size: 14pt;
+}
+section h3 {
+	font-size: 12pt;
+	font-weight: 400;
+}
+section p {
+	font-size: 16pt;
+	text-indent: 64px;
+}
+section .imgs {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+section .imgs img {
+	margin: 8px;
+	border-radius: 8px;
+	width: 256px;
+	height: 224px;
+	object-fit: cover;
+}
+section ul {
+	margin: 0;
+	font-size: 16pt;
+}
