@@ -207,6 +207,7 @@ section img.portrait {
 	margin-right: 32px;
 	margin-bottom: 16px;
 	border-radius: 8px;
+	border: 1px solid var(--bb);
 	width: 256px;
 }
 .portrait-container {
