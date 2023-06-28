@@ -125,9 +125,9 @@ header h1 {
 	flex-direction: column;
 	flex-wrap: nowrap;
 	border-radius: 8px;
-	border: 1px solid var(--bs);
+	border: 1px solid var(--bb);
 	padding: 8px;
-	background-color: var(--bp);
+	background-color: var(--bg);
 }
 .dropdown .dropdown-body:hover {
 	cursor: default;
@@ -143,7 +143,7 @@ header h1 {
 }
 .dropdown .dropdown-body a:hover {
 	cursor: pointer;
-	background-color: var(--bf);
+	background-color: var(--bs);
 	text-decoration: underline;
 }
 .dropdown.selected .dropdown-body {
@@ -158,25 +158,25 @@ header h1 {
 	align-items: center;
 	flex-direction: column;
 	flex-wrap: nowrap;
-	width: 100vw;
+	padding: 0 32px;
+	width: calc(100vw - 64px);
 	height: calc(100vh - 96px); /* header is 96px tall */
 	transition:
 		background-color ease 0.25s,
 		height ease 1s;
 }
-.display.scroll {
-	height: 50vh;
-}
 .display pre {
 	border-radius: 8px;
 	border: 1px solid var(--bs);
 	padding: 16px 20px;
+	max-width: calc(100vw - 96px);
 	background-color: var(--cons-bg);
 	color: var(--cons-fg);
 	font-size: 12pt;
 	font-family: "IBM Plex Mono", monospace;
 	white-space: pre-wrap;
 	word-break: break-word;
+	transition: border-color ease 0.25s;
 }
 .purple {
 	color: var(--sp);
@@ -186,6 +186,7 @@ header h1 {
 }
 section {
 	margin: auto;
+	padding: 32px;
 	padding-bottom: 64px;
 	max-width: 960px;
 }
@@ -205,11 +206,20 @@ section h2 {
 	font-weight: 400;
 }
 section h2.project {
+	position: relative;
 	margin-bottom: 8px;
 	line-height: 16px;
 }
+section h2.project .anchor {
+	position: absolute;
+	top: 0;
+	transform: translateY(-128px);
+	z-index: 99;
+	visibility: hidden;
+}
 section h2.project span.tag {
 	display: inline-block;
+	margin: 2px 1px;
 	border-radius: 8px;
 	border: 1px solid var(--bs);
 	padding: 4px 8px;
@@ -217,6 +227,7 @@ section h2.project span.tag {
 	color: var(--tag-fg);
 	font-weight: 400;
 	font-size: 12pt;
+	transition: border-color ease 0.25s;
 }
 section h2.project a {
 	font-size: 14pt;
@@ -228,6 +239,11 @@ section h3 {
 section p {
 	font-size: 16pt;
 	text-indent: 64px;
+}
+section hr {
+	margin: 32px 0;
+	border: 0;
+	border-bottom: 1px solid var(--bb);
 }
 section .imgs {
 	display: flex;
@@ -246,4 +262,33 @@ section .imgs img {
 section ul {
 	margin: 0;
 	font-size: 16pt;
+}
+@media only screen and (max-width: 800px) {
+	header {
+		padding: 32px 32px;
+		width: calc(100vw - 64px);
+	}
+	header .group {
+		display: none;
+	}
+	header.scroll {
+		position: static;
+		border-bottom: 1px solid var(--bg);
+	}
+	.display {
+		height: fit-content;
+	}
+	.display pre {
+		padding: 8px 12px;
+		font-size: 10pt;
+	}
+	section h1 {
+		font-size: 24pt;
+	}
+	section h2 {
+		font-size: 16pt;
+	}
+	section h3, section p, section ul {
+		font-size: 14pt;
+	}
 }

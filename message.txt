@@ -1,3 +1,4 @@
+---- BEGIN MESSAGE ----
 Hello, world!
 
 My name is Micah Baker. I am a passionate software developer, with a keen
@@ -12,3 +13,4 @@ to the Contact section if you would like to reach out to me for offers.
 Best,
 
 Micah
+---- END MESSAGE ----

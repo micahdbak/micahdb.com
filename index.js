@@ -2,8 +2,9 @@ const COMM =
 `wget https://micahbaker.xyz/message.txt -O message.txt
 $ cat message.txt\ \ \ \ 
 \`
-$`;
+$ `;
 const COMM_PROMPT = "micah@localhost~$";
+const COMM_BLOCK = '\u2588';
 const COMM_SPEED = 50;
 const MONTHS = [
 	"January",
@@ -65,10 +66,8 @@ window.onload = async () => {
 
 	window.onscroll = () => {
 		if ((window.scrollY && !header.classList.contains("scroll"))
-		 || (!window.scrollY && header.classList.contains("scroll"))) {
+		 || (!window.scrollY && header.classList.contains("scroll")))
 			header.classList.toggle("scroll");
-			display.classList.toggle("scroll");
-		}
 	};
 	window.onscroll();
 
@@ -81,31 +80,36 @@ window.onload = async () => {
 	}
 
 	let cons = document.getElementById("console");
-	let comm_i, comm_f, inter;
+	let comm_i, comm_block, comm_f, inter;
 
 	comm_i = 0;
-	comm_speed = 50;
+	comm_block = false;
 	comm_f = () => {
 		if (comm_i >= COMM.length) {
-			clearInterval(inter);
+			if (comm_block)
+				cons.innerHTML = cons.innerHTML.slice(0, cons.innerHTML.length - 1);
+			else
+				cons.innerHTML += COMM_BLOCK;
+
+			comm_block = comm_block ? false : true;
+
+			setTimeout(comm_f, COMM_SPEED * 10);
 			return;
 		}
 
-		// increase speed
 		if (COMM[comm_i] == '`') {
 			cons.innerHTML += message;
 			comm_i++;
-			return;
-		}
-
+		} else
 		if (COMM[comm_i] == '$') {
 			cons.innerHTML += COMM_PROMPT;
 		} else
 			cons.innerHTML += COMM[comm_i];
 
 		comm_i++;
+		setTimeout(comm_f, COMM_SPEED);
 	};
-	inter = setInterval(comm_f, COMM_SPEED);
+	inter = setTimeout(comm_f, COMM_SPEED);
 
 	let buttons = document.getElementById("buttons");
 
@@ -138,6 +142,7 @@ window.onload = async () => {
 
 	let col_i = 0;
 	let col_m = new Map();
+	let proj_i = 0;
 
 	for (const p of projs) {
 		let tags = "";
@@ -153,16 +158,19 @@ window.onload = async () => {
 		for (const pt of p.points)
 			points += `<li>${pt}</li>`;
 
-		projects_b.innerHTML += `<a href="#${p.name}">&rarr; ${p.name}</a>`;
+		projects_b.innerHTML += `<a href="#${proj_i}">&rarr; ${p.name}</a>`;
 		projects.innerHTML += `
-			<h2 id=${p.name} class="project">
+			<h2 class="project">
+				<div id=${proj_i} class="anchor"></div>
 				<span class="monospace">${p.date.from[0]} ${MONTHS[p.date.from[1] - 1]}:</span>&nbsp;
 				<b>${p.name}</b>
 				${tags}&nbsp;
 				<a href="${p.link}">View Project &nearr;</a>&nbsp;
 			</h2>
 			<ul>${points}</ul>
+			<hr />
 		`;
+		proj_i++;
 	}
 };
 
