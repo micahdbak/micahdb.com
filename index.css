@@ -26,10 +26,13 @@ body {
 	padding: 0;
 	background-color: var(--bg);
 	color: var(--fg);
-	font-family: "Inter", sans-serif;
+	font-family: "Inter", "Noto Color Emoji", sans-serif;
 }
 h1, h2, h3, p {
 	margin: 4px 0;
+}
+.indent {
+	text-indent: 32px;
 }
 a {
 	color: var(--sp);
@@ -185,10 +188,33 @@ header h1 {
 	font-family: "IBM Plex Mono", monospace;
 }
 section {
+	position: relative;
 	margin: auto;
-	padding: 32px;
+	padding: 0 32px;
 	padding-bottom: 64px;
 	max-width: 960px;
+}
+section .anchor {
+	position: absolute;
+	top: 0;
+	transform: translateY(-128px);
+	z-index: 99;
+	visibility: hidden;
+}
+section img.portrait {
+	display: inline-block;
+	float: left;
+	margin-right: 32px;
+	margin-bottom: 16px;
+	border-radius: 8px;
+	width: 256px;
+}
+.portrait-container {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+	flex-direction: row;
+	flex-wrap: nowrap;
 }
 section h1 {
 	margin: 32px 0;
@@ -209,13 +235,6 @@ section h2.project {
 	position: relative;
 	margin-bottom: 8px;
 	line-height: 16px;
-}
-section h2.project .anchor {
-	position: absolute;
-	top: 0;
-	transform: translateY(-128px);
-	z-index: 99;
-	visibility: hidden;
 }
 section h2.project span.tag {
 	display: inline-block;
@@ -238,7 +257,6 @@ section h3 {
 }
 section p {
 	font-size: 16pt;
-	text-indent: 64px;
 }
 section hr {
 	margin: 32px 0;
@@ -281,6 +299,9 @@ section ul {
 	.display pre {
 		padding: 8px 12px;
 		font-size: 10pt;
+	}
+	.portrait-container {
+		flex-direction: column;
 	}
 	section h1 {
 		font-size: 24pt;

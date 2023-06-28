@@ -6,6 +6,8 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Noto+Color+Emoji&family=Noto+Emoji&display=swap" rel="stylesheet" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/png" href="icon.png" />
 		<link rel="stylesheet" href="index.css" />
 		<script src="index.js"></script>
 	</head>
@@ -18,7 +20,7 @@
 				<button class="btn dropdown">
 					Projects <img src="dropdown.svg" />
 					<div id="projects-buttons" class="dropdown-body">
-						<a href="#projects">Projects</a>
+						<a href="#projs">Projects</a>
 					</div>
 				</button>
 				<a href="#contact" class="btn">Contact</a>
@@ -29,19 +31,63 @@
 			<pre id="console">micah@localhost~$&nbsp;</pre>
 		</div>
 		<div id="sections">
-			<section id="about">
+			<section>
+				<div id="about" class="anchor"></div>
 				<h1>About</h1>
-				<p>Hi there! My name is Micah Baker.</p>
+				<div class="portrait-container">
+					<img src="portrait.png" class="portrait" alt="Portrait" />
+					<div>
+						<p>Hi there!</p>
+						<p class="indent">
+							My name is Micah Baker. I am currently in my
+							second year studying at <b>Simon Fraser University</b>.
+						</p>
+						<p class="indent">
+							I'm interested in <u>research</u>, <u>teaching</u>, and <u>software development</u>.
+							Some of the areas I'm particularly interested in include
+							<u>network structures</u>, <u>cryptography</u>, <u>computer systems</u>,
+							<u>web applications</u>, and <u>operations</u>.<br>
+						</p>
+						<p>
+							I am most confident programming in
+							<b>C</b>, <b>C++</b>, <b>Golang</b>, <b>JavaScript</b>,
+							<b>HTML/CSS</b>, and <b>Python</b>.
+						</p>
+					</div>
+				</div>
+				<p>Here are some fun facts about myself:</p>
+				<ul style="list-style-type: none;">
+					<li>👾 Programming is my hobby, not just my profession.</li>
+					<li>🎶 I listen to a ton of genres (check out my <a href="https://last.fm/user/vraiaux">last.fm</a>).</li>
+					<li>📷 I collect and take photos with analog cameras.</li>
+					<li>🚴‍♂️ I enjoy biking, and hiking.</li>
+				</ul>
+				<p>
+					Below is a list of projects that I have worked on.<br>
+					If you are interested in contacting me, please
+					see the <a href="#contact">Contact</a> section.
+				</p>
 			</section>
 			<section id="projects">
+				<div id="projs" class="anchor"></div>
 				<h1>Projects</h1>
-				<p>I am always working on some sort of project to further my skill.</p>
 				<hr />
 			</section>
-			<section id="contact">
+			<section>
+				<div id="contact" class="anchor"></div>
 				<h1>Contact</h1>
-				<p>Contact information will be available shortly.</p>
+				<p>
+					Please reach out to me via email, or connect to me on LinkedIn.<br>
+					I'll get back to you ASAP! 😊
+				</p>
+				<ul style="list-style-type: none;">
+					<li>Email: <a href="mailto:micah_baker@sfu.ca">micah_baker@sfu.ca</a></li>
+					<li>LinkedIn: <a href="https://linkedin.com/in/micahdbak">/in/micahdbak</a></li>
+				</ul>
 			</section>
+			<div style="padding-top: 96px; padding-bottom: 32px;">
+				<p style="text-align: center;">Micah Baker, June 2023</p>
+			</div>
 		</div>
 	</body>
 </html>

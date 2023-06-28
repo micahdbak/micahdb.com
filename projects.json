@@ -7,7 +7,23 @@
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
 		"link": "https://github.com/micahdbak/micahdbak.github.io",
-		"points": [],
+		"points": [
+			"My portfolio... You're looking at it right now!",
+			"Projects are loaded from a JSON file, and parsed into the DOM."
+		],
+		"desc": ""
+	},
+	{
+		"name": "AI for Education Resources",
+		"date": {
+			"from": [ 2023, 1 ],
+			"to":   [ 2023, 6 ]
+		},
+		"tags": [ "JavaScript", "HTML", "CSS" ],
+		"link": "https://github.com/ai-ed/ai-ed.github.io",
+		"points": [
+			"Developed portal to access AI tooling resources for educational purposes."
+		],
 		"desc": ""
 	},
 	{
@@ -19,6 +35,7 @@
 		"tags": [ "Go", "PostgreSQL", "JavaScript", "HTML", "CSS", "Linux" ],
 		"link": "https://github.com/quadrangles-ca/",
 		"points": [
+			"Social media with real-time commenting and file uploaded capabilities.",
 			"Developed a robust and highly concurrent API using Go.",
 			"WebSockets are used to post comments in real-time to online users."
 		],
@@ -33,6 +50,7 @@
 		"tags": [ "Go", "React", "Node.js", "JavaScript", "HTML", "CSS", "Linux" ],
 		"link": "https://github.com/micahdbak/goblitz",
 		"points": [
+			"(First iteration of Quadrangles; real-time commenting is not implemented.)",
 			"Designed an in-memory database and API using Go.",
 			"Frontend is created with React and deployed with Node.js."
 		],
@@ -47,9 +65,9 @@
 		"tags": [ "C", "Networking", "Sockets", "POSIX Multi-Threading", "Linux" ],
 		"link": "https://github.com/micahdbak/yell",
 		"points": [
-			"Received Best Paper Honorable Mention from Undergraduate Research Symposium at SFU.",
 			"Created decentralized networking library with peer-discovery and binary communication for C and C++ programs.",
-			"Library operates parallel to dependant programs because of implemented POSIX multithreading."
+			"Library operates parallel to dependant programs because of implemented POSIX multithreading.",
+			"Received Best Paper Honorable Mention from Undergraduate Research Symposium at SFU."
 		],
 		"desc": ""
 	},
@@ -77,7 +95,7 @@
 		"link": "https://github.com/micahdbak/exeirus",
 		"points": [
 			"Lead a month-long event where participants solve cryptography puzzles competitively.",
-			"Acting as the project manager, I oversaw the development of games written in JavaScript, and C programs for encryption and decryption of text."
+			"Oversaw development of JavaScript games and C encryption/decryption programs."
 		],
 		"desc": ""
 	},

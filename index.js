@@ -142,6 +142,7 @@ window.onload = async () => {
 
 	let col_i = 0;
 	let col_m = new Map();
+	let tag_hit = new Map();
 	let proj_i = 0;
 
 	for (const p of projs) {
@@ -149,8 +150,13 @@ window.onload = async () => {
 		let points = "";
 
 		for (const t of p.tags) {
-			if (!col_m.has(t))
+			if (!col_m.has(t)) {
 				col_m.set(t, TAG_COLORS[col_i++]);
+				tag_hit.set(t, 0);
+			}
+
+			// increment the number of 'hits' for this tag
+			tag_hit.set(t, tag_hit.get(t) + 1);
 
 			tags += `<span class="tag" style="background-color: ${col_m.get(t)}">${t}</span>`;
 		}
@@ -158,14 +164,14 @@ window.onload = async () => {
 		for (const pt of p.points)
 			points += `<li>${pt}</li>`;
 
-		projects_b.innerHTML += `<a href="#${proj_i}">&rarr; ${p.name}</a>`;
+		projects_b.innerHTML += `<a href="#${proj_i}">&mdash; ${p.name}</a>`;
 		projects.innerHTML += `
 			<h2 class="project">
 				<div id=${proj_i} class="anchor"></div>
 				<span class="monospace">${p.date.from[0]} ${MONTHS[p.date.from[1] - 1]}:</span>&nbsp;
 				<b>${p.name}</b>
 				${tags}&nbsp;
-				<a href="${p.link}">View Project &nearr;</a>&nbsp;
+				<a href="${p.link}">View Project</a>&nbsp;
 			</h2>
 			<ul>${points}</ul>
 			<hr />
