@@ -1,6 +1,7 @@
 :root {
 	--fg: #141414;
 	--sp: #a080a0;
+	--sc: #808080;
 	--bb: #c0c0c0;
 	--bs: #e0e0e0;
 	--bg: #f0f0f0;
@@ -33,6 +34,9 @@ h1, h2, h3, p {
 }
 .indent {
 	text-indent: 32px;
+}
+.relative {
+	position: relative;
 }
 a {
 	color: var(--sp);
@@ -200,6 +204,9 @@ section .anchor {
 	transform: translateY(-128px);
 	z-index: 99;
 	visibility: hidden;
+	width: 2px;
+	height: 2px;
+	background-color: blue;
 }
 section img.portrait {
 	display: inline-block;
@@ -232,12 +239,16 @@ section h2 {
 	font-size: 16pt;
 	font-weight: 400;
 }
-section h2.project {
-	position: relative;
-	margin-bottom: 8px;
-	line-height: 16px;
+section span.date {
+	display: inline-block;
+	color: var(--sc);
+	font-size: 12pt;
 }
-section h2.project span.tag {
+section h2.item {
+	margin-bottom: 8px;
+	line-height: 32px;
+}
+section h2.item span.tag {
 	display: inline-block;
 	margin: 2px 1px;
 	border-radius: 8px;
@@ -247,9 +258,10 @@ section h2.project span.tag {
 	color: var(--tag-fg);
 	font-weight: 400;
 	font-size: 12pt;
+	line-height: 20px;
 	transition: border-color ease 0.25s;
 }
-section h2.project a {
+section h2.item a {
 	font-size: 14pt;
 }
 section h3 {

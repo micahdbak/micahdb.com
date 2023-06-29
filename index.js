@@ -164,19 +164,59 @@ window.onload = async () => {
 		for (const pt of p.points)
 			points += `<li>${pt}</li>`;
 
-		projects_b.innerHTML += `<a href="#${proj_i}">&mdash; ${p.name}</a>`;
+		projects_b.innerHTML += `<a href="#proj${proj_i}">${p.name}</a>`;
 		projects.innerHTML += `
-			<h2 class="project">
-				<div id=${proj_i} class="anchor"></div>
-				<span class="monospace">${p.date.from[0]} ${MONTHS[p.date.from[1] - 1]}:</span>&nbsp;
-				<b>${p.name}</b>
-				${tags}&nbsp;
-				<a href="${p.link}">View Project</a>&nbsp;
+			<h2 class="item relative">
+				<div id="proj${proj_i}" class="anchor"></div>
+				<span class="date monospace">
+					${p.date.from[0]}/${MONTHS[p.date.from[1] - 1]} &ndash;
+					${p.date.to[0] == -1 ? "Present" :
+						p.date.to[0].toString() + "/" + MONTHS[p.date.to[1] - 1]}
+				</span><br>
+				<b>${p.name}</b> (<a href="${p.link}">View Project</a>)<br>
+				${tags}
 			</h2>
 			<ul>${points}</ul>
 			<hr />
 		`;
 		proj_i++;
+	}
+
+	let exps;
+	try {
+		exps = await fetch("experience.json");
+		exps = await exps.json();
+	} catch {
+		exps = [];
+	}
+
+	let experience = document.getElementById("experience");
+	let experience_b = document.getElementById("experience-buttons");
+
+	let exp_i = 0;
+
+	for (const e of exps) {
+		let points = "";
+
+		for (const p of e.points)
+			points += `<li>${p}</li>`;
+
+		experience_b.innerHTML += `<a href="#exp${exp_i}">${e.title}</a>`;
+		experience.innerHTML += `
+			<h2 class="item relative">
+				<div id="exp${exp_i}" class="anchor"></div>
+				<span class="date monospace">
+					${e.date.from[0]}/${MONTHS[e.date.from[1] - 1]} &ndash;
+					${e.date.to[0] == -1 ? "Present" :
+						e.date.to[0].toString() + "/" + MONTHS[e.date.to[1] - 1]}
+				</span><br>
+				<b>${e.title}</b>, ${e.affiliation}<br>
+				<i>${e.location}</i>
+			</h2>
+			<ul>${points}</ul>
+			<hr />
+		`;
+		exp_i++;
 	}
 };
 

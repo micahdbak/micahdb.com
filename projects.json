@@ -3,7 +3,7 @@
 		"name": "micahbaker.xyz",
 		"date": {
 			"from": [ 2023, 6 ],
-			"to":   [ 2023, 6 ]
+			"to":   [ -1, 0 ]
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
 		"link": "https://github.com/micahdbak/micahdbak.github.io",
@@ -17,7 +17,7 @@
 		"name": "AI for Education Resources",
 		"date": {
 			"from": [ 2023, 1 ],
-			"to":   [ 2023, 6 ]
+			"to":   [ -1, 0 ]
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
 		"link": "https://github.com/ai-ed/ai-ed.github.io",
@@ -30,7 +30,7 @@
 		"name": "Quadrangles",
 		"date": {
 			"from": [ 2023, 6 ],
-			"to":   [ 2023, 6 ]
+			"to":   [ -1, 0 ]
 		},
 		"tags": [ "Go", "PostgreSQL", "JavaScript", "HTML", "CSS", "Linux" ],
 		"link": "https://github.com/quadrangles-ca/",

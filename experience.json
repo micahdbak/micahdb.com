@@ -1,0 +1,26 @@
+[
+	{
+		"title": "Director of Educational Events",
+		"affiliation": "Computing Science Student Society",
+		"location": "Simon Fraser University, Burnaby, B.C., Canada",
+		"date": {
+			"from": [ 2023, 4 ],
+			"to":   [ -1, 0 ]
+		},
+		"tags": [ "Event Management", "Technical Workshop Hosting" ],
+		"points": [],
+		"desc": ""
+	},
+	{
+		"title": "First Year Representative",
+		"affiliation": "Computing Science Student Society",
+		"location": "Simon Fraser University, Burnaby, B.C., Canada",
+		"date": {
+			"from": [ 2022, 9 ],
+			"to":   [ 2023, 4 ]
+		},
+		"tags": [ "Event Management", "Technical Workshop Hosting" ],
+		"points": [],
+		"desc": ""
+	}
+]
