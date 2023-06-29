@@ -8,7 +8,8 @@
 		"tags": [ "JavaScript", "HTML", "CSS" ],
 		"link": "https://github.com/micahdbak/micahdbak.github.io",
 		"points": [
-			"My portfolio... You're looking at it right now!",
+			"A repository of my projects and experience.",
+			"All stylesheets (CSS) and HTML are written from scratch, with no derivation from existing frameworks.",
 			"Projects are loaded from a JSON file, and parsed into the DOM."
 		],
 		"innerHTML": []

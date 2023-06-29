@@ -50,8 +50,8 @@ header {
 	flex-wrap: nowrap;
 	margin: auto;
 	border-bottom: 1px solid var(--bg);
-	padding: 32px calc(max(48px, (100vw - 960px) / 2));
-	width: calc(min(960px, 100vw - 96px));
+	padding: 32px calc(max(48px, (100vw - 1280px) / 2));
+	width: calc(min(1280px, 100vw - 96px));
 	height: 32px;
 	background-color: var(--bg);
 	transition:
@@ -76,7 +76,7 @@ header h1 {
 	font-size: 16pt;
 	font-weight: 400;
 }
-.btn {
+.btn, .btn-icon {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -92,27 +92,51 @@ header h1 {
 	font-weight: 400;
 	text-decoration: none;
 	height: 48px;
-	line-height: 16px;
 }
-.btn.icon {
+.btn-icon {
 	border-radius: 50%;
 	padding: 0;
 	width: 48px;
 	height: 48px;
 	font-family: "Inter", "Noto Emoji", sans-serif;
 }
-.btn:hover {
+.btn:hover, .btn-icon:hover {
 	box-shadow: 0 0 0 1px var(--bb);
 	background-color: var(--bp);
 	cursor: pointer;
 }
-.btn:focus {
+.btn:focus, .btn-icon:hover {
 	outline: none;
 }
-.btn.selected {
+.btn.selected, .btn-icon.selected {
 	box-shadow: 0 0 0 1px var(--bb);
 	background-color: var(--bf);
 	color: var(--fg);
+}
+@media only screen and (max-width: 1024px) {
+	header h1 {
+		font-size: 14pt;
+	}
+	header .btn {
+		padding: 0 0px;
+		margin: 0 16px;
+		background-color: var(--bg);
+		font-size: 12pt;
+		transition: none;
+	}
+	header .btn:hover {
+		box-shadow: none;
+		background-color: var(--bg);
+		color: var(--fg);
+	}
+	header .btn.selected {
+		box-shadow: none;
+		background-color: var(--bg);
+		color: var(--fg);
+	}
+	header .btn-icon {
+		margin: 0;
+	}
 }
 .dropdown img {
 	display: inline-block;
