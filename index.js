@@ -142,24 +142,19 @@ window.onload = async () => {
 
 	let col_i = 0;
 	let col_m = new Map();
-	let tag_hit = new Map();
 	let proj_i = 0;
 
 	for (const p of projs) {
 		let tags = "";
-		let points = "";
 
 		for (const t of p.tags) {
-			if (!col_m.has(t)) {
+			if (!col_m.has(t))
 				col_m.set(t, TAG_COLORS[col_i++]);
-				tag_hit.set(t, 0);
-			}
-
-			// increment the number of 'hits' for this tag
-			tag_hit.set(t, tag_hit.get(t) + 1);
 
 			tags += `<span class="tag" style="background-color: ${col_m.get(t)}">${t}</span>`;
 		}
+
+		let points = "";
 
 		for (const pt of p.points)
 			points += `<li>${pt}</li>`;
@@ -177,6 +172,7 @@ window.onload = async () => {
 				${tags}
 			</h2>
 			<ul>${points}</ul>
+			${p.innerHTML.join('\n')}
 			<hr />
 		`;
 		proj_i++;
@@ -193,9 +189,20 @@ window.onload = async () => {
 	let experience = document.getElementById("experience");
 	let experience_b = document.getElementById("experience-buttons");
 
+	// reset col_i
+	col_i = 0;
 	let exp_i = 0;
 
 	for (const e of exps) {
+		let tags = "";
+
+		for (const t of e.tags) {
+			if (!col_m.has(t))
+				col_m.set(t, TAG_COLORS[col_i++]);
+
+			tags += `<span class="tag" style="background-color: ${col_m.get(t)}">${t}</span>`;
+		}
+
 		let points = "";
 
 		for (const p of e.points)
@@ -211,9 +218,11 @@ window.onload = async () => {
 						e.date.to[0].toString() + "/" + MONTHS[e.date.to[1] - 1]}
 				</span><br>
 				<b>${e.title}</b>, ${e.affiliation}<br>
-				<i>${e.location}</i>
+				<i>${e.location}</i><br>
+				${tags}
 			</h2>
 			<ul>${points}</ul>
+			${e.innerHTML.join('\n')}
 			<hr />
 		`;
 		exp_i++;

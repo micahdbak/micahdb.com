@@ -1,5 +1,17 @@
 [
 	{
+		"title": "Jr. Research Assistant",
+		"affiliation": "Computing Science Education Research Lab",
+		"location": "Simon Fraser University, Burnaby, B.C., Canada",
+		"date": {
+			"from": [ 2023, 1 ],
+			"to":   [ -1, 0 ]
+		},
+		"tags": [ "Research", "Web Development", "Volunteering" ],
+		"points": [],
+		"innerHTML": []
+	},
+	{
 		"title": "Director of Educational Events",
 		"affiliation": "Computing Science Student Society",
 		"location": "Simon Fraser University, Burnaby, B.C., Canada",
@@ -7,9 +19,9 @@
 			"from": [ 2023, 4 ],
 			"to":   [ -1, 0 ]
 		},
-		"tags": [ "Event Management", "Technical Workshop Hosting" ],
+		"tags": [ "Event Management", "Technical Workshop Hosting", "Public Speaking", "Volunteering" ],
 		"points": [],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"title": "First Year Representative",
@@ -19,8 +31,32 @@
 			"from": [ 2022, 9 ],
 			"to":   [ 2023, 4 ]
 		},
-		"tags": [ "Event Management", "Technical Workshop Hosting" ],
+		"tags": [ "Event Management", "Public Speaking", "Volunteering" ],
 		"points": [],
-		"desc": ""
+		"innerHTML": []
+	},
+	{
+		"title": "Warehouse Assistant",
+		"affiliation": "UsefulCharts Publishing",
+		"location": "Vancouver, B.C., Canada",
+		"date": {
+			"from": [ 2019, 7 ],
+			"to":   [ 2021, 9 ]
+		},
+		"tags": [ "Information Technology" ],
+		"points": [],
+		"innerHTML": []
+	},
+	{
+		"title": "Volunteer",
+		"affiliation": "FreeGeek",
+		"location": "Vancouver, B.C., Canada",
+		"date": {
+			"from": [ 2019, 7 ],
+			"to":   [ 2020, 9 ]
+		},
+		"tags": [ "Volunteering" ],
+		"points": [],
+		"innerHTML": []
 	}
 ]

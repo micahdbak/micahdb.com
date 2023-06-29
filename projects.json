@@ -11,7 +11,7 @@
 			"My portfolio... You're looking at it right now!",
 			"Projects are loaded from a JSON file, and parsed into the DOM."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "AI for Education Resources",
@@ -24,7 +24,7 @@
 		"points": [
 			"Developed portal to access AI tooling resources for educational purposes."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "Quadrangles",
@@ -39,7 +39,7 @@
 			"Developed a robust and highly concurrent API using Go.",
 			"WebSockets are used to post comments in real-time to online users."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "goblitz.net",
@@ -54,7 +54,7 @@
 			"Designed an in-memory database and API using Go.",
 			"Frontend is created with React and deployed with Node.js."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "Yell Networking Library",
@@ -69,7 +69,7 @@
 			"Library operates parallel to dependant programs because of implemented POSIX multithreading.",
 			"Received Best Paper Honorable Mention from Undergraduate Research Symposium at SFU."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "Computing Science Forums",
@@ -83,7 +83,7 @@
 			"Worked with hackathon team to design a database that stores uploaded content.",
 			"This database (written in C) is capable of communicating with a Flask server through sockets."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "Exeirus Alternative Reality Game",
@@ -97,7 +97,7 @@
 			"Lead a month-long event where participants solve cryptography puzzles competitively.",
 			"Oversaw development of JavaScript games and C encryption/decryption programs."
 		],
-		"desc": ""
+		"innerHTML": []
 	},
 	{
 		"name": "qsim",
@@ -111,6 +111,6 @@
 			"Predicts trajectories of particles using mathematical formulae for gravitational and electromagnetic forces.",
 			"Implemented file format to describe experiments and particle information with high numerical precision."
 		],
-		"desc": ""
+		"innerHTML": []
 	}
 ]
