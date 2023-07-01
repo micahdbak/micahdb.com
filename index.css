@@ -113,6 +113,10 @@ header h1 {
 	background-color: var(--bf);
 	color: var(--fg);
 }
+.btn-icon img {
+	width: 24px;
+	height: 24px;
+}
 @media only screen and (max-width: 1024px) {
 	header h1 {
 		font-size: 14pt;

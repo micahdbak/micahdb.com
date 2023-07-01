@@ -58,6 +58,50 @@ const THEMES = {
 	}
 };
 
+var date = new Date();
+var year = date.getYear();
+var month = date.getMonth();
+
+function getDuration(date) {
+	let dmonths;
+
+	if (date.to[0] == -1) {
+		dmonths = year * 12 + month;
+	} else
+		dmonths = date.to[0] * 12 + date.to[1];
+
+	dmonths -= date.from[0] * 12 + date.from[1];
+	dmonths++;
+
+	let years = Math.floor(dmonths / 12);
+	let months = dmonths - years * 12;
+
+	let duration = `${months} month${months == 1 ? '' : 's'}.`;
+
+	if (years > 0)
+		duration = `${years} year${years == 1 ? '' : 's'}, ${duration}`;
+
+	return duration;
+}
+
+let t = "light";
+
+function toggleTheme(b) {
+	if (t == "light") {
+		b.innerHTML = "🌞";
+		t = "dark";
+	} else {
+		b.innerHTML = "💤";
+		t = "light";
+	}
+
+	let r = document.querySelector(":root");
+	let props = [ "--fg", "--sp", "--bb", "--bs", "--bg", "--bp", "--bf" ];
+
+	for (const p of props)
+	r.style.setProperty(p, THEMES[t][p]);
+}
+
 let sel = null;
 
 window.onload = async () => {
@@ -70,6 +114,11 @@ window.onload = async () => {
 			header.classList.toggle("scroll");
 	};
 	window.onscroll();
+
+	theme_btn = document.getElementById("theme-btn");
+	theme_btn.onclick = () => {
+		toggleTheme(theme_btn);
+	};
 
 	let message;
 	try {
@@ -116,7 +165,7 @@ window.onload = async () => {
 	for (const b of buttons.children) {
 		b.onclick = () => {
 			if (sel != null) {
-				sel.classList.toggle("selected");
+				sel.classList.remove("selected");
 
 				if (sel == b) {
 					sel = null;
@@ -124,8 +173,16 @@ window.onload = async () => {
 				}
 			}
 
+			if (!b.classList.contains("dropdown"))
+				setTimeout(() => {
+					b.classList.remove("selected");
+
+					if (sel == b)
+						sel = null;
+				}, 500); // deselect this button after 0.5s
+
 			sel = b;
-			sel.classList.toggle("selected");
+			sel.classList.add("selected");
 		};
 	}
 
@@ -159,14 +216,17 @@ window.onload = async () => {
 		for (const pt of p.points)
 			points += `<li>${pt}</li>`;
 
+		let duration = getDuration(p.date);
+
 		projects_b.innerHTML += `<a href="#proj${proj_i}">${p.name}</a>`;
 		projects.innerHTML += `
 			<h2 class="item relative">
 				<div id="proj${proj_i}" class="anchor"></div>
 				<span class="date monospace">
-					${p.date.from[0]}/${MONTHS[p.date.from[1] - 1]} &ndash;
+					${p.date.from[0]}/${MONTHS[p.date.from[1]]} &ndash;
 					${p.date.to[0] == -1 ? "Present" :
-						p.date.to[0].toString() + "/" + MONTHS[p.date.to[1] - 1]}
+						p.date.to[0].toString() + "/" + MONTHS[p.date.to[1]]};
+					${duration}
 				</span><br>
 				<b>${p.name}</b> (<a href="${p.link}">View Project</a>)<br>
 				${tags}
@@ -208,14 +268,17 @@ window.onload = async () => {
 		for (const p of e.points)
 			points += `<li>${p}</li>`;
 
+		let duration = getDuration(e.date);
+
 		experience_b.innerHTML += `<a href="#exp${exp_i}">${e.title}</a>`;
 		experience.innerHTML += `
 			<h2 class="item relative">
 				<div id="exp${exp_i}" class="anchor"></div>
 				<span class="date monospace">
-					${e.date.from[0]}/${MONTHS[e.date.from[1] - 1]} &ndash;
+					${e.date.from[0]}/${MONTHS[e.date.from[1]]} &ndash;
 					${e.date.to[0] == -1 ? "Present" :
-						e.date.to[0].toString() + "/" + MONTHS[e.date.to[1] - 1]}
+						e.date.to[0].toString() + "/" + MONTHS[e.date.to[1]]};
+					${duration}
 				</span><br>
 				<b>${e.title}</b>, ${e.affiliation}<br>
 				<i>${e.location}</i><br>
@@ -228,21 +291,3 @@ window.onload = async () => {
 		exp_i++;
 	}
 };
-
-let t = "light";
-
-function toggleTheme(b) {
-	if (t == "light") {
-		b.innerHTML = "🌞";
-		t = "dark";
-	} else {
-		b.innerHTML = "💤";
-		t = "light";
-	}
-
-	let r = document.querySelector(":root");
-	let props = [ "--fg", "--sp", "--bb", "--bs", "--bg", "--bp", "--bf" ];
-
-	for (const p of props)
-		r.style.setProperty(p, THEMES[t][p]);
-}

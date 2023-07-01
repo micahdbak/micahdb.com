@@ -2,7 +2,7 @@
 	{
 		"name": "micahbaker.xyz",
 		"date": {
-			"from": [ 2023, 6 ],
+			"from": [ 2023, 5 ],
 			"to":   [ -1, 0 ]
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
@@ -17,7 +17,7 @@
 	{
 		"name": "AI for Education Resources",
 		"date": {
-			"from": [ 2023, 1 ],
+			"from": [ 2023, 0 ],
 			"to":   [ -1, 0 ]
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
@@ -30,7 +30,7 @@
 	{
 		"name": "Quadrangles",
 		"date": {
-			"from": [ 2023, 6 ],
+			"from": [ 2023, 5 ],
 			"to":   [ -1, 0 ]
 		},
 		"tags": [ "Go", "PostgreSQL", "JavaScript", "HTML", "CSS", "Linux" ],
@@ -40,13 +40,18 @@
 			"Developed a robust and highly concurrent API using Go.",
 			"WebSockets are used to post comments in real-time to online users."
 		],
-		"innerHTML": []
+		"innerHTML": [
+			"<p>",
+				"<!--Quadrangles is live! If you are a student at Simon Fraser University, you will be able to post.<br>-->",
+				"<a href=\"https://quadrangles.ca\">Go to Quadrangles</a>",
+			"</p>"
+		]
 	},
 	{
 		"name": "goblitz.net",
 		"date": {
-			"from": [ 2023, 5 ],
-			"to":   [ 2023, 5 ]
+			"from": [ 2023, 4 ],
+			"to":   [ 2023, 4 ]
 		},
 		"tags": [ "Go", "React", "Node.js", "JavaScript", "HTML", "CSS", "Linux" ],
 		"link": "https://github.com/micahdbak/goblitz",
@@ -60,8 +65,8 @@
 	{
 		"name": "Yell Networking Library",
 		"date": {
-			"from": [ 2023, 2 ],
-			"to":   [ 2023, 4 ]
+			"from": [ 2023, 1 ],
+			"to":   [ 2023, 3 ]
 		},
 		"tags": [ "C", "Networking", "Sockets", "POSIX Multi-Threading", "Linux" ],
 		"link": "https://github.com/micahdbak/yell",
@@ -75,8 +80,8 @@
 	{
 		"name": "Computing Science Forums",
 		"date": {
-			"from": [ 2023, 1 ],
-			"to":   [ 2023, 1 ]
+			"from": [ 2023, 0 ],
+			"to":   [ 2023, 0 ]
 		},
 		"tags": [ "C", "Sockets", "Python", "Flask", "HTML", "CSS", "JavaScript", "Linux" ],
 		"link": "https://github.com/micahdbak/nwhacks2023",
@@ -89,8 +94,8 @@
 	{
 		"name": "Exeirus Alternative Reality Game",
 		"date": {
-			"from": [ 2023, 1 ],
-			"to":   [ 2023, 1 ]
+			"from": [ 2023, 0 ],
+			"to":   [ 2023, 0 ]
 		},
 		"tags": [ "C", "Python", "Flask", "HTML", "CSS", "JavaScript", "Linux" ],
 		"link": "https://github.com/micahdbak/exeirus",
@@ -103,8 +108,8 @@
 	{
 		"name": "qsim",
 		"date": {
-			"from": [ 2022, 1 ],
-			"to":   [ 2022, 1 ]
+			"from": [ 2021, 10 ],
+			"to":   [ 2022, 0 ]
 		},
 		"tags": [ "C", "POSIX Multi-Threading", "Linux" ],
 		"link": "https://github.com/micahdbak/qsim",
