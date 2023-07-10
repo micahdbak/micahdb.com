@@ -313,6 +313,7 @@ section .imgs {
 }
 section .imgs img {
 	margin: 8px;
+	border: 1px solid var(--bb);
 	border-radius: 8px;
 	width: 256px;
 	height: 224px;

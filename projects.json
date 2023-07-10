@@ -25,7 +25,10 @@
 		"points": [
 			"Developed portal to access AI tooling resources for educational purposes."
 		],
-		"innerHTML": []
+		"innerHTML": [
+            "<div class=\"imgs\"><img src=\"static/ai-ed.png\" /></div>",
+			"<p><a href=\"https://quadrangles.ca\">Go to AI-ED</a></p>"
+        ]
 	},
 	{
 		"name": "Quadrangles",
@@ -41,6 +44,7 @@
 			"WebSockets are used to post comments in real-time to online users."
 		],
 		"innerHTML": [
+            "<div class=\"imgs\"><img src=\"static/quadrangles.png\" /></div>",
 			"<p>",
 				"<!--Quadrangles is live! If you are a student at Simon Fraser University, you will be able to post.<br>-->",
 				"<a href=\"https://quadrangles.ca\">Go to Quadrangles</a>",
