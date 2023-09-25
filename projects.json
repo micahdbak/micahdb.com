@@ -1,54 +1,75 @@
 [
 	{
-		"name": "micahbaker.xyz",
+		"name": "PacMacro",
 		"date": {
 			"from": [ 2023, 5 ],
-			"to":   [ -1, 0 ]
+			"to":   [ 2023, 9 ]
 		},
-		"tags": [ "JavaScript", "HTML", "CSS" ],
-		"link": "https://github.com/micahdbak/micahdbak.github.io",
+		"tags": [ "Go", "JavaScript", "HTML", "CSS" ],
+		"link": "https://github.com/csss-pacmacro/pacmacro-2023",
 		"points": [
-			"A repository of my projects and experience.",
-			"All stylesheets (CSS) and HTML are written from scratch, with no derivation from existing frameworks.",
-			"Projects are loaded from a JSON file, and parsed into the DOM."
+            "PacMan; but in real life.",
+            "Players connect to PacMacro on mobile devices with cellular data.",
+            "GPS information is streamed to connected players and visible on a map.",
+            "PacMacro ran with approx. 50 attendees during SFU CSSS's Frosh Week 2023."
 		],
-		"innerHTML": []
+		"innerHTML": [
+            "<div class=\"imgs\">",
+            "<img src=\"static/pacmacro_1.png\">",
+            "<img src=\"static/pacmacro_2.png\">",
+            "</div>"
+        ]
 	},
 	{
 		"name": "AI for Education Resources",
 		"date": {
 			"from": [ 2023, 0 ],
-			"to":   [ -1, 0 ]
+			"to":   [ 2023, 9 ]
 		},
 		"tags": [ "JavaScript", "HTML", "CSS" ],
 		"link": "https://github.com/ai-ed/ai-ed.github.io",
 		"points": [
-			"Developed portal to access AI tooling resources for educational purposes."
+			"Repository of AI resources for educational purposes."
 		],
 		"innerHTML": [
             "<div class=\"imgs\"><img src=\"static/ai-ed.png\" /></div>",
 			"<p><a href=\"https://ai-ed.github.io\">Go to AI-ED</a></p>"
         ]
 	},
+    {
+        "name": "GAOL: Graphics And Object Library",
+        "date": {
+            "from": [ 2023, 7 ],
+            "to":   [ 2023, 9 ]
+        },
+        "tags": [ "C++", "SDL2" ],
+        "link": "https://github.com/micahdbak/cpp-gaol",
+        "points": [
+            "2D graphics engine intended for particle simulations."
+        ],
+        "innerHTML": [
+            "<div class=\"imgs\"><img src=\"static/gaol.png\" /></div>"
+        ]
+    },
 	{
 		"name": "Quadrangles",
 		"date": {
 			"from": [ 2023, 5 ],
-			"to":   [ -1, 0 ]
+			"to":   [ 2023, 7 ]
 		},
 		"tags": [ "Go", "PostgreSQL", "JavaScript", "HTML", "CSS", "Linux" ],
 		"link": "https://github.com/quadrangles-ca/",
 		"points": [
-			"Social media with real-time commenting and file uploaded capabilities.",
-			"Developed a robust and highly concurrent API using Go.",
-			"WebSockets are used to post comments in real-time to online users."
+			"Social media with real-time commenting and file upload capabilities.",
+			"Commenting takes advantage of the concurrency of goroutines.",
+			"WebSockets route communications of active users."
 		],
 		"innerHTML": [
             "<div class=\"imgs\"><img src=\"static/quadrangles.png\" /></div>",
-			"<p>",
-				"<!--Quadrangles is live! If you are a student at Simon Fraser University, you will be able to post.<br>-->",
+			"<!--<p>",
+				"Quadrangles is live! If you are a student at Simon Fraser University, you will be able to post.<br>",
 				"<a href=\"https://quadrangles.ca\">Go to Quadrangles</a>",
-			"</p>"
+			"</p>-->"
 		]
 	},
 	{
@@ -75,11 +96,13 @@
 		"tags": [ "C", "Networking", "Sockets", "POSIX Multi-Threading", "Linux" ],
 		"link": "https://github.com/micahdbak/yell",
 		"points": [
-			"Created decentralized networking library with peer-discovery and binary communication for C and C++ programs.",
-			"Library operates parallel to dependant programs because of implemented POSIX multithreading.",
-			"Received Best Paper Honorable Mention from Undergraduate Research Symposium at SFU."
+			"Decentralized networking library with peer-discovery and binary communication for C and C++ programs.",
+			"Library operates parallel to dependant programs with POSIX multithreading.",
+			"Received Best Paper Honorable Mention award after presentation during Undergraduate Research Symposium at SFU."
 		],
-		"innerHTML": []
+		"innerHTML": [
+            "<div class=\"imgs\"><img src=\"static/yell.png\"></div>"
+        ]
 	},
 	{
 		"name": "Computing Science Forums",

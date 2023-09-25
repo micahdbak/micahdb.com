@@ -1,5 +1,5 @@
 const COMM =
-`wget https://micahbaker.xyz/message.txt -O message.txt
+`wget https://micahdb.com/message.txt -O message.txt
 $ cat message.txt\ \ \ \ 
 \`
 $ `;
