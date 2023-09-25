@@ -11,7 +11,7 @@
         "points": [
             "Developed Brave's IoT devices that combat the opiod crisis in the US and Canada.",
             "Engaged in SCRUM development processes.",
-            "Worked with Jekins CI/CD pipelines."
+            "Worked with Travis CI/CD pipelines."
         ],
         "innerHTML": []
     },
