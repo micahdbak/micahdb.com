@@ -1,5 +1,1 @@
-# micahdb.com
-
-This repository holds the source code for my <a href="https://micahdb.xyz">personal website</a>.
-
-Information regarding my interests, projects, and experience can be found here.
+Go to <a href="https://micahdb.com">micahdb.com</a>!
