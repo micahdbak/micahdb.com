@@ -1,0 +1,55 @@
+body {
+	padding: 2rem;
+	max-width: 800px;
+}
+h2 {
+	font-weight: 400;
+}
+h3 {
+	font-size: 12pt;
+	margin-bottom: 6pt;
+}
+hr {
+	border: none;
+	border-bottom: 1px dotted black;
+}
+ul {
+	margin-top: 0;
+}
+li {
+	margin-bottom: 8pt;
+}
+li li {
+	margin-bottom: 0;
+}
+/* everything below is WIP */
+.horizontal-row {
+	display: flex;
+	flex-flow: row wrap;
+	margin-top: 0;
+	margin-bottom: 6pt;
+}
+.hover-gallery {
+	position: relative;
+	display: inline;
+	border: 1px dotted black;
+}
+.hover-gallery > div {
+	display: none;
+}
+.hover-gallery:hover > div {
+	display: flex;
+	flex-flow: row nowrap;
+	gap: 4px;
+	position: absolute;
+	top: 12pt;
+	left: 0;
+	background-color: #e0e0e0;
+	border: 1px solid black;
+	padding: 8px;
+}
+.hover-gallery:hover > div img {
+	max-width: 128px;
+	max-height: 128px;
+	object-fit: contain;
+}
