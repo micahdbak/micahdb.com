@@ -1,8 +1,10 @@
 body {
-	padding: 2rem;
+	padding: 32pt;
 	max-width: 800px;
+	margin: auto;
 }
 h2 {
+	font-size: 16pt;
 	font-weight: 400;
 }
 h3 {
