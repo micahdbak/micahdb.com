@@ -80,7 +80,7 @@ export function Main() {
         width: "100vw",
         height: "100vh"
       }}
-      className="bg-emerald-300 flex flex-col justify-center items-center gap-4"
+      className="bg-blue-300 flex flex-col justify-center items-center gap-4"
     >
       <div className="bg-white rounded-lg p-10 flex flex-col items-center relative">
         {pages[page]}
