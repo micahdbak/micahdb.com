@@ -609,9 +609,9 @@ video {
   border-radius: 0.5rem;
 }
 
-.bg-emerald-300 {
+.bg-blue-300 {
   --tw-bg-opacity: 1;
-  background-color: rgb(110 231 183 / var(--tw-bg-opacity));
+  background-color: rgb(147 197 253 / var(--tw-bg-opacity));
 }
 
 .bg-white {
