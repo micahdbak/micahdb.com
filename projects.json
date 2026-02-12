@@ -1,0 +1,94 @@
+[
+    {
+        "title": "Gestures for Robotic Guide Dog",
+        "href": null,
+        "alt": "Paper [TBA]",
+        "repo": "https://github.com/micahdbak/isaac_ros_gestures",
+        "start": "2025 Sep",
+        "end": "2026 Apr",
+        "subtitle": "CMPT 415/416 project, as an Undergraduate Researcher at [Tangent Lab](https://tangent.cs.sfu.ca/).",
+        "body": [
+            "Computer vision system for recognizing motion gestures.",
+            "Used online learning model for personalized interaction."
+        ]
+    },
+    {
+        "title": "Cheddar and Feta",
+        "href": "https://store.steampowered.com/app/4266860/Cheddar_and_Feta/",
+        "alt": "Steam",
+        "repo": "https://github.com/micahdbak/cheddar-and-feta",
+        "start": "2025 Jan",
+        "end": "2026 Feb",
+        "subtitle": null,
+        "body": [
+            "A short two-player cooperative adventure where you must save Cheddar and Feta from the perils of a militarized fire ant colony.",
+            "Game and engine built using [SDL3](https://libsdl.org/) and [libdatachannel](https://libdatachannel.org/) in C++."
+        ]
+    },
+    {
+        "title": "GleebleGlob",
+        "href": "https://web.archive.org/web/20250315161759/http://gleebleglob.club/",
+        "alt": "Archived Website",
+        "repo": "https://github.com/Vixlump/GG",
+        "start": "2024 May",
+        "end": "2024 June",
+        "subtitle": "Won **3 Awards** at [StormHacks 2024](https://stormhacksoctober2024.devpost.com/) (300+ participants).",
+        "body": [
+            "Video streaming service on your terminal written in C++.",
+            "MP4 videos are decoded by [FFmpeg](https://www.ffmpeg.org/), and displayed in ASCII.",
+            "Video storage and authentication facilitated by remote server."
+        ]
+    },
+    {
+        "title": "droppr.net",
+        "href": "https://droppr.net",
+        "alt": "Website",
+        "repo": "https://github.com/micahdbak/droppr",
+        "start": "2024 Mar",
+        "end": "2025 Jun",
+        "subtitle": "2<sup>nd</sup> place at [CSSS Mountain Madness 2024](https://madness.sfucsss.org/2024/) (191 participants).",
+        "body": [
+            "Send files over the internet using the peer-to-peer [WebRTC API](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).",
+            "Large files are chunked into blobs and stored in the [IndexedDB API](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for fast retrieval and recovery of failed packets.",
+            "Signal channel written in Go uses six-letter codes for peer discovery."
+        ]
+    },
+    {
+        "title": "PacMacro",
+        "href": null,
+        "alt": null,
+        "repo": "https://github.com/micahdbak/pacmacro",
+        "start": "2023 Jun",
+        "end": "2023 Sep",
+        "subtitle": "Built for CSSS Frosh Week [2023](https://frosh.sfucsss.org/2023/frosh) and [2024](https://frosh.sfucsss.org/2024/).",
+        "body": [
+            "PacMan played in real life with a mobile web application.",
+            "Uses [Geolocation API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API) to track player locations.",
+            "Synchronizes players with a WebSocket server written in Go."
+        ]
+    },
+    {
+        "title": "Yell P2P Library",
+        "href": null,
+        "alt": null,
+        "repo": "https://github.com/micahdbak/yell",
+        "start": "2023 Feb",
+        "end": "2023 Apr",
+        "subtitle": "Awarded **Best Paper Honourable Mention** at the SFU Undergraduate Research Symposium.",
+        "body": [
+            "C library for P2P applications and example chat program.",
+            "Built using BSD sockets for POSIX-compliant systems."
+        ]
+    },
+    {
+        "title": "EXEIRUS ARG",
+        "href": null,
+        "alt": null,
+        "repo": "https://github.com/micahdbak/exeirus",
+        "start": "2022 Dec",
+        "end": "2023 Feb",
+        "body": [
+            "ARG where players compete by solving cryptographic puzzles."
+        ]
+    }
+]
