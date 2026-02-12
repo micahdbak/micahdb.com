@@ -1,1 +1,1 @@
-# <a href="https://micahdb.com">micahdb.com</a>
+# [micahdb.com](https://micahdb.com)
