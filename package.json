@@ -1,27 +1,17 @@
 {
-	"name": "micahdb.com",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"homepage": "https://micahdb.com/",
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"predeploy": "npm run build",
-		"deploy": "gh-pages -d build"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.0",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltejs/kit": "^2.50.2",
-		"@sveltejs/vite-plugin-svelte": "^6.2.4",
-		"@tailwindcss/vite": "^4.1.18",
-		"gh-pages": "^6.3.0",
-		"snarkdown": "^2.0.0",
-		"svelte": "^5.49.2",
-		"tailwindcss": "^4.1.18",
-		"vite": "^7.3.1"
-	}
+  "name": "micahdb.com",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "copy-public": "mkdir -p build && cp -r ./public/* ./build",
+    "build": "bun run copy-public && bun build ./src/index.ts --outdir ./build",
+    "dev": "bun run copy-public && bun build ./src/index.ts --outdir ./build --watch"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
 }
