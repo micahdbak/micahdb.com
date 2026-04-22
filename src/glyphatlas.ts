@@ -1,0 +1,32 @@
+const main = () => {
+	const canvas = document.getElementById("2d") as HTMLCanvasElement;
+	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+	ctx.font = "256px 'JetBrains Mono', monospace";
+	const metrics: TextMetrics = ctx.measureText("M");
+
+	const glyphWidth: number = Math.ceil(metrics.width);
+	const glyphHeight: number = Math.ceil(metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent);
+	console.log(`Glyph width: ${glyphWidth}, height: ${glyphHeight}`);
+
+	// ASCII table:
+	// - <33 -> space and non renderable characters
+	// - 33 -> !
+	// - 126 -> ~
+	// - >126 -> extended characters
+	const glyphStart = 33;
+	const glyphEnd = 126;
+
+	canvas.width = glyphWidth * (glyphEnd - glyphStart + 1);
+	canvas.height = glyphHeight;
+
+	ctx.font = "256px 'JetBrains Mono', monospace"; // need to reset
+	ctx.fillStyle = "white";
+
+	for (let c = glyphStart; c <= glyphEnd; c++) {
+		const x = glyphWidth * (c - glyphStart);
+		ctx.fillText(String.fromCharCode(c), x, 256);
+	}
+};
+
+main();

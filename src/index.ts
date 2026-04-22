@@ -1,5 +1,3 @@
-// index.ts
-
 import { Renderer } from "./renderer.js";
 
 const main = () => {
