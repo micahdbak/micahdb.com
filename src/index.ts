@@ -1,25 +1,30 @@
 import { Renderer } from "./renderer.js";
 
-const main = () => {
+const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
 		const renderer = new Renderer(canvas);
+		await renderer.init();
+
 		let mouseX = 128,
 			mouseY = 128;
 
 		const f = () => {
-			renderer.setVertices(
-				new Float32Array([
-					mouseX - 64,
-					mouseY + 32,
-					mouseX + 64,
-					mouseY + 32,
-					mouseX,
-					mouseY - 48
-				])
+			const ratio = renderer.glyphHeight / renderer.glyphWidth;
+			const w = 32;
+			const h = 32 * ratio;
+			const uMax = renderer.glyphWidth / renderer.glyphAtlasWidth;
+			const vMax = renderer.glyphHeight / renderer.glyphAtlasHeight;
+
+			const vTL = [mouseX - w / 2, mouseY - h, 1, 1, 1, 0, 0];
+			const vBL = [mouseX - w / 2, mouseY, 1, 1, 1, 0, vMax];
+			const vTR = [mouseX + w / 2, mouseY - h, 1, 1, 1, uMax, 0];
+			const vBR = [mouseX + w / 2, mouseY, 1, 1, 1, uMax, vMax];
+
+			renderer.setData(
+				new Float32Array([...vTL, ...vBL, ...vTR, ...vTR, ...vBL, ...vBR])
 			);
-			renderer.setColours(new Float32Array([0, 0, 1, 0, 1, 0, 1, 0, 0]));
 			renderer.draw();
 			requestAnimationFrame(f);
 		};
@@ -31,12 +36,13 @@ const main = () => {
 		});
 
 		window.addEventListener("pointermove", (e) => {
-			mouseX = 2 * e.clientX;
-			mouseY = 2 * e.clientY;
+			const dpr = window.devicePixelRatio || 1;
+			mouseX = dpr * e.clientX;
+			mouseY = dpr * e.clientY;
 		});
 	} catch (err: Error) {
 		console.error(err);
 	}
 };
 
-main();
+await main();

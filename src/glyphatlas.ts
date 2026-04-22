@@ -6,7 +6,9 @@ const main = () => {
 	const metrics: TextMetrics = ctx.measureText("M");
 
 	const glyphWidth: number = Math.ceil(metrics.width);
-	const glyphHeight: number = Math.ceil(metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent);
+	const glyphHeight: number = Math.ceil(
+		metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
+	);
 	console.log(`Glyph width: ${glyphWidth}, height: ${glyphHeight}`);
 
 	// ASCII table:
@@ -17,8 +19,24 @@ const main = () => {
 	const glyphStart = 33;
 	const glyphEnd = 126;
 
-	canvas.width = glyphWidth * (glyphEnd - glyphStart + 1);
-	canvas.height = glyphHeight;
+	const glyphsWidth = glyphWidth * (glyphEnd - glyphStart + 1);
+	const glyphsHeight = glyphHeight;
+
+	let canvasWidth = 2;
+	let canvasHeight = 2;
+
+	// for WebGL 1.0 mip maps, the canvas width/height must be powers of 2
+
+	while (canvasWidth < glyphsWidth) {
+		canvasWidth *= 2;
+	}
+
+	while (canvasHeight < glyphsHeight) {
+		canvasHeight *= 2;
+	}
+
+	canvas.width = canvasWidth;
+	canvas.height = canvasHeight;
 
 	ctx.font = "256px 'JetBrains Mono', monospace"; // need to reset
 	ctx.fillStyle = "white";
