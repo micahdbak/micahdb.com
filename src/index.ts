@@ -17,10 +17,10 @@ const main = async () => {
 			const uMax = renderer.glyphWidth / renderer.glyphAtlasWidth;
 			const vMax = renderer.glyphHeight / renderer.glyphAtlasHeight;
 
-			const vTL = [mouseX - w / 2, mouseY - h, 1, 1, 1, 0, 0];
-			const vBL = [mouseX - w / 2, mouseY, 1, 1, 1, 0, vMax];
-			const vTR = [mouseX + w / 2, mouseY - h, 1, 1, 1, uMax, 0];
-			const vBR = [mouseX + w / 2, mouseY, 1, 1, 1, uMax, vMax];
+			const vTL = [mouseX - w / 2, mouseY - h, 0.5, 0.5, 0.5, 1, 1, 1, 0, 0];
+			const vBL = [mouseX - w / 2, mouseY, 0.5, 0.5, 0.5, 1, 1, 1, 0, vMax];
+			const vTR = [mouseX + w / 2, mouseY - h, 0.5, 0.5, 0.5, 1, 1, 1, uMax, 0];
+			const vBR = [mouseX + w / 2, mouseY, 0.5, 0.5, 0.5, 1, 1, 1, uMax, vMax];
 
 			renderer.setData(
 				new Float32Array([...vTL, ...vBL, ...vTR, ...vTR, ...vBL, ...vBR])

@@ -10,7 +10,8 @@ class Renderer {
 
 	private attributes: {
 		position: number;
-		colour: number;
+		bgColour: number;
+		fgColour: number;
 		uvCoord: number;
 	};
 
@@ -19,11 +20,13 @@ class Renderer {
 		glyphAtlas: WebGLUniformLocation;
 	};
 
+	// each vertex is stored in the vertex buffer like so:
 	// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes)
-	// 2. vec3 a_colour (3 floats * 4 bytes = 12 bytes)
-	// 3. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes)
-	// total/stride: 28 bytes per vertex
-	private stride = 28;
+	// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes)
+	// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes)
+	// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes)
+	// total/stride: 40 bytes
+	private stride = 40;
 
 	private vbo: WebGLBuffer;
 	private count: number;
@@ -48,7 +51,7 @@ class Renderer {
 			return;
 		}
 
-		this.gl = gl!;
+		this.gl = gl;
 		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		this.gl.clearDepth(1.0);
 	}
@@ -110,13 +113,15 @@ class Renderer {
 		// store attribute locations
 		this.attributes = {
 			position: this.gl.getAttribLocation(this.program, "a_position"),
-			colour: this.gl.getAttribLocation(this.program, "a_colour"),
+			bgColour: this.gl.getAttribLocation(this.program, "a_bgColour"),
+			fgColour: this.gl.getAttribLocation(this.program, "a_fgColour"),
 			uvCoord: this.gl.getAttribLocation(this.program, "a_uvCoord")
 		};
 
 		if (
 			this.attributes.position < 0 ||
-			this.attributes.colour < 0 ||
+			this.attributes.bgColour < 0 ||
+			this.attributes.fgColour < 0 ||
 			this.attributes.uvCoord < 0
 		) {
 			throw new Error("When getting attribute locations");
@@ -145,7 +150,10 @@ class Renderer {
 				}
 
 				this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+
+				// prevent texture halos/outlines from filtering
 				this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
 				this.gl.texImage2D(
 					this.gl.TEXTURE_2D,
 					0,
@@ -156,11 +164,13 @@ class Renderer {
 				);
 
 				this.gl.generateMipmap(this.gl.TEXTURE_2D);
+
 				this.gl.texParameteri(
 					this.gl.TEXTURE_2D,
 					this.gl.TEXTURE_MIN_FILTER,
 					this.gl.LINEAR_MIPMAP_LINEAR
 				);
+
 				this.gl.texParameteri(
 					this.gl.TEXTURE_2D,
 					this.gl.TEXTURE_MAG_FILTER,
@@ -170,6 +180,7 @@ class Renderer {
 				this.glyphAtlasTexture = texture;
 				this.glyphAtlasWidth = image.width;
 				this.glyphAtlasHeight = image.height;
+
 				resolve();
 			};
 		});
@@ -188,9 +199,10 @@ class Renderer {
 
 		// each vertex is stored in the vertex buffer like so:
 		// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes) [offset: 0]
-		// 2. vec3 a_colour (3 floats * 4 bytes = 12 bytes) [offset: 8]
-		// 3. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes) [offset: 20]
-		// total/stride: 28 bytes
+		// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes) [offset: 8]
+		// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes) [offset: 20]
+		// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes) [offset: 32]
+		// total/stride: 40 bytes
 
 		// position
 		this.gl.vertexAttribPointer(
@@ -203,25 +215,36 @@ class Renderer {
 		);
 		this.gl.enableVertexAttribArray(this.attributes.position);
 
-		// colour
+		// bgColour
 		this.gl.vertexAttribPointer(
-			this.attributes.colour,
+			this.attributes.bgColour,
 			3,
 			this.gl.FLOAT,
 			false,
 			this.stride,
 			8
 		);
-		this.gl.enableVertexAttribArray(this.attributes.colour);
+		this.gl.enableVertexAttribArray(this.attributes.bgColour);
 
-		// UV coordinae
+		// fgColour
+		this.gl.vertexAttribPointer(
+			this.attributes.fgColour,
+			3,
+			this.gl.FLOAT,
+			false,
+			this.stride,
+			20
+		);
+		this.gl.enableVertexAttribArray(this.attributes.fgColour);
+
+		// uvCoord
 		this.gl.vertexAttribPointer(
 			this.attributes.uvCoord,
 			2,
 			this.gl.FLOAT,
 			false,
 			this.stride,
-			20
+			32
 		);
 		this.gl.enableVertexAttribArray(this.attributes.uvCoord);
 	}
@@ -232,7 +255,7 @@ class Renderer {
 		this.canvas.width = this.canvas.clientWidth * dpr;
 		this.canvas.height = this.canvas.clientHeight * dpr;
 
-		// prepare projection matrix
+		// create projection matrix
 		const projection = Mat4.create();
 		Mat4.orthographic(
 			projection,
@@ -248,6 +271,7 @@ class Renderer {
 		this.gl.uniformMatrix4fv(this.uniforms.projection, false, projection);
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
+		// set cols/rows for use with other class(es)
 		this.cols = this.canvas.width / this.glyphWidth;
 		this.rows = this.canvas.height / this.glyphHeight;
 	}
