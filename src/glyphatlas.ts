@@ -5,14 +5,15 @@ const main = () => {
 	canvas.width = 4096;
 	canvas.height = 4096;
 
-	ctx.font = "256px 'JetBrains Mono', monospace";
+	ctx.font = "160px 'JetBrains Mono', monospace";
 	ctx.fillStyle = "white";
 
-	const metrics: TextMetrics = ctx.measureText("M");
+	const metrics: TextMetrics = ctx.measureText("█");
 	const glyphWidth: number = Math.ceil(metrics.width);
 	const glyphHeight: number = Math.ceil(
 		metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
 	);
+	const padding = 8;
 
 	console.log(`Glyph width: ${glyphWidth}, height: ${glyphHeight}`);
 
@@ -21,18 +22,23 @@ const main = () => {
 	// - 33 -> !
 	// - 126 -> ~
 	// - >126 -> extended characters
-	const glyphStart = 33;
-	const glyphEnd = 126;
+	// Box drawing characters:
+	// - 0x2500...0x259f
+	const ranges = [
+		[33, 126],
+		[0x2500, 0x259f]
+	];
 
-	const nHorizGlyphs = Math.floor(4096 / glyphWidth);
+	const nHorizGlyphs = Math.floor(4096 / (glyphWidth + padding));
 
-	ctx.fillStyle = "white";
-
-	for (let c = glyphStart; c <= glyphEnd; c++) {
-		const i = c - glyphStart + 1;
-		const x = (i % nHorizGlyphs) * glyphWidth;
-		const y = 256 + Math.floor(i / nHorizGlyphs) * glyphHeight;
-		ctx.fillText(String.fromCharCode(c), x, y);
+	let i = 1;
+	for (const [start, end] of ranges) {
+		for (let c = start; c <= end; c++) {
+			const x = (i % nHorizGlyphs) * (glyphWidth + padding);
+			const y = 160 + Math.floor(i / nHorizGlyphs) * (glyphHeight + padding);
+			ctx.fillText(String.fromCharCode(c), x, y);
+			i++;
+		}
 	}
 };
 

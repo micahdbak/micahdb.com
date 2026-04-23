@@ -1,19 +1,22 @@
 import { Renderer } from "./renderer.ts";
 
 class Glyph {
-	static readonly WIDTH = 154;
-	static readonly HEIGHT = 338;
+	static readonly WIDTH = 97;
+	static readonly HEIGHT = 211;
+	static readonly PADDING = 8;
 	static readonly WTOH_RATIO = Glyph.HEIGHT / Glyph.WIDTH;
 	static readonly ATLAS_WIDTH = 4096;
 	static readonly ATLAS_HEIGHT = 4096;
-	static readonly ATLAS_COLS = Math.floor(Glyph.ATLAS_WIDTH / Glyph.WIDTH);
+	static readonly ATLAS_COLS = Math.floor(
+		Glyph.ATLAS_WIDTH / (Glyph.WIDTH + Glyph.PADDING)
+	);
 	static readonly VERTICES = 6;
 
 	public bgColour: [number, number, number];
 	public fgColour: [number, number, number];
 	public charCode: number;
 
-	// charCode: in range ['!' (33), '~' (126)] or empty glyph otherwise
+	// charCode: in range ['!' (33), '~' (126)], or box drawing, or empty glyph otherwise
 	constructor(
 		bgColour: [number, number, number],
 		fgColour: [number, number, number],
@@ -48,14 +51,17 @@ class Glyph {
 	}
 
 	static topLeft(charCode: number): [number, number] {
-		// 33: '!', 126: '~'; range of [renderable] ASCII characters
-		if (charCode < 33 || charCode > 126) {
+		let i: number;
+		if (charCode >= 33 && charCode <= 126) {
+			i = charCode - 33 + 1;
+		} else if (charCode >= 0x2500 && charCode <= 0x259f) {
+			i = charCode - 0x2500 + 95;
+		} else {
 			return [0, 0]; // empty glyph
 		}
 
-		const i = charCode - 33 + 1;
-		const x = (i % Glyph.ATLAS_COLS) * Glyph.WIDTH;
-		const y = Math.floor(i / Glyph.ATLAS_COLS) * Glyph.HEIGHT;
+		const x = (i % Glyph.ATLAS_COLS) * (Glyph.WIDTH + Glyph.PADDING);
+		const y = Math.floor(i / Glyph.ATLAS_COLS) * (Glyph.HEIGHT + Glyph.PADDING);
 
 		return [x, y];
 	}
@@ -71,10 +77,20 @@ class Glyph {
 		const u = data[8];
 		const v = data[9];
 
-		const col = Math.round((u * Glyph.ATLAS_WIDTH) / Glyph.WIDTH);
-		const row = Math.round((v * Glyph.ATLAS_HEIGHT) / Glyph.HEIGHT);
+		const col = Math.round(
+			(u * Glyph.ATLAS_WIDTH) / (Glyph.WIDTH + Glyph.PADDING)
+		);
+		const row = Math.round(
+			(v * Glyph.ATLAS_HEIGHT) / (Glyph.HEIGHT + Glyph.PADDING)
+		);
 		const i = row * Glyph.ATLAS_COLS + col;
-		const charCode = i + 32;
+
+		let charCode = 0;
+		if (i >= 1 && i <= 94) {
+			charCode = i + 32;
+		} else if (i >= 95 && i <= 254) {
+			charCode = i - 95 + 0x2500;
+		}
 
 		return new Glyph(bgColour, fgColour, charCode);
 	}
@@ -211,11 +227,28 @@ class Terminal {
 				const glyphIndex = r * this.cols + c;
 				const floatIndex = glyphIndex * Terminal.FLOATS_PER_GLYPH;
 
-				const glyph = new Glyph(
-					shadow && shadowRegion ? shadowColour : colour,
-					[1, 1, 1],
-					0
-				);
+				let charCode = 0;
+				let fgColour = [1, 1, 1];
+				let bgColour = colour;
+
+				if (shadow && shadowRegion) {
+					bgColour = shadowColour;
+					fgColour = [1, 1, 1];
+				} else {
+					if (r === row && c === col)
+						charCode = 0x250c; // ┌
+					else if (r === row && c === col + w - 1)
+						charCode = 0x2510; // ┐
+					else if (r === row + h - 1 && c === col)
+						charCode = 0x2514; // └
+					else if (r === row + h - 1 && c === col + w - 1)
+						charCode = 0x2518; // ┘
+					else if (r === row || r === row + h - 1)
+						charCode = 0x2500; // ─
+					else if (c === col || c === col + w - 1) charCode = 0x2502; // │
+				}
+
+				const glyph = new Glyph(bgColour, fgColour, charCode);
 
 				this.data.set(
 					glyph.data([x, y], this.cellWidth, this.cellHeight),
