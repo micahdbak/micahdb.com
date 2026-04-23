@@ -1,30 +1,26 @@
-import { Mat4 } from "./math.ts";
-
 import VERTEX_SHADER from "./main.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./main.frag" with { type: "text" };
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
-	// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes)
-	// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes)
-	// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes)
-	// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes)
-	// total/stride: 40 bytes
-	static readonly STRIDE = 40;
+	// 2. uint a_bgColour (1 byte)
+	// 3. uint a_fgColour (1 byte)
+	// 4. uint a_charCode (2 bytes)
+	// total/stride: 4 bytes
+	static readonly STRIDE = 4;
 
-	private canvas: HTMLCanvasElement;
-	private gl: WebGLRenderingContext;
+	private gl: WebGL2RenderingContext;
 	private program: WebGLProgram;
 
 	private attributes: {
-		position: number;
 		bgColour: number;
 		fgColour: number;
-		uvCoord: number;
+		charCode: number;
 	};
 
 	private uniforms: {
-		projection: WebGLUniformLocation;
+		rows: WebGLUniformLocation;
+		cols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
 	};
 
@@ -33,13 +29,14 @@ class Renderer {
 
 	private glyphAtlasTexture: WebGLTexture;
 
+	public canvas: HTMLCanvasElement;
 	public canvasWidth: number;
 	public canvasHeight: number;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 
-		const gl: WebGLRenderingContext | null = this.canvas.getContext("webgl");
+		const gl: WebGL2RenderingContext | null = this.canvas.getContext("webgl2");
 		if (!gl) {
 			window.location.href = "./about.html";
 			return;
@@ -54,7 +51,6 @@ class Renderer {
 		this.initializeProgram();
 		await this.initializeGlyphAtlas();
 		this.initializeVBO();
-		this.updateProjectionMatrix();
 	}
 
 	initializeProgram() {
@@ -106,30 +102,29 @@ class Renderer {
 
 		// store attribute locations
 		this.attributes = {
-			position: this.gl.getAttribLocation(this.program, "a_position"),
 			bgColour: this.gl.getAttribLocation(this.program, "a_bgColour"),
 			fgColour: this.gl.getAttribLocation(this.program, "a_fgColour"),
-			uvCoord: this.gl.getAttribLocation(this.program, "a_uvCoord")
+			charCode: this.gl.getAttribLocation(this.program, "a_charCode")
 		};
 
 		if (
-			this.attributes.position < 0 ||
 			this.attributes.bgColour < 0 ||
 			this.attributes.fgColour < 0 ||
-			this.attributes.uvCoord < 0
+			this.attributes.charCode < 0
 		) {
 			throw new Error("When getting attribute locations");
 		}
 
-		const projection = this.gl.getUniformLocation(this.program, "u_projection");
+		const rows = this.gl.getUniformLocation(this.program, "u_rows");
+		const cols = this.gl.getUniformLocation(this.program, "u_cols");
 		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
 
-		if (!projection || !glyphAtlas) {
+		if (!rows || !cols || !glyphAtlas) {
 			throw new Error("When getting uniform locations");
 		}
 
 		// store uniform locations
-		this.uniforms = { projection, glyphAtlas };
+		this.uniforms = { rows, cols, glyphAtlas };
 	}
 
 	async initializeGlyphAtlas() {
@@ -190,87 +185,64 @@ class Renderer {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 
 		// each vertex is stored in the vertex buffer like so:
-		// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes) [offset: 0]
-		// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes) [offset: 8]
-		// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes) [offset: 20]
-		// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes) [offset: 32]
-		// total/stride: 40 bytes
-
-		// position
-		this.gl.vertexAttribPointer(
-			this.attributes.position,
-			2,
-			this.gl.FLOAT,
-			false,
-			Renderer.STRIDE,
-			0
-		);
-		this.gl.enableVertexAttribArray(this.attributes.position);
+		// 2. uint a_bgColour (1 byte) [offset: 0]
+		// 3. uint a_fgColour (1 byte) [offset: 1]
+		// 4. uint a_charCode (2 bytes) [offset: 2]
+		// total/stride: 4 bytes
 
 		// bgColour
-		this.gl.vertexAttribPointer(
+		this.gl.vertexAttribIPointer(
 			this.attributes.bgColour,
-			3,
-			this.gl.FLOAT,
-			false,
+			1,
+			this.gl.UNSIGNED_BYTE,
 			Renderer.STRIDE,
-			8
+			0
 		);
 		this.gl.enableVertexAttribArray(this.attributes.bgColour);
 
 		// fgColour
-		this.gl.vertexAttribPointer(
+		this.gl.vertexAttribIPointer(
 			this.attributes.fgColour,
-			3,
-			this.gl.FLOAT,
-			false,
+			1,
+			this.gl.UNSIGNED_BYTE,
 			Renderer.STRIDE,
-			20
+			1
 		);
 		this.gl.enableVertexAttribArray(this.attributes.fgColour);
 
-		// uvCoord
-		this.gl.vertexAttribPointer(
-			this.attributes.uvCoord,
-			2,
-			this.gl.FLOAT,
-			false,
+		// charCode
+		this.gl.vertexAttribIPointer(
+			this.attributes.charCode,
+			1,
+			this.gl.UNSIGNED_SHORT,
 			Renderer.STRIDE,
-			32
+			2
 		);
-		this.gl.enableVertexAttribArray(this.attributes.uvCoord);
+		this.gl.enableVertexAttribArray(this.attributes.charCode);
 	}
 
-	updateProjectionMatrix() {
+	resize(
+		canvasWidth: number,
+		canvasHeight: number,
+		rows: number,
+		cols: number
+	) {
 		// update canvas size
-		const dpr = window.devicePixelRatio || 1;
-		this.canvas.width = this.canvas.clientWidth * dpr;
-		this.canvas.height = this.canvas.clientHeight * dpr;
+		this.canvas.width = canvasWidth;
+		this.canvas.height = canvasHeight;
 
-		// create projection matrix
-		const projection = Mat4.create();
-		Mat4.orthographic(
-			projection,
-			0,
-			this.canvas.width,
-			this.canvas.height,
-			0,
-			-1,
-			1
-		);
+		// update uniforms & viewport
+		this.gl.uniform1i(this.uniforms.rows, rows);
+		this.gl.uniform1i(this.uniforms.cols, cols);
+		this.gl.viewport(0, 0, canvasWidth, canvasHeight);
 
-		// update uniform & viewport
-		this.gl.uniformMatrix4fv(this.uniforms.projection, false, projection);
-		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-
-		this.canvasWidth = this.canvas.width;
-		this.canvasHeight = this.canvas.height;
+		// set count to the number of vertices
+		this.count = rows * cols * 6;
 	}
 
-	setData(data: Float32Array) {
+	setData(data: Uint32Array) {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
-		this.count = Math.floor(data.length / (Renderer.STRIDE / 4));
 	}
 
 	draw() {

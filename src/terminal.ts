@@ -1,104 +1,46 @@
 import { Renderer } from "./renderer.ts";
 
 class Glyph {
-	static readonly WIDTH = 97;
-	static readonly HEIGHT = 211;
-	static readonly PADDING = 8;
-	static readonly WTOH_RATIO = Glyph.HEIGHT / Glyph.WIDTH;
-	static readonly ATLAS_WIDTH = 4096;
-	static readonly ATLAS_HEIGHT = 4096;
-	static readonly ATLAS_COLS = Math.floor(
-		Glyph.ATLAS_WIDTH / (Glyph.WIDTH + Glyph.PADDING)
-	);
 	static readonly VERTICES = 6;
 
-	public bgColour: [number, number, number];
-	public fgColour: [number, number, number];
+	public bgColour: number;
+	public fgColour: number;
 	public charCode: number;
 
-	// charCode: in range ['!' (33), '~' (126)], or box drawing, or empty glyph otherwise
 	constructor(
-		bgColour: [number, number, number],
-		fgColour: [number, number, number],
-		charCode: number
+		public bgColour: number,
+		public fgColour: number,
+		public charCode: number
 	) {
 		this.bgColour = bgColour;
 		this.fgColour = fgColour;
 		this.charCode = charCode;
 	}
 
-	data(position: [number, number], width: number, height: number): number[] {
-		const tl = Glyph.topLeft(this.charCode);
-		const br = [tl[0] + Glyph.WIDTH, tl[1] + Glyph.HEIGHT];
-
-		const uvMin = [tl[0] / Glyph.ATLAS_WIDTH, tl[1] / Glyph.ATLAS_HEIGHT];
-		const uvMax = [br[0] / Glyph.ATLAS_WIDTH, br[1] / Glyph.ATLAS_HEIGHT];
-
-		// positions of each vertex
-		const p0 = position;
-		const p1 = [position[0], position[1] + height];
-		const p2 = [position[0] + width, position[1] + height];
-		const p3 = [position[0] + width, position[1]];
-
-		// vertex data
-		const v0 = [...p0, ...this.bgColour, ...this.fgColour, ...uvMin];
-		const v1 = [...p1, ...this.bgColour, ...this.fgColour, uvMin[0], uvMax[1]];
-		const v2 = [...p2, ...this.bgColour, ...this.fgColour, ...uvMax];
-		const v3 = [...p3, ...this.bgColour, ...this.fgColour, uvMax[0], uvMin[1]];
-
-		// two triangles, composed of the computed vertices
-		return [...v0, ...v1, ...v3, ...v1, ...v2, ...v3];
+	data(): Uint32Array {
+		// Uint32 containing bgColour (1 byte), fgColour (1 byte), charCode (2 bytes)
+		const packed =
+			(this.bgColour & 0xff) |
+			((this.fgColour & 0xff) << 8) |
+			((this.charCode & 0xffff) << 16);
+		return new Uint32Array(Glyph.VERTICES).fill(packed);
 	}
 
-	static topLeft(charCode: number): [number, number] {
-		let i: number;
-		if (charCode >= 33 && charCode <= 126) {
-			i = charCode - 33 + 1;
-		} else if (charCode >= 0x2500 && charCode <= 0x259f) {
-			i = charCode - 0x2500 + 95;
-		} else {
-			return [0, 0]; // empty glyph
-		}
-
-		const x = (i % Glyph.ATLAS_COLS) * (Glyph.WIDTH + Glyph.PADDING);
-		const y = Math.floor(i / Glyph.ATLAS_COLS) * (Glyph.HEIGHT + Glyph.PADDING);
-
-		return [x, y];
-	}
-
-	static fromData(data: Float32Array): Glyph {
-		// extract bgColour and fgColour by index
-		const bgColour = [data[2], data[3], data[4]];
-		const fgColour = [data[5], data[6], data[7]];
-
-		// the first vertex is in the top left of the glyph
-		// the UV coordinates for this vertex are all that's
-		// needed to find which character this glyph is
-		const u = data[8];
-		const v = data[9];
-
-		const col = Math.round(
-			(u * Glyph.ATLAS_WIDTH) / (Glyph.WIDTH + Glyph.PADDING)
+	static fromData(data: Uint32Array): Glyph {
+		const packed = data[0];
+		return new Glyph(
+			packed & 0xff,
+			(packed >> 8) & 0xff,
+			(packed >> 16) & 0xffff
 		);
-		const row = Math.round(
-			(v * Glyph.ATLAS_HEIGHT) / (Glyph.HEIGHT + Glyph.PADDING)
-		);
-		const i = row * Glyph.ATLAS_COLS + col;
-
-		let charCode = 0;
-		if (i >= 1 && i <= 94) {
-			charCode = i + 32;
-		} else if (i >= 95 && i <= 254) {
-			charCode = i - 95 + 0x2500;
-		}
-
-		return new Glyph(bgColour, fgColour, charCode);
 	}
 }
 
 class Terminal {
 	static readonly CELL_SIZE = 10;
-	static readonly FLOATS_PER_GLYPH = Glyph.VERTICES * (Renderer.STRIDE / 4);
+	static readonly WTOH_RATIO = 211 / 97;
+	static readonly BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
+	static readonly UINT32_PER_GLYPH = Glyph.VERTICES;
 
 	private renderer: Renderer;
 
@@ -111,7 +53,7 @@ class Terminal {
 	private cols: number;
 	private rows: number;
 
-	private data: Float32Array;
+	private data: Uint32Array;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.renderer = new Renderer(canvas);
@@ -119,10 +61,9 @@ class Terminal {
 
 	async init() {
 		await this.renderer.init();
-		this.resize(); // populates this.glyphs
+		this.resize();
 
 		window.addEventListener("resize", () => {
-			this.renderer.updateProjectionMatrix();
 			this.resize();
 		});
 
@@ -136,26 +77,25 @@ class Terminal {
 	resize() {
 		const dpr = window.devicePixelRatio || 1;
 		this.cellWidth = Terminal.CELL_SIZE * dpr;
-		this.cellHeight = Glyph.WTOH_RATIO * this.cellWidth;
+		this.cellHeight = Terminal.WTOH_RATIO * this.cellWidth;
 
-		this.cols = Math.floor(this.renderer.canvasWidth / this.cellWidth);
-		this.rows = Math.floor(this.renderer.canvasHeight / this.cellHeight);
+		const canvasWidth = this.renderer.canvas.clientWidth * dpr;
+		const canvasHeight = this.renderer.canvas.clientHeight * dpr;
 
-		const count = this.rows * this.cols * Terminal.FLOATS_PER_GLYPH;
-		this.data = new Float32Array(count);
+		this.cols = Math.floor(canvasWidth / this.cellWidth);
+		this.rows = Math.floor(canvasHeight / this.cellHeight);
+
+		const count = this.rows * this.cols * Terminal.UINT32_PER_GLYPH;
+		this.data = new Uint32Array(count);
+
+		this.renderer.resize(canvasWidth, canvasHeight, this.rows, this.cols);
 	}
 
 	clear() {
 		this.data.fill(0);
 	}
 
-	drawText(
-		text: string,
-		row: number,
-		col: number,
-		bg: [number, number, number],
-		fg: [number, number, number]
-	) {
+	drawText(text: string, row: number, col: number, bg: number, fg: number) {
 		let r = row;
 		let c = col;
 		let i = 0;
@@ -184,18 +124,12 @@ class Terminal {
 				continue;
 			}
 
-			const x = c * this.cellWidth;
-			const y = r * this.cellHeight;
-
 			const glyphIndex = r * this.cols + c;
-			const floatIndex = glyphIndex * Terminal.FLOATS_PER_GLYPH;
+			const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
 			const glyph = new Glyph(bg, fg, text.charCodeAt(i));
 
-			this.data.set(
-				glyph.data([x, y], this.cellWidth, this.cellHeight),
-				floatIndex
-			);
+			this.data.set(glyph.data(), uint32Index);
 
 			c++;
 			i++;
@@ -207,8 +141,8 @@ class Terminal {
 		col: number,
 		h: number,
 		w: number,
-		colour: [number, number, number],
-		shadowColour: [number, number, number],
+		colour: number,
+		shadowColour: number,
 		shadow: boolean
 	) {
 		for (let r = row; r <= row + h && r < this.rows; r++) {
@@ -221,28 +155,25 @@ class Terminal {
 					continue;
 				}
 
-				const x = c * this.cellWidth;
-				const y = r * this.cellHeight;
-
 				const glyphIndex = r * this.cols + c;
-				const floatIndex = glyphIndex * Terminal.FLOATS_PER_GLYPH;
+				const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
 				let charCode = 0;
-				let fgColour = [1, 1, 1];
-				let bgColour = colour;
+				let fgColour = 1;
+				let bgColour = 0;
 
 				if (shadow && shadowRegion) {
 					bgColour = shadowColour;
-					fgColour = [1, 1, 1];
+					fgColour = 1;
 				} else {
-					if (r === row && c === col)
-						charCode = 0x250c; // ┌
+					const edgeChars = "╮╭╯╰";
+					if (r === row && c === col) charCode = edgeChars.codePointAt(1);
 					else if (r === row && c === col + w - 1)
-						charCode = 0x2510; // ┐
+						charCode = edgeChars.codePointAt(0);
 					else if (r === row + h - 1 && c === col)
-						charCode = 0x2514; // └
+						charCode = edgeChars.codePointAt(3);
 					else if (r === row + h - 1 && c === col + w - 1)
-						charCode = 0x2518; // ┘
+						charCode = edgeChars.codePointAt(2);
 					else if (r === row || r === row + h - 1)
 						charCode = 0x2500; // ─
 					else if (c === col || c === col + w - 1) charCode = 0x2502; // │
@@ -250,10 +181,7 @@ class Terminal {
 
 				const glyph = new Glyph(bgColour, fgColour, charCode);
 
-				this.data.set(
-					glyph.data([x, y], this.cellWidth, this.cellHeight),
-					floatIndex
-				);
+				this.data.set(glyph.data(), uint32Index);
 			}
 		}
 	}
@@ -276,24 +204,18 @@ class Terminal {
 				row = this.rows - 1;
 			}
 
-			const x = col * this.cellWidth;
-			const y = row * this.cellHeight;
-
 			const glyphIndex = row * this.cols + col;
-			const floatIndex = glyphIndex * Terminal.FLOATS_PER_GLYPH;
+			const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
 			const cellData = this.data.subarray(
-				floatIndex,
-				floatIndex + Terminal.FLOATS_PER_GLYPH
+				uint32Index,
+				uint32Index + Terminal.UINT32_PER_GLYPH
 			);
 			const glyph = Glyph.fromData(cellData);
-			glyph.bgColour = [1, 1, 1];
-			glyph.fgColour = [0, 0, 0];
+			glyph.bgColour = 1;
+			glyph.fgColour = 0;
 
-			this.data.set(
-				glyph.data([x, y], this.cellWidth, this.cellHeight),
-				floatIndex
-			);
+			this.data.set(glyph.data(), uint32Index);
 		}
 
 		this.renderer.setData(this.data);

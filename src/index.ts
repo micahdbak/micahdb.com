@@ -32,9 +32,9 @@ const main = async () => {
 
 		const f = () => {
 			terminal.clear();
-			terminal.drawBox(5, 10, 10, 35, [0, 0, 0], [0.0, 0.2, 0.6], true);
-			terminal.drawText(TEXT, 6, 12, [0, 0, 0], [0.2, 0.75, 0.2]);
-			terminal.drawText(ASCII_ART, 4, 48, [0, 0, 0], [0.9, 0.7, 0.5]);
+			terminal.drawBox(5, 10, 10, 35, 0, 1, true);
+			terminal.drawText(TEXT, 6, 12, 0, 1);
+			terminal.drawText(ASCII_ART, 4, 48, 0, 1);
 			terminal.draw();
 			requestAnimationFrame(f);
 		};
