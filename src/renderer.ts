@@ -4,6 +4,14 @@ import VERTEX_SHADER from "./main.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./main.frag" with { type: "text" };
 
 class Renderer {
+	// each vertex is stored in the vertex buffer like so:
+	// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes)
+	// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes)
+	// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes)
+	// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes)
+	// total/stride: 40 bytes
+	static readonly STRIDE = 40;
+
 	private canvas: HTMLCanvasElement;
 	private gl: WebGLRenderingContext;
 	private program: WebGLProgram;
@@ -20,27 +28,13 @@ class Renderer {
 		glyphAtlas: WebGLUniformLocation;
 	};
 
-	// each vertex is stored in the vertex buffer like so:
-	// 1. vec2 a_position (2 floats * 4 bytes = 8 bytes)
-	// 2. vec3 a_bgColour (3 floats * 4 bytes = 12 bytes)
-	// 3. vec3 a_fgColour (3 floats * 4 bytes = 12 bytes)
-	// 4. vec2 a_uvCoord (2 floats * 4 bytes = 8 bytes)
-	// total/stride: 40 bytes
-	private stride = 40;
-
 	private vbo: WebGLBuffer;
 	private count: number;
 
 	private glyphAtlasTexture: WebGLTexture;
 
-	public glyphWidth = 154;
-	public glyphHeight = 338;
-
-	public glyphAtlasWidth: number;
-	public glyphAtlasHeight: number;
-
-	public cols: number;
-	public rows: number;
+	public canvasWidth: number;
+	public canvasHeight: number;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
@@ -178,8 +172,6 @@ class Renderer {
 				);
 
 				this.glyphAtlasTexture = texture;
-				this.glyphAtlasWidth = image.width;
-				this.glyphAtlasHeight = image.height;
 
 				resolve();
 			};
@@ -210,7 +202,7 @@ class Renderer {
 			2,
 			this.gl.FLOAT,
 			false,
-			this.stride,
+			Renderer.STRIDE,
 			0
 		);
 		this.gl.enableVertexAttribArray(this.attributes.position);
@@ -221,7 +213,7 @@ class Renderer {
 			3,
 			this.gl.FLOAT,
 			false,
-			this.stride,
+			Renderer.STRIDE,
 			8
 		);
 		this.gl.enableVertexAttribArray(this.attributes.bgColour);
@@ -232,7 +224,7 @@ class Renderer {
 			3,
 			this.gl.FLOAT,
 			false,
-			this.stride,
+			Renderer.STRIDE,
 			20
 		);
 		this.gl.enableVertexAttribArray(this.attributes.fgColour);
@@ -243,7 +235,7 @@ class Renderer {
 			2,
 			this.gl.FLOAT,
 			false,
-			this.stride,
+			Renderer.STRIDE,
 			32
 		);
 		this.gl.enableVertexAttribArray(this.attributes.uvCoord);
@@ -271,15 +263,14 @@ class Renderer {
 		this.gl.uniformMatrix4fv(this.uniforms.projection, false, projection);
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
-		// set cols/rows for use with other class(es)
-		this.cols = this.canvas.width / this.glyphWidth;
-		this.rows = this.canvas.height / this.glyphHeight;
+		this.canvasWidth = this.canvas.width;
+		this.canvasHeight = this.canvas.height;
 	}
 
 	setData(data: Float32Array) {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
-		this.count = Math.floor(data.length / (this.stride / 4));
+		this.count = Math.floor(data.length / (Renderer.STRIDE / 4));
 	}
 
 	draw() {

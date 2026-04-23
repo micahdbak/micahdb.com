@@ -29,7 +29,7 @@ const main = () => {
 	ctx.fillStyle = "white";
 
 	for (let c = glyphStart; c <= glyphEnd; c++) {
-		const i = c - glyphStart;
+		const i = c - glyphStart + 1;
 		const x = (i % nHorizGlyphs) * glyphWidth;
 		const y = 256 + Math.floor(i / nHorizGlyphs) * glyphHeight;
 		ctx.fillText(String.fromCharCode(c), x, y);

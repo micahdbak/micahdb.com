@@ -1,45 +1,31 @@
-import { Renderer } from "./renderer.js";
+import { Terminal } from "./terminal.ts";
+
+const TEXT =
+	"SYSTEM ALERT\n\nStatus: STABLE\nCortex: LINKED\n\nWelcome, Operator.";
 
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const renderer = new Renderer(canvas);
-		await renderer.init();
-
-		let mouseX = 128,
-			mouseY = 128;
+		const terminal = new Terminal(canvas);
+		await terminal.init();
 
 		const f = () => {
-			const ratio = renderer.glyphHeight / renderer.glyphWidth;
-			const w = 32;
-			const h = 32 * ratio;
-			const uMax = renderer.glyphWidth / renderer.glyphAtlasWidth;
-			const vMax = renderer.glyphHeight / renderer.glyphAtlasHeight;
-
-			const vTL = [mouseX - w / 2, mouseY - h, 0.5, 0.5, 0.5, 1, 1, 1, 0, 0];
-			const vBL = [mouseX - w / 2, mouseY, 0.5, 0.5, 0.5, 1, 1, 1, 0, vMax];
-			const vTR = [mouseX + w / 2, mouseY - h, 0.5, 0.5, 0.5, 1, 1, 1, uMax, 0];
-			const vBR = [mouseX + w / 2, mouseY, 0.5, 0.5, 0.5, 1, 1, 1, uMax, vMax];
-
-			renderer.setData(
-				new Float32Array([...vTL, ...vBL, ...vTR, ...vTR, ...vBL, ...vBR])
+			terminal.clear();
+			terminal.drawBox(5, 10, 10, 35, [0.0, 0.2, 0.4], [0.1, 0.1, 0.1], true);
+			terminal.drawText(
+				"root@micahdb.com: ~ ",
+				6,
+				12,
+				[0.0, 0.2, 0.4],
+				[1.0, 1.0, 1.0]
 			);
-			renderer.draw();
+			terminal.drawText(TEXT, 8, 12, [0.0, 0.2, 0.4], [0.0, 1.0, 0.8]);
+			terminal.draw();
 			requestAnimationFrame(f);
 		};
 
 		requestAnimationFrame(f);
-
-		window.addEventListener("resize", () => {
-			renderer.updateProjectionMatrix();
-		});
-
-		window.addEventListener("pointermove", (e) => {
-			const dpr = window.devicePixelRatio || 1;
-			mouseX = dpr * e.clientX;
-			mouseY = dpr * e.clientY;
-		});
 	} catch (err: Error) {
 		console.error(err);
 	}
