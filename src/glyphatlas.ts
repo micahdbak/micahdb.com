@@ -1,18 +1,19 @@
-const main = () => {
+const main = async () => {
 	const canvas = document.getElementById("2d") as HTMLCanvasElement;
 	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 	canvas.width = 4096;
 	canvas.height = 4096;
 
+	await document.fonts.load("160px 'JetBrains Mono'");
 	ctx.font = "160px 'JetBrains Mono', monospace";
 	ctx.fillStyle = "white";
 
 	const metrics: TextMetrics = ctx.measureText("█");
 	const glyphWidth: number = Math.ceil(metrics.width);
-	const glyphHeight: number = Math.ceil(
-		metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent
-	);
+	const ascent: number = Math.ceil(metrics.fontBoundingBoxAscent);
+	const descent: number = Math.ceil(metrics.fontBoundingBoxDescent);
+	const glyphHeight: number = ascent + descent;
 	const padding = 8;
 
 	console.log(`Glyph width: ${glyphWidth}, height: ${glyphHeight}`);
@@ -31,15 +32,25 @@ const main = () => {
 
 	const nHorizGlyphs = Math.floor(4096 / (glyphWidth + padding));
 
+	const drawGlyph = (char: string, i: number) => {
+		const cellX = (i % nHorizGlyphs) * (glyphWidth + padding);
+		const cellY = Math.floor(i / nHorizGlyphs) * (glyphHeight + padding);
+
+		ctx.save();
+		ctx.beginPath();
+		ctx.rect(cellX, cellY, glyphWidth, glyphHeight);
+		ctx.clip();
+		ctx.fillText(char, cellX, cellY + ascent);
+		ctx.restore();
+	};
+
 	let i = 1;
 	for (const [start, end] of ranges) {
 		for (let c = start; c <= end; c++) {
-			const x = (i % nHorizGlyphs) * (glyphWidth + padding);
-			const y = 160 + Math.floor(i / nHorizGlyphs) * (glyphHeight + padding);
-			ctx.fillText(String.fromCharCode(c), x, y);
+			drawGlyph(String.fromCharCode(c), i);
 			i++;
 		}
 	}
 };
 
-main();
+await main();

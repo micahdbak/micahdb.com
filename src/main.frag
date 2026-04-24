@@ -1,18 +1,21 @@
 #version 300 es
 
+#define PALETTE_SIZE 18
+
 precision mediump float;
 
 uniform sampler2D u_glyphAtlas;
+uniform vec3 u_palette[PALETTE_SIZE];
 
 in vec3 v_bgColour;
 in vec3 v_fgColour;
 in vec2 v_uvCoord;
+flat in uint v_charCode;
 
 out vec4 fragColor;
 
 void main() {
-	// nothing to render here; discard the fragment
-	if (v_uvCoord == vec2(0.0, 0.0) && v_bgColour == vec3(0.0)) {
+	if (v_charCode == 0U && v_bgColour == u_palette[0]) {
 		discard;
 	}
 

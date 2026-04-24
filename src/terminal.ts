@@ -1,7 +1,7 @@
 import { Renderer } from "./renderer.ts";
 
 class Glyph {
-	static readonly WIDTH = 97;
+	static readonly WIDTH = 96;
 	static readonly HEIGHT = 211;
 	static readonly WTOH_RATIO = Glyph.HEIGHT / Glyph.WIDTH;
 	static readonly VERTICES = 6;

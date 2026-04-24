@@ -255,7 +255,13 @@ class Renderer {
 	}
 
 	draw() {
-		this.gl.clearColor(this.palette[0], this.palette[1], this.palette[2], 1.0);
+		const bg = 16 * 3;
+		this.gl.clearColor(
+			this.palette[bg],
+			this.palette[bg + 1],
+			this.palette[bg + 2],
+			1.0
+		);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);

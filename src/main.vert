@@ -1,12 +1,15 @@
 #version 300 es
 
-#define GLYPH_WIDTH		97U
+precision mediump float;
+
+#define GLYPH_WIDTH		96U
 #define GLYPH_HEIGHT		211U
 #define GLYPH_PADDING		8U
 #define GLYPH_ATLAS_WIDTH	4096U
 #define GLYPH_ATLAS_HEIGHT	4096U
 #define GLYPH_ATLAS_COLS	(GLYPH_ATLAS_WIDTH / (GLYPH_WIDTH + GLYPH_PADDING))
 #define VERTICES_PER_GLYPH	6
+#define PALETTE_SIZE		18
 
 in uint a_bgColour; // 0..255
 in uint a_fgColour; // 0..255
@@ -14,11 +17,12 @@ in uint a_charCode; // 0..65535
 
 uniform int u_rows;
 uniform int u_cols;
-uniform vec3 u_palette[16];
+uniform vec3 u_palette[PALETTE_SIZE];
 
 out vec3 v_bgColour;
 out vec3 v_fgColour;
 out vec2 v_uvCoord;
+flat out uint v_charCode;
 
 vec2 glyphTopLeft(uint charCode) {
 	uint i = 0U;
@@ -81,6 +85,7 @@ void main() {
 	v_bgColour = u_palette[a_bgColour];
 	v_fgColour = u_palette[a_fgColour];
 	v_uvCoord = uvCoord;
+	v_charCode = a_charCode;
 
 	gl_Position = vec4(ndcX, ndcY, 0.0, 1.0);
 }

@@ -1,9 +1,9 @@
 import { Terminal } from "./terminal.ts";
 
-/* eslint-disable */
+// prettier-ignore
 const PALETTE = [
 	// dark colours
-	0x14, 0x14, 0x15, // 0: black
+	0x25, 0x25, 0x30, // 0: black
 	0xd8, 0x64, 0x7e, // 1: red
 	0x7f, 0xa5, 0x63, // 2: green
 	0xf3, 0xbe, 0x7c, // 3: yellow
@@ -20,9 +20,12 @@ const PALETTE = [
 	0x8b, 0xa9, 0xc1, // 12: blue
 	0xc9, 0xb1, 0xca, // 13: purple
 	0xbe, 0xbe, 0xda, // 14: cyan
-	0xd7, 0xd7, 0xd7  // 15: white
+	0xd7, 0xd7, 0xd7, // 15: white
+
+	// extra colours
+	0x14, 0x14, 0x15, // 16: bg
+	0xcd, 0xcd, 0xcd  // 17: fg
 ];
-/* eslint-enable */
 
 const TEXT =
 	"root@micahdb.com ~ $ cat main.c\n" +
@@ -54,7 +57,7 @@ const main = async () => {
 		const terminal = new Terminal(canvas);
 		await terminal.init();
 
-		terminal.setPalette(new Float32Array(PALETTE.map(e => e / 0xFF)));
+		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
 
 		const f = () => {
 			terminal.clear();
