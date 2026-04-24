@@ -1,6 +1,9 @@
 import { Renderer } from "./renderer.ts";
 
 class Glyph {
+	static readonly WIDTH = 97;
+	static readonly HEIGHT = 211;
+	static readonly WTOH_RATIO = Glyph.HEIGHT / Glyph.WIDTH;
 	static readonly VERTICES = 6;
 
 	public bgColour: number;
@@ -38,7 +41,6 @@ class Glyph {
 
 class Terminal {
 	static readonly CELL_SIZE = 10;
-	static readonly WTOH_RATIO = 211 / 97;
 	static readonly BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
 	static readonly UINT32_PER_GLYPH = Glyph.VERTICES;
 
@@ -77,13 +79,17 @@ class Terminal {
 	resize() {
 		const dpr = window.devicePixelRatio || 1;
 		this.cellWidth = Terminal.CELL_SIZE * dpr;
-		this.cellHeight = Terminal.WTOH_RATIO * this.cellWidth;
+		this.cellHeight = Glyph.WTOH_RATIO * this.cellWidth;
 
 		const canvasWidth = this.renderer.canvas.clientWidth * dpr;
 		const canvasHeight = this.renderer.canvas.clientHeight * dpr;
 
 		this.cols = Math.floor(canvasWidth / this.cellWidth);
 		this.rows = Math.floor(canvasHeight / this.cellHeight);
+
+		// update these so they are accurate to the stretched cells
+		this.cellWidth = canvasWidth / this.cols;
+		this.cellHeight = canvasHeight / this.rows;
 
 		const count = this.rows * this.cols * Terminal.UINT32_PER_GLYPH;
 		this.data = new Uint32Array(count);
@@ -136,6 +142,10 @@ class Terminal {
 		}
 	}
 
+	setPalette(palette: Float32Array) {
+		this.renderer.setPalette(palette);
+	}
+
 	drawBox(
 		row: number,
 		col: number,
@@ -159,12 +169,12 @@ class Terminal {
 				const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
 				let charCode = 0;
-				let fgColour = 1;
-				let bgColour = 0;
+				let fgColour = 8;
+				let bgColour = colour;
 
 				if (shadow && shadowRegion) {
 					bgColour = shadowColour;
-					fgColour = 1;
+					fgColour = 8;
 				} else {
 					const edgeChars = "╮╭╯╰";
 					if (r === row && c === col) charCode = edgeChars.codePointAt(1);
@@ -212,8 +222,17 @@ class Terminal {
 				uint32Index + Terminal.UINT32_PER_GLYPH
 			);
 			const glyph = Glyph.fromData(cellData);
-			glyph.bgColour = 1;
-			glyph.fgColour = 0;
+			const bgColour = glyph.bgColour;
+			glyph.bgColour = glyph.fgColour;
+			glyph.fgColour = bgColour;
+
+			if (glyph.bgColour === glyph.fgColour) {
+				if (glyph.bgColour < 15) {
+					glyph.bgColour = 15;
+				} else {
+					glyph.bgColour = 0;
+				}
+			}
 
 			this.data.set(glyph.data(), uint32Index);
 		}

@@ -22,12 +22,15 @@ class Renderer {
 		rows: WebGLUniformLocation;
 		cols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
+		palette: WebGLUniformLocation;
 	};
 
 	private vbo: WebGLBuffer;
 	private count: number;
 
 	private glyphAtlasTexture: WebGLTexture;
+
+	private palette: Float32Array;
 
 	public canvas: HTMLCanvasElement;
 	public canvasWidth: number;
@@ -118,13 +121,14 @@ class Renderer {
 		const rows = this.gl.getUniformLocation(this.program, "u_rows");
 		const cols = this.gl.getUniformLocation(this.program, "u_cols");
 		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
+		const palette = this.gl.getUniformLocation(this.program, "u_palette");
 
-		if (!rows || !cols || !glyphAtlas) {
+		if (!rows || !cols || !glyphAtlas || !palette) {
 			throw new Error("When getting uniform locations");
 		}
 
 		// store uniform locations
-		this.uniforms = { rows, cols, glyphAtlas };
+		this.uniforms = { rows, cols, glyphAtlas, palette };
 	}
 
 	async initializeGlyphAtlas() {
@@ -245,7 +249,13 @@ class Renderer {
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
 	}
 
+	setPalette(palette: Float32Array) {
+		this.gl.uniform3fv(this.uniforms.palette, palette);
+		this.palette = palette;
+	}
+
 	draw() {
+		this.gl.clearColor(this.palette[0], this.palette[1], this.palette[2], 1.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);

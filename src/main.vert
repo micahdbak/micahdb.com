@@ -14,6 +14,7 @@ in uint a_charCode; // 0..65535
 
 uniform int u_rows;
 uniform int u_cols;
+uniform vec3 u_palette[16];
 
 out vec3 v_bgColour;
 out vec3 v_fgColour;
@@ -77,18 +78,8 @@ void main() {
 	float ndcX = 2.0 * float(col) / float(u_cols) - 1.0;
 	float ndcY = -2.0 * float(row) / float(u_rows) + 1.0;
 
-	if (a_bgColour == 0U) {
-		v_bgColour = vec3(0.0, 0.0, 0.0);
-	} else {
-		v_bgColour = vec3(1.0, 1.0, 1.0);
-	}
-
-	if (a_fgColour == 0U) {
-		v_fgColour = vec3(0.0, 0.0, 0.0);
-	} else {
-		v_fgColour = vec3(1.0, 1.0, 1.0);
-	}
-
+	v_bgColour = u_palette[a_bgColour];
+	v_fgColour = u_palette[a_fgColour];
 	v_uvCoord = uvCoord;
 
 	gl_Position = vec4(ndcX, ndcY, 0.0, 1.0);
