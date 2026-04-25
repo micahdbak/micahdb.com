@@ -1,12 +1,18 @@
 const main = async () => {
 	const canvas = document.getElementById("2d") as HTMLCanvasElement;
 	const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+	const font = "160px 'JetBrains Mono', monospace";
 
 	canvas.width = 4096;
 	canvas.height = 4096;
 
-	await document.fonts.load("160px 'JetBrains Mono'");
-	ctx.font = "160px 'JetBrains Mono', monospace";
+	await Promise.all([
+		document.fonts.load("160px 'JetBrains Mono'"),
+		document.fonts.load("bold 160px 'JetBrains Mono'"),
+		document.fonts.load("italic 160px 'JetBrains Mono'"),
+		document.fonts.load("italic bold 160px 'JetBrains Mono'")
+	]);
+	ctx.font = font;
 	ctx.fillStyle = "white";
 
 	const metrics: TextMetrics = ctx.measureText("█");
@@ -17,18 +23,6 @@ const main = async () => {
 	const padding = 8;
 
 	console.log(`Glyph width: ${glyphWidth}, height: ${glyphHeight}`);
-
-	// ASCII table:
-	// - <33 -> space and non renderable characters
-	// - 33 -> !
-	// - 126 -> ~
-	// - >126 -> extended characters
-	// Box drawing characters:
-	// - 0x2500...0x259f
-	const ranges = [
-		[33, 126],
-		[0x2500, 0x259f]
-	];
 
 	const nHorizGlyphs = Math.floor(4096 / (glyphWidth + padding));
 
@@ -45,11 +39,30 @@ const main = async () => {
 	};
 
 	let i = 1;
-	for (const [start, end] of ranges) {
-		for (let c = start; c <= end; c++) {
+
+	const styles = ["", "bold ", "italic ", "italic bold "];
+
+	for (const style of styles) {
+		ctx.font = style + font;
+
+		// ASCII table:
+		// - <33 -> space and non renderable characters
+		// - 33 -> !
+		// - 126 -> ~
+		// - >126 -> extended characters
+		for (let c = 33; c <= 126; c++) {
 			drawGlyph(String.fromCharCode(c), i);
 			i++;
 		}
+	}
+
+	ctx.font = font;
+
+	// Box drawing characters:
+	// - 0x2500...0x259f
+	for (let c = 0x2500; c <= 0x259f; c++) {
+		drawGlyph(String.fromCharCode(c), i);
+		i++;
 	}
 };
 

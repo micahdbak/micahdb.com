@@ -8,6 +8,14 @@ precision mediump float;
 #define GLYPH_ATLAS_WIDTH	4096U
 #define GLYPH_ATLAS_HEIGHT	4096U
 #define GLYPH_ATLAS_COLS	(GLYPH_ATLAS_WIDTH / (GLYPH_WIDTH + GLYPH_PADDING))
+
+#define ASCII_START		33U
+#define ASCII_END		126U
+#define ASCII_GLYPHS		(ASCII_END - ASCII_START + 1U)
+#define ASCII_STYLES		4U
+#define BOX_START		0x2500U
+#define BOX_END			0x259FU
+
 #define VERTICES_PER_GLYPH	6
 #define PALETTE_SIZE		18
 
@@ -27,10 +35,10 @@ flat out uint v_charCode;
 vec2 glyphTopLeft(uint charCode) {
 	uint i = 0U;
 
-	if (charCode >= 33U && charCode <= 126U) {
-		i = charCode - 33U + 1U;
-	} else if (charCode >= 0x2500U && charCode <= 0x259FU) {
-		i = charCode - 0x2500U + 95U;
+	if (charCode >= ASCII_START && charCode <= ASCII_START + ASCII_GLYPHS * ASCII_STYLES) {
+		i = (charCode - ASCII_START) + 1U;
+	} else if (charCode >= BOX_START && charCode <= BOX_END) {
+		i = (charCode - BOX_START) + ASCII_GLYPHS * ASCII_STYLES + 1U;
 	} else {
 		return vec2(0.0, 0.0); // empty glyph
 	}

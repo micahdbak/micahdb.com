@@ -174,9 +174,10 @@ class Terminal {
 
 				if (shadow && shadowRegion) {
 					bgColour = shadowColour;
-					fgColour = 8;
+					fgColour = 0;
+					charCode = "░".codePointAt(0);
 				} else {
-					const edgeChars = "╮╭╯╰";
+					const edgeChars = "┓┏┛┗┃━";
 					if (r === row && c === col) charCode = edgeChars.codePointAt(1);
 					else if (r === row && c === col + w - 1)
 						charCode = edgeChars.codePointAt(0);
@@ -185,8 +186,9 @@ class Terminal {
 					else if (r === row + h - 1 && c === col + w - 1)
 						charCode = edgeChars.codePointAt(2);
 					else if (r === row || r === row + h - 1)
-						charCode = 0x2500; // ─
-					else if (c === col || c === col + w - 1) charCode = 0x2502; // │
+						charCode = edgeChars.codePointAt(5);
+					else if (c === col || c === col + w - 1)
+						charCode = edgeChars.codePointAt(4);
 				}
 
 				const glyph = new Glyph(bgColour, fgColour, charCode);
