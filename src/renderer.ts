@@ -1,5 +1,8 @@
-import VERTEX_SHADER from "./main.vert" with { type: "text" };
-import FRAGMENT_SHADER from "./main.frag" with { type: "text" };
+import VERTEX_SHADER from "./renderer.vert" with { type: "text" };
+import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
+
+import { Visuals } from "./visuals.ts";
+import { CubeVisuals } from "./visuals/cube.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
@@ -22,8 +25,11 @@ class Renderer {
 		rows: WebGLUniformLocation;
 		cols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
+		offScreen: WebGLUniformLocation;
 		palette: WebGLUniformLocation;
 	};
+
+	private visuals: Visuals;
 
 	private vbo: WebGLBuffer;
 	private count: number;
@@ -32,9 +38,10 @@ class Renderer {
 
 	private palette: Float32Array;
 
+	private canvasWidth: number;
+	private canvasHeight: number;
+
 	public canvas: HTMLCanvasElement;
-	public canvasWidth: number;
-	public canvasHeight: number;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
@@ -46,14 +53,16 @@ class Renderer {
 		}
 
 		this.gl = gl;
-		this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-		this.gl.clearDepth(1.0);
 	}
 
 	async init() {
 		this.initializeProgram();
-		await this.initializeGlyphAtlas();
+		this.initializeLocations();
+		await this.initializeGlyphAtlasTexture();
 		this.initializeVBO();
+
+		this.visuals = new CubeVisuals(this.gl);
+		await this.visuals.init();
 	}
 
 	initializeProgram() {
@@ -102,7 +111,9 @@ class Renderer {
 		}
 
 		this.gl.useProgram(this.program);
+	}
 
+	initializeLocations() {
 		// store attribute locations
 		this.attributes = {
 			bgColour: this.gl.getAttribLocation(this.program, "a_bgColour"),
@@ -121,17 +132,21 @@ class Renderer {
 		const rows = this.gl.getUniformLocation(this.program, "u_rows");
 		const cols = this.gl.getUniformLocation(this.program, "u_cols");
 		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
+		const offScreen = this.gl.getUniformLocation(this.program, "u_offScreen");
 		const palette = this.gl.getUniformLocation(this.program, "u_palette");
 
-		if (!rows || !cols || !glyphAtlas || !palette) {
+		if (!rows || !cols || !glyphAtlas || !offScreen || !palette) {
 			throw new Error("When getting uniform locations");
 		}
 
+		// bind the offscreen texture to texture 1
+		this.gl.uniform1i(offScreen, 1);
+
 		// store uniform locations
-		this.uniforms = { rows, cols, glyphAtlas, palette };
+		this.uniforms = { rows, cols, glyphAtlas, offScreen, palette };
 	}
 
-	async initializeGlyphAtlas() {
+	async initializeGlyphAtlasTexture() {
 		await new Promise((resolve, reject) => {
 			const image = new Image();
 			image.src = "/glyphatlas.png";
@@ -187,6 +202,10 @@ class Renderer {
 		}
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+	}
+
+	enableAttributes() {
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 
 		// each vertex is stored in the vertex buffer like so:
 		// 2. uint a_bgColour (1 byte) [offset: 0]
@@ -231,30 +250,49 @@ class Renderer {
 		rows: number,
 		cols: number
 	) {
+		// set GL program to renderer
+		this.gl.useProgram(this.program);
+
 		// update canvas size
 		this.canvas.width = canvasWidth;
 		this.canvas.height = canvasHeight;
+		this.canvasWidth = canvasWidth;
+		this.canvasHeight = canvasHeight;
 
 		// update uniforms & viewport
 		this.gl.uniform1i(this.uniforms.rows, rows);
 		this.gl.uniform1i(this.uniforms.cols, cols);
-		this.gl.viewport(0, 0, canvasWidth, canvasHeight);
 
 		// set count to the number of vertices
 		this.count = rows * cols * 6;
+
+		// resize the offscreen texture
+		this.visuals.resize(cols, rows);
 	}
 
 	setData(data: Uint32Array) {
+		this.gl.useProgram(this.program);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
 	}
 
 	setPalette(palette: Float32Array) {
+		this.gl.useProgram(this.program);
 		this.gl.uniform3fv(this.uniforms.palette, palette);
 		this.palette = palette;
+		this.visuals.setPalette(palette);
 	}
 
 	draw() {
+		// render the offscreen program first
+		this.visuals.draw();
+
+		// use renderer program
+		this.gl.useProgram(this.program);
+
+		this.enableAttributes();
+
+		// clear the canvas
 		const bg = 16 * 3;
 		this.gl.clearColor(
 			this.palette[bg],
@@ -263,8 +301,15 @@ class Renderer {
 			1.0
 		);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+		// bind textures (including offscreen texture)
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
+		this.gl.activeTexture(this.gl.TEXTURE1);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.visuals.texture);
+
+		// render to the canvas
+		this.gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, this.count);
 	}
 }

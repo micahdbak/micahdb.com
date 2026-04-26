@@ -5,7 +5,7 @@
 precision mediump float;
 
 uniform sampler2D u_glyphAtlas;
-uniform vec3 u_palette[PALETTE_SIZE];
+uniform highp vec3 u_palette[PALETTE_SIZE];
 
 in vec3 v_bgColour;
 in vec3 v_fgColour;

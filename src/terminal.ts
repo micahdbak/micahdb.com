@@ -40,7 +40,7 @@ class Glyph {
 }
 
 class Terminal {
-	static readonly CELL_SIZE = 10;
+	static readonly CELL_SIZE = 11;
 	static readonly BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
 	static readonly UINT32_PER_GLYPH = Glyph.VERTICES;
 
