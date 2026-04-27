@@ -2,7 +2,7 @@ import VERTEX_SHADER from "./renderer.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
 
 import { Visuals } from "./visuals.ts";
-import { CubeVisuals } from "./visuals/cube.ts";
+import { VisualsManager } from "./visuals/manager.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
@@ -25,11 +25,12 @@ class Renderer {
 		rows: WebGLUniformLocation;
 		cols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
-		offScreen: WebGLUniformLocation;
+		visuals: WebGLUniformLocation;
 		palette: WebGLUniformLocation;
 	};
 
 	private visuals: Visuals;
+	private visualsManager: VisualsManager;
 
 	private vbo: WebGLBuffer;
 	private count: number;
@@ -61,7 +62,8 @@ class Renderer {
 		await this.initializeGlyphAtlasTexture();
 		this.initializeVBO();
 
-		this.visuals = new CubeVisuals(this.gl);
+		this.visualsManager = new VisualsManager(this.gl);
+		this.visuals = this.visualsManager.get("cube");
 		await this.visuals.init();
 	}
 
@@ -132,18 +134,18 @@ class Renderer {
 		const rows = this.gl.getUniformLocation(this.program, "u_rows");
 		const cols = this.gl.getUniformLocation(this.program, "u_cols");
 		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
-		const offScreen = this.gl.getUniformLocation(this.program, "u_offScreen");
+		const visuals = this.gl.getUniformLocation(this.program, "u_visuals");
 		const palette = this.gl.getUniformLocation(this.program, "u_palette");
 
-		if (!rows || !cols || !glyphAtlas || !offScreen || !palette) {
+		if (!rows || !cols || !glyphAtlas || !visuals || !palette) {
 			throw new Error("When getting uniform locations");
 		}
 
-		// bind the offscreen texture to texture 1
-		this.gl.uniform1i(offScreen, 1);
+		// bind visuals to texture 1
+		this.gl.uniform1i(visuals, 1);
 
 		// store uniform locations
-		this.uniforms = { rows, cols, glyphAtlas, offScreen, palette };
+		this.uniforms = { rows, cols, glyphAtlas, visuals, palette };
 	}
 
 	async initializeGlyphAtlasTexture() {
@@ -266,7 +268,7 @@ class Renderer {
 		// set count to the number of vertices
 		this.count = rows * cols * 6;
 
-		// resize the offscreen texture
+		// resize visuals
 		this.visuals.resize(cols, rows);
 	}
 
@@ -284,7 +286,7 @@ class Renderer {
 	}
 
 	draw() {
-		// render the offscreen program first
+		// render the visuals program first
 		this.visuals.draw();
 
 		// use renderer program
@@ -302,7 +304,6 @@ class Renderer {
 		);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-		// bind textures (including offscreen texture)
 		this.gl.activeTexture(this.gl.TEXTURE0);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
 		this.gl.activeTexture(this.gl.TEXTURE1);

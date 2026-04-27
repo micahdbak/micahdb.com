@@ -11,6 +11,9 @@ abstract class Visuals {
 	constructor(gl: WebGL2RenderingContext) {
 		this.gl = gl;
 
+		this.targetWidth = 32;
+		this.targetHeight = 32;
+
 		this.texture = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 		this.gl.texImage2D(
@@ -50,6 +53,7 @@ abstract class Visuals {
 
 	abstract async init(): Promise;
 	abstract setPalette(palette: Float32Array): void;
+	abstract resized(width: number, height: number): void;
 
 	resize(width: number, height: number) {
 		this.gl.useProgram(this.program);
@@ -69,6 +73,8 @@ abstract class Visuals {
 
 		this.targetWidth = width;
 		this.targetHeight = height;
+
+		this.resized(width, height);
 	}
 
 	abstract draw(): void;
