@@ -1,6 +1,11 @@
 import VERTEX_SHADER from "./renderer.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
 
+import {
+	GLYPH_ATLAS_TEXTURE_INDEX,
+	GLYPH_ATLAS_TEXTURE_PATH,
+	VISUALS_TEXTURE_INDEX
+} from "./textures.ts";
 import { Visuals } from "./visuals.ts";
 import { VisualsManager } from "./visuals/manager.ts";
 
@@ -59,8 +64,8 @@ class Renderer {
 	async init() {
 		this.initializeProgram();
 		this.initializeLocations();
-		await this.initializeGlyphAtlasTexture();
 		this.initializeVBO();
+		await this.initializeGlyphAtlasTexture();
 
 		this.visualsManager = new VisualsManager(this.gl);
 		this.visuals = this.visualsManager.get("cube");
@@ -141,17 +146,25 @@ class Renderer {
 			throw new Error("When getting uniform locations");
 		}
 
-		// bind visuals to texture 1
-		this.gl.uniform1i(visuals, 1);
+		this.gl.uniform1i(visuals, VISUALS_TEXTURE_INDEX);
 
 		// store uniform locations
 		this.uniforms = { rows, cols, glyphAtlas, visuals, palette };
 	}
 
+	initializeVBO() {
+		this.vbo = this.gl.createBuffer();
+		if (!this.vbo) {
+			throw new Error("When creating vertex buffer");
+		}
+
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+	}
+
 	async initializeGlyphAtlasTexture() {
 		await new Promise((resolve, reject) => {
 			const image = new Image();
-			image.src = "/glyphatlas.png";
+			image.src = GLYPH_ATLAS_TEXTURE_PATH;
 			image.onload = () => {
 				const texture = this.gl.createTexture();
 				if (!texture) {
@@ -193,17 +206,7 @@ class Renderer {
 			};
 		});
 
-		// bind u_glyphAtlas to texture 0
-		this.gl.uniform1i(this.uniforms.glyphAtlas, 0);
-	}
-
-	initializeVBO() {
-		this.vbo = this.gl.createBuffer();
-		if (!this.vbo) {
-			throw new Error("When creating vertex buffer");
-		}
-
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
 	}
 
 	enableAttributes() {
@@ -282,7 +285,6 @@ class Renderer {
 		this.gl.useProgram(this.program);
 		this.gl.uniform3fv(this.uniforms.palette, palette);
 		this.palette = palette;
-		this.visuals.setPalette(palette);
 	}
 
 	draw() {
@@ -304,9 +306,9 @@ class Renderer {
 		);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-		this.gl.activeTexture(this.gl.TEXTURE0);
+		this.gl.activeTexture(this.gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
-		this.gl.activeTexture(this.gl.TEXTURE1);
+		this.gl.activeTexture(this.gl.TEXTURE0 + VISUALS_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.visuals.texture);
 
 		// render to the canvas

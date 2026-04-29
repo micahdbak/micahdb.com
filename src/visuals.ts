@@ -52,7 +52,6 @@ abstract class Visuals {
 	}
 
 	abstract async init(): Promise;
-	abstract setPalette(palette: Float32Array): void;
 	abstract resized(width: number, height: number): void;
 
 	resize(width: number, height: number) {

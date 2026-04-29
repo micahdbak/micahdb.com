@@ -1,8 +1,9 @@
 import VERTEX_SHADER from "./cube.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./cube.frag" with { type: "text" };
 
-import { Mat4 } from "./math.ts";
+import { CUBE_TEXTURE_INDEX, CUBE_TEXTURE_PATH } from "../textures.ts";
 import { Visuals } from "../visuals.ts";
+import { Mat4 } from "./math.ts";
 
 function _repeat(arr: number[], n: number): number[] {
 	const ret = [];
@@ -55,11 +56,15 @@ function _rotationMatrix(axis: str, radians: number): Float32Array {
 }
 
 class CubeMesh {
+	static readonly NUM_VERTICES = 36;
+
 	public positions: number[];
 	public normals: number[];
+	public uvCoords: number[];
 
 	constructor() {
-		// all are ordered by face:
+		// all are ordered by the following faces when looking
+		// down negative the z axis with positive y upwards:
 		// - front
 		// - back
 		// - right
@@ -96,7 +101,7 @@ class CubeMesh {
 			..._repeat([0, -1, 0], 6)
 		];
 
-		/*
+		// prettier-ignore
 		this.uvCoords = [
 			0, 1, 0, 2/3, 1/2, 2/3, 0, 1, 1/2, 2/3, 1/2, 1,
 			1/2, 1/3, 1/2, 0, 1, 0, 1/2, 1/3, 1, 0, 1, 1/3,
@@ -105,23 +110,25 @@ class CubeMesh {
 			0, 1/3, 0, 0, 1/2, 0, 0, 1/3, 1/2, 0, 1/2, 1/3,
 			1/2, 1, 1/2, 2/3, 1, 2/3, 1/2, 1, 1, 2/3, 1, 1,
 		];
-		*/
 	}
 
 	data(): Float32Array {
 		const buffer = [];
 
 		for (let i = 0; i < this.positions.length / 3; i++) {
-			const base = i * 3;
+			const baseVec3 = i * 3;
+			const baseVec2 = i * 2;
 
-			// each vertex in the vbo is vec3 a_position, a_normal
+			// each vertex in the vbo is vec3 a_position, a_normal; vec2 a_uvCoord
 			buffer.push(
-				this.positions[base],
-				this.positions[base + 1],
-				this.positions[base + 2],
-				this.normals[base],
-				this.normals[base + 1],
-				this.normals[base + 2]
+				this.positions[baseVec3],
+				this.positions[baseVec3 + 1],
+				this.positions[baseVec3 + 2],
+				this.normals[baseVec3],
+				this.normals[baseVec3 + 1],
+				this.normals[baseVec3 + 2],
+				this.uvCoords[baseVec2],
+				this.uvCoords[baseVec2 + 1]
 			);
 		}
 
@@ -133,12 +140,14 @@ class CubeVisuals extends Visuals {
 	// each vertex is stored in the vertex buffer like so:
 	// 2. vec3 a_position (3 floats * 4 bytes)
 	// 3. vec3 a_normal (3 floats * 4 bytes)
-	// total/stride: 24 bytes
-	static readonly STRIDE = 24;
+	// 3. vec2 a_uvCoord (2 floats * 4 bytes)
+	// total/stride: 32 bytes
+	static readonly STRIDE = 32;
 
 	private attributes: {
 		position: number;
 		normal: number;
+		uvCoord: number;
 	};
 
 	private uniforms: {
@@ -146,20 +155,26 @@ class CubeVisuals extends Visuals {
 		viewMatrix: WebGLUniformLocation;
 		modelMatrix: WebGLUniformLocation;
 		normalMatrix: WebGLUniformLocation;
-		palette: WebGLUniformLocation;
+		cubeTexture: WebGLUniformLocation;
+		cols: WebGLUniformLocation;
+		rows: WebGLUniformLocation;
 	};
 
 	private dbo: WebGLRenderbuffer;
 	private fbo: WebGLFramebuffer;
 	private vbo: WebGLBuffer;
+	private cols: number = 0;
+	private rows: number = 0;
 
-	init() {
+	private cubeTexture: WebGLTexture;
+
+	async init() {
 		this.initializeProgram();
 		this.initializeLocations();
-		this.resized(1, 1);
 		this.initializeDBO();
 		this.initializeFBO();
 		this.initializeVBO();
+		await this.initializeTexture();
 
 		const cube = new CubeMesh();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -218,10 +233,15 @@ class CubeVisuals extends Visuals {
 		// store attribute locations
 		this.attributes = {
 			position: this.gl.getAttribLocation(this.program, "a_position"),
-			normal: this.gl.getAttribLocation(this.program, "a_normal")
+			normal: this.gl.getAttribLocation(this.program, "a_normal"),
+			uvCoord: this.gl.getAttribLocation(this.program, "a_uvCoord")
 		};
 
-		if (this.attributes.position < 0 || this.attributes.normal < 0) {
+		if (
+			this.attributes.position < 0 ||
+			this.attributes.normal < 0 ||
+			this.attributes.uvCoord < 0
+		) {
 			throw new Error("When getting attribute locations");
 		}
 
@@ -238,14 +258,21 @@ class CubeVisuals extends Visuals {
 			this.program,
 			"u_normalMatrix"
 		);
-		const palette = this.gl.getUniformLocation(this.program, "u_palette");
+		const cubeTexture = this.gl.getUniformLocation(
+			this.program,
+			"u_cubeTexture"
+		);
+		const cols = this.gl.getUniformLocation(this.program, "u_cols");
+		const rows = this.gl.getUniformLocation(this.program, "u_rows");
 
 		if (
 			!projectionMatrix ||
 			!viewMatrix ||
 			!modelMatrix ||
 			!normalMatrix ||
-			!palette
+			!cubeTexture /*||
+			!cols ||
+			!rows*/
 		) {
 			throw new Error("When getting uniform locations");
 		}
@@ -256,7 +283,9 @@ class CubeVisuals extends Visuals {
 			modelMatrix,
 			viewMatrix,
 			normalMatrix,
-			palette
+			cubeTexture,
+			cols,
+			rows
 		};
 	}
 
@@ -304,7 +333,58 @@ class CubeVisuals extends Visuals {
 		}
 	}
 
+	async initializeTexture() {
+		await new Promise((resolve, reject) => {
+			const image = new Image();
+			image.src = CUBE_TEXTURE_PATH;
+			image.onload = () => {
+				const tex = this.gl.createTexture();
+				if (!tex) {
+					reject(new Error("When creating GL texture"));
+					return;
+				}
+
+				this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+
+				// prevent texture halos/outlines from filtering
+				this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+				this.gl.texImage2D(
+					this.gl.TEXTURE_2D,
+					0,
+					this.gl.RGBA,
+					this.gl.RGBA,
+					this.gl.UNSIGNED_BYTE,
+					image
+				);
+
+				this.gl.generateMipmap(this.gl.TEXTURE_2D);
+
+				this.gl.texParameteri(
+					this.gl.TEXTURE_2D,
+					this.gl.TEXTURE_MIN_FILTER,
+					this.gl.LINEAR_MIPMAP_LINEAR
+				);
+
+				this.gl.texParameteri(
+					this.gl.TEXTURE_2D,
+					this.gl.TEXTURE_MAG_FILTER,
+					this.gl.LINEAR
+				);
+
+				this.cubeTexture = tex;
+
+				resolve();
+			};
+		});
+
+		this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
+	}
+
 	resized(width: number, height: number) {
+		this.cols = width;
+		this.rows = height;
+
 		// reset projection matrix
 		const projectionMatrix = Mat4.create();
 		const fovy = Math.PI / 4;
@@ -317,6 +397,9 @@ class CubeVisuals extends Visuals {
 			false,
 			projectionMatrix
 		);
+
+		this.gl.uniform1f(this.uniforms.cols, this.cols);
+		this.gl.uniform1f(this.uniforms.rows, this.rows);
 
 		// update depth buffer size to match texture
 		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
@@ -334,7 +417,8 @@ class CubeVisuals extends Visuals {
 		// each vertex is stored in the vertex buffer like so:
 		// 2. vec3 a_position (3 floats * 4 bytes) [offset: 0]
 		// 3. vec3 a_normal (3 floats * 4 bytes) [offset: 12]
-		// total/stride: 24 bytes
+		// 3. vec2 a_uvCoord (2 floats * 4 bytes) [offset: 24]
+		// total/stride: 32 bytes
 
 		// position
 		this.gl.vertexAttribPointer(
@@ -357,11 +441,17 @@ class CubeVisuals extends Visuals {
 			12
 		);
 		this.gl.enableVertexAttribArray(this.attributes.normal);
-	}
 
-	setPalette(palette: Float32Array) {
-		this.gl.useProgram(this.program);
-		this.gl.uniform3fv(this.uniforms.palette, palette);
+		// UV coordinate
+		this.gl.vertexAttribPointer(
+			this.attributes.uvCoord,
+			2,
+			this.gl.FLOAT,
+			false,
+			CubeVisuals.STRIDE,
+			24
+		);
+		this.gl.enableVertexAttribArray(this.attributes.uvCoord);
 	}
 
 	draw() {
@@ -373,9 +463,18 @@ class CubeVisuals extends Visuals {
 		Mat4.lookAt(viewMatrix, [0.0, 3.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
-		const xRotate = _rotationMatrix("x", 2.0 * Math.PI * (Date.now() % 5000) / 5000);
-		const yRotate = _rotationMatrix("y", 2.0 * Math.PI * (Date.now() % 6000) / 6000);
-		const zRotate = _rotationMatrix("z", 2.0 * Math.PI * (Date.now() % 7000) / 7000);
+		const xRotate = _rotationMatrix(
+			"x",
+			(2.0 * Math.PI * (Date.now() % 5000)) / 5000
+		);
+		const yRotate = _rotationMatrix(
+			"y",
+			(2.0 * Math.PI * (Date.now() % 6000)) / 6000
+		);
+		const zRotate = _rotationMatrix(
+			"z",
+			(2.0 * Math.PI * (Date.now() % 7000)) / 7000
+		);
 		const modelMatrix = Mat4.create();
 		Mat4.multiply(modelMatrix, xRotate, yRotate);
 		Mat4.multiply(modelMatrix, modelMatrix, zRotate);
@@ -392,8 +491,11 @@ class CubeVisuals extends Visuals {
 		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
+		this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_TEXTURE_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeTexture);
+
 		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
-		this.gl.drawArrays(this.gl.TRIANGLES, 0, 36);
+		this.gl.drawArrays(this.gl.TRIANGLES, 0, CubeMesh.NUM_VERTICES);
 
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 	}

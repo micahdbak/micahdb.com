@@ -15,7 +15,7 @@ flat in uint v_charCode;
 out vec4 fragColor;
 
 void main() {
-	if (v_charCode == 0U && v_bgColour == u_palette[0]) {
+	if (v_charCode == 0U && (v_bgColour == u_palette[0] || v_bgColour == u_palette[16])) {
 		discard;
 	}
 

@@ -2,6 +2,7 @@
 
 in vec3 a_position;
 in vec3 a_normal;
+in vec2 a_uvCoord;
 
 uniform mat4 u_projectionMatrix;
 uniform mat4 u_viewMatrix;
@@ -9,8 +10,10 @@ uniform mat4 u_modelMatrix;
 uniform mat3 u_normalMatrix;
 
 out vec3 v_normal;
+out vec2 v_uvCoord;
 
 void main() {
 	v_normal = u_normalMatrix * a_normal;
+	v_uvCoord = a_uvCoord;
 	gl_Position = u_projectionMatrix * u_viewMatrix * u_modelMatrix * vec4(a_position, 1.0);
 }
