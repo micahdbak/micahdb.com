@@ -27,16 +27,6 @@ const PALETTE = [
 	0xcd, 0xcd, 0xcd  // 17: fg
 ];
 
-const TEXT =
-	"root@micahdb.com ~ $ cat main.c\n" +
-	"#include <stdio.h>\n" +
-	"int main(void) {\n" +
-	'\tprintf("Hello, world!\\n");\n' +
-	"}\n" +
-	"root@micahdb.com ~ $ cc main.c\n" +
-	"root@micahdb.com ~ $ ./a.out\n" +
-	"Hello, world!";
-
 const ASCII_ART =
 	"░░░░░░░█▐▓▓░████▄▄▄█▀▄▓▓▓▌█\n" +
 	"░░░░░▄█▌▀▄▓▓▄▄▄▄▀▀▀▄▓▓▓▓▓▌█\n" +
@@ -50,6 +40,13 @@ const ASCII_ART =
 	"▌▓▓▓▄▄▀▀▓▓▓▀▓▓▓▓▓▓▓▓█▓█▓█▓▓▌█▌\n" +
 	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓█▓█▓▐█▌";
 
+/*
+Useful Chars:
+┓ ┏ ┛ ┗ ┃ ━
+▄ ▀ ▐ ▌
+█ ▓ ▒ ░
+*/
+
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
@@ -59,16 +56,86 @@ const main = async () => {
 
 		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
 
-		const f = () => {
+		const draw = () => {
 			terminal.clear();
-			terminal.drawBox(5, 10, 10, 35, 15, 8, true);
-			terminal.drawText(TEXT, 6, 12, 15, 0);
-			terminal.drawText(ASCII_ART, 4, 48, 16, 3);
+
+			const centerY = Math.floor(terminal.rows / 2);
+			const centerX = Math.floor(terminal.cols / 2);
+			const boxOffY = 9;
+			const boxOffX = 24;
+
+			terminal.drawBox(
+				centerY - boxOffY,
+				centerX - boxOffX,
+				boxOffY * 2,
+				boxOffX * 2,
+				16,
+				4,
+				15,
+				0,
+				true
+			);
+
+			terminal.drawText(
+				" Micah Baker ",
+				centerY - boxOffY,
+				centerX - 7,
+				15,
+				16,
+				0,
+				0,
+				false
+			);
+
+			terminal.drawText(
+				ASCII_ART,
+				centerY - boxOffY + 2,
+				centerX - 10,
+				4,
+				11,
+				0,
+				0,
+				false
+			);
+
+			terminal.drawText(
+				"Software Developer\nVancouver, BC, Canada",
+				centerY - 5,
+				centerX - boxOffX + 4,
+				15,
+				16,
+				0,
+				0,
+				false
+			);
+
+			const r = centerY + boxOffY - 3;
+			let c = centerX - boxOffX + 5;
+			const items = [" Education ", " Experience ", " Projects "];
+
+			for (let i = 0; i < items.length; i++) {
+				const itemEnd = c + items[i].length;
+				let bg = 8;
+				let fg = 15;
+
+				if (
+					terminal.mouseCol >= c &&
+					terminal.mouseCol < itemEnd &&
+					terminal.mouseRow == r
+				) {
+					bg = 15;
+					fg = 8;
+				}
+
+				terminal.drawText(items[i], r, c, bg, fg, 4, 0, true);
+				c = itemEnd + 2;
+			}
+
 			terminal.draw();
-			requestAnimationFrame(f);
+			requestAnimationFrame(draw);
 		};
 
-		requestAnimationFrame(f);
+		requestAnimationFrame(draw);
 	} catch (err: Error) {
 		console.error(err);
 	}

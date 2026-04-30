@@ -464,15 +464,15 @@ class CubeVisuals extends Visuals {
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
 		const xRotate = _rotationMatrix(
-			"x",
+			"z",
 			(2.0 * Math.PI * (Date.now() % 5000)) / 5000
 		);
 		const yRotate = _rotationMatrix(
-			"y",
+			"x",
 			(2.0 * Math.PI * (Date.now() % 6000)) / 6000
 		);
 		const zRotate = _rotationMatrix(
-			"z",
+			"y",
 			(2.0 * Math.PI * (Date.now() % 7000)) / 7000
 		);
 		const modelMatrix = Mat4.create();

@@ -52,10 +52,13 @@ class Terminal {
 	private cellWidth: number;
 	private cellHeight: number;
 
-	private cols: number;
-	private rows: number;
-
 	private data: Uint32Array;
+
+	public cols: number;
+	public rows: number;
+
+	public mouseCol: number;
+	public mouseRow: number;
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.renderer = new Renderer(canvas);
@@ -74,6 +77,9 @@ class Terminal {
 			this.mouseX = dpr * e.clientX;
 			this.mouseY = dpr * e.clientY;
 		});
+
+		this.mouseCol = 0;
+		this.mouseRow = 0;
 	}
 
 	resize() {
@@ -101,33 +107,62 @@ class Terminal {
 		this.data.fill(0);
 	}
 
-	drawText(text: string, row: number, col: number, bg: number, fg: number) {
+	drawText(
+		text: string,
+		row: number,
+		col: number,
+		backColour: number,
+		fgColour: number,
+		bgColour: number,
+		shadowColour: number,
+		shadow: boolean
+	) {
+		const textLength = text.length;
+
+		// don't display shadow for multi-line text
+		if (shadow) {
+			if (text.includes("\n") || text.includes("\t")) {
+				shadow = false;
+			} else {
+				const shadow = "▀".repeat(textLength);
+				text = text + "▄\n " + shadow;
+			}
+		}
+
 		let r = row;
 		let c = col;
 		let i = 0;
 
 		while (r < this.rows && i < text.length) {
 			const charCode = text.charCodeAt(i);
+			let bg = backColour;
+			let fg = fgColour;
 
 			if (charCode === "\n".charCodeAt(0)) {
 				c = col;
 				r++;
 				i++;
-
 				continue;
 			}
 
 			if (charCode === "\t".charCodeAt(0)) {
 				c += 4;
 				i++;
-
 				continue;
 			}
 
-			if (c >= this.cols) {
+			if (c >= this.cols || c < 0 || r < 0) {
 				i++;
-
 				continue;
+			}
+
+			if (r >= this.rows) {
+				break;
+			}
+
+			if (shadow && (i >= textLength || r > row)) {
+				bg = bgColour;
+				fg = shadowColour;
 			}
 
 			const glyphIndex = r * this.cols + c;
@@ -151,33 +186,50 @@ class Terminal {
 		col: number,
 		h: number,
 		w: number,
-		colour: number,
+		bgColour: number,
+		backColour: number,
+		borderColour: number,
 		shadowColour: number,
 		shadow: boolean
 	) {
 		for (let r = row; r <= row + h && r < this.rows; r++) {
 			for (let c = col; c <= col + w && c < this.cols; c++) {
-				const shadowRegion: boolean = r === row + h || c === col + w;
-				const shadowGap: boolean =
-					(r === row + h && c === col) || (c === col + w && r === row);
+				if (c < 0 || r < 0) {
+					continue;
+				}
 
-				if ((!shadow && shadowRegion) || shadowGap) {
+				const shadowRegion: boolean = r === row + h || c === col + w;
+				const shadowGap: boolean = r === row + h && c === col;
+
+				if (!shadow && shadowRegion) {
 					continue;
 				}
 
 				const glyphIndex = r * this.cols + c;
 				const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
-				let charCode = 0;
-				let fgColour = 8;
-				let bgColour = colour;
+				let charCode = 0; // empty char
+				let bg = backColour;
+				let fg = borderColour;
 
 				if (shadow && shadowRegion) {
-					bgColour = shadowColour;
-					fgColour = 0;
-					charCode = "░".codePointAt(0);
+					if (!shadowGap) {
+						charCode =
+							r == row + h
+								? "▀".codePointAt(0)
+								: c === col + w && r === row
+									? "▄".codePointAt(0)
+									: "█".codePointAt(0);
+
+						bg = bgColour;
+						fg = shadowColour;
+					} else {
+						charCode = "█".codePointAt(0);
+						bg = shadowColour;
+						fg = bgColour;
+					}
 				} else {
-					const edgeChars = "┓┏┛┗┃━";
+					const edgeChars = "┓┏┛┗┃━"; // borders
 					if (r === row && c === col) charCode = edgeChars.codePointAt(1);
 					else if (r === row && c === col + w - 1)
 						charCode = edgeChars.codePointAt(0);
@@ -191,8 +243,7 @@ class Terminal {
 						charCode = edgeChars.codePointAt(4);
 				}
 
-				const glyph = new Glyph(bgColour, fgColour, charCode);
-
+				const glyph = new Glyph(bg, fg, charCode);
 				this.data.set(glyph.data(), uint32Index);
 			}
 		}
@@ -203,6 +254,8 @@ class Terminal {
 		if (this.mouseX || this.mouseY) {
 			let col = Math.floor(this.mouseX / this.cellWidth);
 			let row = Math.floor(this.mouseY / this.cellHeight);
+			this.mouseCol = col;
+			this.mouseRow = row;
 
 			if (col < 0) {
 				col = 0;

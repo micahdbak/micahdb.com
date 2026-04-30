@@ -60,7 +60,7 @@ void main() {
 	// top left / bottom right uv coordinates
 	vec2 tl = glyphTopLeft(a_charCode);
 
-	if (tl == vec2(0.0, 0.0) && a_bgColour == 0U) {
+	if (tl == vec2(0.0, 0.0) && a_bgColour == 0U && a_fgColour == 0U) {
 		vec2 texCell = vec2(float(col) / float(u_cols), float(row) / float(u_rows));
 		vec4 texSample = texture(u_visuals, texCell);
 
