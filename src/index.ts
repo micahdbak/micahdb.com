@@ -48,7 +48,7 @@ const ASCII_ART =
 	"█▐█▓▀░░▀▓▓▓▓▓▓▓▓▓██████▓▓▓▓▐█\n" +
 	"▌▓▄▌▀░▀░▐▀█▄▓▓██████████▓▓▓▌█▌\n" +
 	"▌▓▓▓▄▄▀▀▓▓▓▀▓▓▓▓▓▓▓▓█▓█▓█▓▓▌█▌\n" +
-	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓";
+	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓█▓█▓▐█▌";
 
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
@@ -63,7 +63,7 @@ const main = async () => {
 			terminal.clear();
 			terminal.drawBox(5, 10, 10, 35, 15, 8, true);
 			terminal.drawText(TEXT, 6, 12, 15, 0);
-			terminal.drawText(ASCII_ART, 4, 48, 0, 3);
+			terminal.drawText(ASCII_ART, 4, 48, 16, 3);
 			terminal.draw();
 			requestAnimationFrame(f);
 		};

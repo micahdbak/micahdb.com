@@ -67,6 +67,9 @@ class Renderer {
 		this.initializeVBO();
 		await this.initializeGlyphAtlasTexture();
 
+		this.gl.uniform1i(this.uniforms.rows, 1);
+		this.gl.uniform1i(this.uniforms.cols, 1);
+
 		this.visualsManager = new VisualsManager(this.gl);
 		this.visuals = this.visualsManager.get("cube");
 		await this.visuals.init();
@@ -264,7 +267,7 @@ class Renderer {
 		this.canvasWidth = canvasWidth;
 		this.canvasHeight = canvasHeight;
 
-		// update uniforms & viewport
+		// update uniforms
 		this.gl.uniform1i(this.uniforms.rows, rows);
 		this.gl.uniform1i(this.uniforms.cols, cols);
 

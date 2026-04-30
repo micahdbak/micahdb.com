@@ -29,6 +29,7 @@ uniform sampler2D u_visuals;
 out vec3 v_bgColour;
 out vec3 v_fgColour;
 out vec2 v_uvCoord;
+out vec2 v_cellCoord;
 flat out uint v_charCode;
 
 vec2 glyphTopLeft(uint charCode) {
@@ -76,24 +77,32 @@ void main() {
 
 	vec2 br = vec2(tl.x + float(GLYPH_WIDTH), tl.y + float(GLYPH_HEIGHT));
 	vec2 uvCoord = tl;
+	v_cellCoord = vec2(0.0, 0.0);
+
 
 	// switch properties according to which vertex this is for
 	switch (cellVertex) {
-	case 1:
+	case 1: // bottom-left
 	case 3:
 		row++;
 		uvCoord = vec2(tl.x, br.y);
+		v_cellCoord = vec2(0.0, 1.0);
 		break;
-	case 2:
+
+	case 2: // top-right
 	case 5:
 		col++;
 		uvCoord = vec2(br.x, tl.y);
+		v_cellCoord = vec2(1.0, 0.0);
 		break;
-	case 4:
+
+	case 4: // bottom-right
 		row++;
 		col++;
 		uvCoord = vec2(br.x, br.y);
+		v_cellCoord = vec2(1.0, 1.0);
 		break;
+
 	default:
 		break;
 	}
