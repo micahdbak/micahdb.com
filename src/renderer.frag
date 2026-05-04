@@ -12,12 +12,13 @@
 #define GLYPH_LEFT_HALF		0x258CU
 #define GLYPH_RIGHT_HALF	0x2590U
 
-#define GLYPH_BORDER_H		0x2501U
-#define GLYPH_BORDER_V		0x2503U
-#define GLYPH_BORDER_TL		0x250FU
-#define GLYPH_BORDER_TR		0x2513U
-#define GLYPH_BORDER_BL		0x2517U
-#define GLYPH_BORDER_BR		0x251BU
+#define GLYPH_LINE_TR		0x2514U
+#define GLYPH_LINE_TRB		0x251CU
+#define GLYPH_LINE_TB		0x2502U
+#define GLYPH_LINE_TL		0x2518U
+#define GLYPH_LINE_RB		0x250CU
+#define GLYPH_LINE_RL		0x2500U
+#define GLYPH_LINE_BL		0x2510U
 
 precision mediump float;
 
@@ -107,40 +108,46 @@ void main() {
 		}
 		break;
 
-	// border characters
+	// line characters
 
-	case GLYPH_BORDER_H:
-		if (centerY) {
-			foreground = true;
-		}
-		break;
-
-	case GLYPH_BORDER_V:
-		if (centerX) {
-			foreground = true;
-		}
-		break;
-
-	case GLYPH_BORDER_TL:
-		if ((centerX && v_cellCoord.y > 0.5) || (centerY && v_cellCoord.x > 0.5) || (centerX && centerY)) {
-			foreground = true;
-		}
-		break;
-
-	case GLYPH_BORDER_TR:
-		if ((centerX && v_cellCoord.y > 0.5) || (centerY && v_cellCoord.x < 0.5) || (centerX && centerY)) {
-			foreground = true;
-		}
-		break;
-
-	case GLYPH_BORDER_BL:
+	case GLYPH_LINE_TR:
 		if ((centerX && v_cellCoord.y < 0.5) || (centerY && v_cellCoord.x > 0.5) || (centerX && centerY)) {
 			foreground = true;
 		}
 		break;
 
-	case GLYPH_BORDER_BR:
+	case GLYPH_LINE_TRB:
+		if (centerX || (centerY && v_cellCoord.x > 0.5)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_TB:
+		if (centerX) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_TL:
 		if ((centerX && v_cellCoord.y < 0.5) || (centerY && v_cellCoord.x < 0.5) || (centerX && centerY)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_RB:
+		if ((centerX && v_cellCoord.y > 0.5) || (centerY && v_cellCoord.x > 0.5) || (centerX && centerY)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_RL:
+		if (centerY) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_BL:
+		if ((centerX && v_cellCoord.y > 0.5) || (centerY && v_cellCoord.x < 0.5) || (centerX && centerY)) {
 			foreground = true;
 		}
 		break;

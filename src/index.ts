@@ -1,4 +1,5 @@
 import { Terminal } from "./terminal.ts";
+import { File, Folder, FileTree } from "./file_tree.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -27,6 +28,7 @@ const PALETTE = [
 	0xcd, 0xcd, 0xcd  // 17: fg
 ];
 
+/*
 const ASCII_ART =
 	"░░░░░░░█▐▓▓░████▄▄▄█▀▄▓▓▓▌█\n" +
 	"░░░░░▄█▌▀▄▓▓▄▄▄▄▀▀▀▄▓▓▓▓▓▌█\n" +
@@ -39,13 +41,41 @@ const ASCII_ART =
 	"▌▓▄▌▀░▀░▐▀█▄▓▓██████████▓▓▓▌█▌\n" +
 	"▌▓▓▓▄▄▀▀▓▓▓▀▓▓▓▓▓▓▓▓█▓█▓█▓▓▌█▌\n" +
 	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓█▓█▓▐█▌";
+*/
 
 /*
 Useful Chars:
-┓ ┏ ┛ ┗ ┃ ━
+┐ ┌ ┘ └ │ ─ ├
 ▄ ▀ ▐ ▌
 █ ▓ ▒ ░
 */
+
+const ROOT = new Folder("micahdb.com/", [
+	new File("README.md", "# TODO"),
+	new Folder("Experience/", [
+		new Folder("Open WebUI/", [
+			new File("company.txt", "Open WebUI, Austin, TX, USA"),
+			new File("role.txt", "Software Developer (Co-op)"),
+			new File("tasks.txt", "I did things")
+		]),
+		new Folder("Improving/", [
+			new File("company.txt", "Improving, Vancouver, BC, Canada"),
+			new File("role.txt", "Software Developer 1 (Co-op)"),
+			new File("tasks.txt", "I did things")
+		]),
+		new Folder("Brave Technology Coop/", [
+			new File("company.txt", "Brave Technology Coop, Vancouver, BC, Canada"),
+			new File("role.txt", "Firmware and Software Developer (Co-op)"),
+			new File("tasks.txt", "I did things")
+		])
+	]),
+	new Folder("Education/", [
+		new Folder("Simon Fraser University/", [
+			new File("location.txt", "Burnaby, BC, Canada"),
+			new Folder("Research/", [new File("TODO.txt", "")])
+		])
+	])
+]);
 
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
@@ -56,12 +86,14 @@ const main = async () => {
 
 		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
 
+		const file_tree = new FileTree(terminal, ROOT);
+
 		const draw = () => {
 			terminal.clear();
 
 			const centerY = Math.floor(terminal.rows / 2);
 			const centerX = Math.floor(terminal.cols / 2);
-			const boxOffY = 9;
+			const boxOffY = 12;
 			const boxOffX = 24;
 
 			terminal.drawBox(
@@ -70,68 +102,21 @@ const main = async () => {
 				boxOffY * 2,
 				boxOffX * 2,
 				16,
-				4,
-				15,
 				0,
-				true
-			);
-
-			terminal.drawText(
-				" Micah Baker ",
-				centerY - boxOffY,
-				centerX - 7,
 				15,
-				16,
-				0,
 				0,
 				false
 			);
 
-			terminal.drawText(
-				ASCII_ART,
+			file_tree.draw(
 				centerY - boxOffY + 2,
-				centerX - 10,
-				4,
-				11,
-				0,
-				0,
-				false
+				centerX - boxOffX + 2,
+				2 * boxOffY - 4,
+				2 * boxOffX - 4
 			);
-
-			terminal.drawText(
-				"Software Developer\nVancouver, BC, Canada",
-				centerY - 5,
-				centerX - boxOffX + 4,
-				15,
-				16,
-				0,
-				0,
-				false
-			);
-
-			const r = centerY + boxOffY - 3;
-			let c = centerX - boxOffX + 5;
-			const items = [" Education ", " Experience ", " Projects "];
-
-			for (let i = 0; i < items.length; i++) {
-				const itemEnd = c + items[i].length;
-				let bg = 8;
-				let fg = 15;
-
-				if (
-					terminal.mouseCol >= c &&
-					terminal.mouseCol < itemEnd &&
-					terminal.mouseRow == r
-				) {
-					bg = 15;
-					fg = 8;
-				}
-
-				terminal.drawText(items[i], r, c, bg, fg, 4, 0, true);
-				c = itemEnd + 2;
-			}
 
 			terminal.draw();
+
 			requestAnimationFrame(draw);
 		};
 
