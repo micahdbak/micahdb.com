@@ -275,9 +275,12 @@ class Terminal {
 		}
 	}
 
-	mouseAt(row, col, len) {
+	mouseAt(row, col, rowLen, colLen) {
 		return (
-			this.mouseRow === row && this.mouseCol >= col && this.mouseCol < col + len
+			this.mouseRow >= row &&
+			this.mouseRow < row + rowLen &&
+			this.mouseCol >= col &&
+			this.mouseCol < col + colLen
 		);
 	}
 

@@ -1,6 +1,5 @@
-import { Visuals } from "../visuals.ts";
-
-import { CubeVisuals } from "./cube.ts";
+import { Visuals } from "./visuals.ts";
+import { CubeVisuals } from "./visuals/cube.ts";
 
 class VisualsManager {
 	cube: CubeVisuals;

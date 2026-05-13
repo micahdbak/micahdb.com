@@ -7,7 +7,7 @@ import {
 	VISUALS_TEXTURE_INDEX
 } from "./textures.ts";
 import { Visuals } from "./visuals.ts";
-import { VisualsManager } from "./visuals/manager.ts";
+import { VisualsManager } from "./visuals_manager.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:

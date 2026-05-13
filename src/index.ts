@@ -1,5 +1,5 @@
 import { Terminal } from "./terminal.ts";
-import { File, Folder, FileTree } from "./file_tree.ts";
+import { File, Folder, FileTree } from "./components/file_tree.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -51,6 +51,30 @@ Useful Chars:
 */
 
 const ROOT = new Folder("micahdb.com/", [
+	new File("README.md", "# TODO"),
+	new Folder("Experience/", [
+		new Folder("Open WebUI/", [
+			new File("company.txt", "Open WebUI, Austin, TX, USA"),
+			new File("role.txt", "Software Developer (Co-op)"),
+			new File("tasks.txt", "I did things")
+		]),
+		new Folder("Improving/", [
+			new File("company.txt", "Improving, Vancouver, BC, Canada"),
+			new File("role.txt", "Software Developer 1 (Co-op)"),
+			new File("tasks.txt", "I did things")
+		]),
+		new Folder("Brave Technology Coop/", [
+			new File("company.txt", "Brave Technology Coop, Vancouver, BC, Canada"),
+			new File("role.txt", "Firmware and Software Developer (Co-op)"),
+			new File("tasks.txt", "I did things")
+		])
+	]),
+	new Folder("Education/", [
+		new Folder("Simon Fraser University/", [
+			new File("location.txt", "Burnaby, BC, Canada"),
+			new Folder("Research/", [new File("TODO.txt", "")])
+		])
+	]),
 	new File("README.md", "# TODO"),
 	new Folder("Experience/", [
 		new Folder("Open WebUI/", [
