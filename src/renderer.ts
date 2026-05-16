@@ -29,6 +29,10 @@ class Renderer {
 	private uniforms: {
 		rows: WebGLUniformLocation;
 		cols: WebGLUniformLocation;
+		visualsRow: WebGLUniformLocation;
+		visualsCol: WebGLUniformLocation;
+		visualsRows: WebGLUniformLocation;
+		visualsCols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
 		visuals: WebGLUniformLocation;
 		palette: WebGLUniformLocation;
@@ -47,6 +51,13 @@ class Renderer {
 	private canvasWidth: number;
 	private canvasHeight: number;
 
+	private rows: number;
+	private cols: number;
+	private visualsRow: number;
+	private visualsCol: number;
+	private visualsRows: number;
+	private visualsCols: number;
+
 	public canvas: HTMLCanvasElement;
 
 	constructor(canvas: HTMLCanvasElement) {
@@ -59,6 +70,13 @@ class Renderer {
 		}
 
 		this.gl = gl;
+
+		this.rows = 1;
+		this.cols = 1;
+		this.visualsRow = 0;
+		this.visualsCol = 0;
+		this.visualsRows = 1;
+		this.visualsCols = 1;
 	}
 
 	async init() {
@@ -67,8 +85,13 @@ class Renderer {
 		this.initializeVBO();
 		await this.initializeGlyphAtlasTexture();
 
-		this.gl.uniform1i(this.uniforms.rows, 1);
-		this.gl.uniform1i(this.uniforms.cols, 1);
+		this.gl.uniform1i(this.uniforms.rows, this.rows);
+		this.gl.uniform1i(this.uniforms.cols, this.cols);
+
+		this.gl.uniform1i(this.uniforms.visualsRow, this.visualsRow);
+		this.gl.uniform1i(this.uniforms.visualsCol, this.visualsCol);
+		this.gl.uniform1i(this.uniforms.visualsRows, this.visualsRows);
+		this.gl.uniform1i(this.uniforms.visualsCols, this.visualsCols);
 
 		this.visualsManager = new VisualsManager(this.gl);
 		this.visuals = this.visualsManager.get("cube");
@@ -141,18 +164,54 @@ class Renderer {
 
 		const rows = this.gl.getUniformLocation(this.program, "u_rows");
 		const cols = this.gl.getUniformLocation(this.program, "u_cols");
+		const visualsRow = this.gl.getUniformLocation(
+			this.program,
+			"u_visuals_row"
+		);
+		const visualsCol = this.gl.getUniformLocation(
+			this.program,
+			"u_visuals_col"
+		);
+		const visualsRows = this.gl.getUniformLocation(
+			this.program,
+			"u_visuals_rows"
+		);
+		const visualsCols = this.gl.getUniformLocation(
+			this.program,
+			"u_visuals_cols"
+		);
 		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
 		const visuals = this.gl.getUniformLocation(this.program, "u_visuals");
 		const palette = this.gl.getUniformLocation(this.program, "u_palette");
 
-		if (!rows || !cols || !glyphAtlas || !visuals || !palette) {
+		if (
+			!rows ||
+			!cols ||
+			!visualsRow ||
+			!visualsCol ||
+			!visualsRows ||
+			!visualsCols ||
+			!glyphAtlas ||
+			!visuals ||
+			!palette
+		) {
 			throw new Error("When getting uniform locations");
 		}
 
 		this.gl.uniform1i(visuals, VISUALS_TEXTURE_INDEX);
 
 		// store uniform locations
-		this.uniforms = { rows, cols, glyphAtlas, visuals, palette };
+		this.uniforms = {
+			rows,
+			cols,
+			visualsRow,
+			visualsCol,
+			visualsRows,
+			visualsCols,
+			glyphAtlas,
+			visuals,
+			palette
+		};
 	}
 
 	initializeVBO() {
@@ -256,26 +315,53 @@ class Renderer {
 		canvasWidth: number,
 		canvasHeight: number,
 		rows: number,
-		cols: number
+		cols: number,
+		vrow: number,
+		vcol: number,
+		vrows: number,
+		vcols: number
 	) {
-		// set GL program to renderer
-		this.gl.useProgram(this.program);
-
 		// update canvas size
 		this.canvas.width = canvasWidth;
 		this.canvas.height = canvasHeight;
 		this.canvasWidth = canvasWidth;
 		this.canvasHeight = canvasHeight;
 
-		// update uniforms
-		this.gl.uniform1i(this.uniforms.rows, rows);
-		this.gl.uniform1i(this.uniforms.cols, cols);
+		// set GL program to renderer
+		this.gl.useProgram(this.program);
 
-		// set count to the number of vertices
-		this.count = rows * cols * 6;
+		if (rows !== this.rows || cols !== this.cols) {
+			this.rows = rows;
+			this.cols = cols;
 
-		// resize visuals
-		this.visuals.resize(cols, rows);
+			// update uniforms
+			this.gl.uniform1i(this.uniforms.rows, rows);
+			this.gl.uniform1i(this.uniforms.cols, cols);
+
+			// set count to the number of vertices
+			this.count = rows * cols * 6;
+		}
+
+		if (
+			vrow !== this.visualsRow ||
+			vcol !== this.visualsCol ||
+			vrows !== this.visualsRows ||
+			vcols !== this.visualsCols
+		) {
+			this.visualsRow = vrow;
+			this.visualsCol = vcol;
+			this.visualsRows = vrows;
+			this.visualsCols = vcols;
+
+			// update visuals uniforms
+			this.gl.uniform1i(this.uniforms.visualsRow, vrow);
+			this.gl.uniform1i(this.uniforms.visualsCol, vcol);
+			this.gl.uniform1i(this.uniforms.visualsRows, vrows);
+			this.gl.uniform1i(this.uniforms.visualsCols, vcols);
+
+			// resize visuals
+			this.visuals.resize(vcols, vrows);
+		}
 	}
 
 	setData(data: Uint32Array) {

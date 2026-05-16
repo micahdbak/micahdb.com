@@ -1,4 +1,4 @@
-import { Glyph, Terminal } from "../terminal.ts";
+import { Terminal } from "../terminal.ts";
 
 class ScrollBar {
 	private terminal: Terminal;
@@ -34,17 +34,7 @@ class ScrollBar {
 
 		const thumbRow = startRow + Math.floor(this.frac * rowCount);
 
-		this.terminal.drawText(
-			"▄▄",
-			startRow - 1,
-			startCol,
-			0,
-			8,
-			0,
-			0,
-			false,
-			Glyph.NORMAL_FONT
-		);
+		this.terminal.drawText("▄▄", startRow - 1, startCol, 0, 8);
 
 		for (let row = startRow; row < startRow + rowCount; row++) {
 			let text = "  ";
@@ -57,30 +47,10 @@ class ScrollBar {
 				fgColour = 8;
 			}
 
-			this.terminal.drawText(
-				text,
-				row,
-				startCol,
-				bgColour,
-				fgColour,
-				0,
-				0,
-				false,
-				Glyph.NORMAL_FONT
-			);
+			this.terminal.drawText(text, row, startCol, bgColour, fgColour);
 		}
 
-		this.terminal.drawText(
-			"▀▀",
-			startRow + rowCount,
-			startCol,
-			0,
-			8,
-			0,
-			0,
-			false,
-			Glyph.NORMAL_FONT
-		);
+		this.terminal.drawText("▀▀", startRow + rowCount, startCol, 0, 8);
 	}
 }
 

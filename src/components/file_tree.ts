@@ -71,7 +71,19 @@ class FileTree {
 		return Math.max(rowsDisplayed, 1);
 	}
 
-	draw(startRow: number, startCol: number, rowCount: number, colCount: number) {
+	draw(
+		fg1Colour: number,
+		fg2Colour: number,
+		bgColour: number,
+		startRow: number,
+		startCol: number,
+		rowCount: number,
+		colCount: number
+	) {
+		if (colCount < 2 || rowCount < 2) {
+			return;
+		}
+
 		const col = startCol;
 		const folders = [this.root];
 		const indices = [0];
@@ -120,22 +132,12 @@ class FileTree {
 			}
 
 			branch += i >= folder.children.length - 1 ? "└── " : "├── ";
-			branch = branch.slice(0, colCount - 3);
+			branch = branch.slice(0, colCount);
 
-			this.terminal.drawText(
-				branch,
-				row,
-				col,
-				0,
-				8,
-				0,
-				0,
-				false,
-				Glyph.NORMAL_FONT
-			);
+			this.terminal.drawText(branch, row, col, bgColour, 8);
 
-			let fg = isFolder ? 12 : 15;
-			let bg = 0;
+			let fg = isFolder ? fg2Colour : fg1Colour;
+			let bg = bgColour;
 
 			if (
 				this.terminal.mouseAt(row, col + branch.length, 1, file.name.length)
@@ -160,7 +162,7 @@ class FileTree {
 				}
 			}
 
-			const name = file.name.slice(0, colCount - 3 - branch.length);
+			const name = file.name.slice(0, colCount - branch.length);
 
 			if (name.length > 0) {
 				this.terminal.drawText(
@@ -179,7 +181,8 @@ class FileTree {
 			row++;
 		}
 
-		this.scrollBar.draw(startRow, startCol + colCount - 3, rowCount);
+		// TODO: gesture scrolling
+		// this.scrollBar.draw(startRow, startCol + colCount - 3, rowCount);
 	}
 }
 

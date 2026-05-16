@@ -270,9 +270,9 @@ class CubeVisuals extends Visuals {
 			!viewMatrix ||
 			!modelMatrix ||
 			!normalMatrix ||
-			!cubeTexture /*||
+			!cubeTexture /* ||
 			!cols ||
-			!rows*/
+			!rows */
 		) {
 			throw new Error("When getting uniform locations");
 		}

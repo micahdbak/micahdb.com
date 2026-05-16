@@ -66,6 +66,11 @@ class Terminal {
 	public cols: number;
 	public rows: number;
 
+	public visualsRow: number;
+	public visualsCol: number;
+	public visualsRows: number;
+	public visualsCols: number;
+
 	public mouseCol: number;
 	public mouseRow: number;
 	public mouseClick: boolean;
@@ -77,10 +82,21 @@ class Terminal {
 
 	async init() {
 		await this.renderer.init();
-		this.resize();
+
+		this.visualsRow = 0;
+		this.visualsCol = 0;
+		this.visualsRows = 0;
+		this.visualsCols = 0;
+
+		this.resize(0, 0, 1, 1);
 
 		window.addEventListener("resize", () => {
-			this.resize();
+			this.resize(
+				this.visualsRow,
+				this.visualsCol,
+				this.visualsRows,
+				this.visualsCols
+			);
 		});
 
 		window.addEventListener("pointermove", (e) => {
@@ -101,13 +117,46 @@ class Terminal {
 			this.mouseDown = false;
 		});
 
+		this.renderer.canvas.addEventListener("mouseleave", () => {
+			this.mouseDown = false;
+		});
+
+		this.renderer.canvas.addEventListener("touchstart", (event) => {
+			event.preventDefault();
+		});
+
+		this.renderer.canvas.addEventListener("touchend", (event) => {
+			event.preventDefault();
+		});
+
+		this.renderer.canvas.addEventListener("touchcancel", (event) => {
+			event.preventDefault();
+		});
+
+		this.renderer.canvas.addEventListener("touchmove", (event) => {
+			event.preventDefault();
+		});
+
 		this.mouseCol = 0;
 		this.mouseRow = 0;
 		this.mouseClick = false;
 		this.mouseDown = false;
 	}
 
-	resize() {
+	resize(vrow: number, vcol: number, vrows: number, vcols: number) {
+		// keep track of these for reuse in windows resize events
+		if (
+			vrow !== this.visualsRow ||
+			vcol !== this.visualsCol ||
+			vrows !== this.visualsRows ||
+			vcols !== this.visualsCols
+		) {
+			this.visualsRow = vrow;
+			this.visualsCol = vcol;
+			this.visualsRows = vrows;
+			this.visualsCols = vcols;
+		}
+
 		const dpr = window.devicePixelRatio || 1;
 		this.cellWidth = Terminal.CELL_SIZE * dpr;
 		this.cellHeight = Glyph.WTOH_RATIO * this.cellWidth;
@@ -115,21 +164,41 @@ class Terminal {
 		const canvasWidth = this.renderer.canvas.clientWidth * dpr;
 		const canvasHeight = this.renderer.canvas.clientHeight * dpr;
 
-		this.cols = Math.floor(canvasWidth / this.cellWidth);
-		this.rows = Math.floor(canvasHeight / this.cellHeight);
+		const _cols = Math.floor(canvasWidth / this.cellWidth);
+		const _rows = Math.floor(canvasHeight / this.cellHeight);
+
+		// re-generate glyph buffer if rows/cols changed
+		if (this.cols !== _cols || this.rows !== _rows) {
+			this.cols = _cols;
+			this.rows = _rows;
+
+			const count = this.rows * this.cols * Terminal.UINT32_PER_GLYPH;
+			this.data = new Uint32Array(count);
+		}
 
 		// update these so they are accurate to the stretched cells
 		this.cellWidth = canvasWidth / this.cols;
 		this.cellHeight = canvasHeight / this.rows;
 
-		const count = this.rows * this.cols * Terminal.UINT32_PER_GLYPH;
-		this.data = new Uint32Array(count);
+		// if visuals dimensions are not set, default them to full screen
+		if (this.visualsRows === 0) this.visualsRows = this.rows;
+		if (this.visualsCols === 0) this.visualsCols = this.cols;
 
-		this.renderer.resize(canvasWidth, canvasHeight, this.rows, this.cols);
+		this.renderer.resize(
+			canvasWidth,
+			canvasHeight,
+			this.rows,
+			this.cols,
+			this.visualsRow,
+			this.visualsCol,
+			this.visualsRows,
+			this.visualsCols
+		);
 	}
 
 	clear() {
 		this.data.fill(0);
+		document.body.className = "";
 	}
 
 	drawText(
@@ -138,10 +207,10 @@ class Terminal {
 		col: number,
 		backColour: number,
 		fgColour: number,
-		bgColour: number,
-		shadowColour: number,
-		shadow: boolean,
-		fontOffset: number
+		bgColour: number = 0,
+		shadowColour: number = 0,
+		shadow: boolean = false,
+		fontOffset: number = Glyph.NORMAL_FONT
 	) {
 		const textLength = text.length;
 
@@ -177,26 +246,19 @@ class Terminal {
 				continue;
 			}
 
-			if (c >= this.cols || c < 0 || r < 0) {
-				i++;
-				continue;
-			}
-
-			if (r >= this.rows) {
-				break;
-			}
-
 			if (shadow && (i >= textLength || r > row)) {
 				bg = bgColour;
 				fg = shadowColour;
 			}
 
-			const glyphIndex = r * this.cols + c;
-			const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
+			if (c >= 0 && c < this.cols && r >= 0 && r < this.rows) {
+				const glyphIndex = r * this.cols + c;
+				const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
-			const off = text.charCodeAt(i) < 33 ? 0 : fontOffset;
-			const glyph = new Glyph(bg, fg, text.charCodeAt(i) + off);
-			this.data.set(glyph.data(), uint32Index);
+				const off = charCode < 33 ? 0 : fontOffset;
+				const glyph = new Glyph(bg, fg, charCode + off);
+				this.data.set(glyph.data(), uint32Index);
+			}
 
 			c++;
 			i++;
@@ -218,12 +280,13 @@ class Terminal {
 		shadowColour: number,
 		shadow: boolean
 	) {
-		for (let r = row; r <= row + h && r < this.rows; r++) {
-			for (let c = col; c <= col + w && c < this.cols; c++) {
-				if (c < 0 || r < 0) {
-					continue;
-				}
+		const rStart = Math.max(0, row);
+		const rEnd = Math.min(this.rows - 1, row + h);
+		const cStart = Math.max(0, col);
+		const cEnd = Math.min(this.cols - 1, col + w);
 
+		for (let r = rStart; r <= rEnd; r++) {
+			for (let c = cStart; c <= cEnd; c++) {
 				const shadowRegion: boolean = r === row + h || c === col + w;
 				const shadowGap: boolean = r === row + h && c === col;
 
@@ -275,12 +338,12 @@ class Terminal {
 		}
 	}
 
-	mouseAt(row, col, rowLen, colLen) {
+	mouseAt(row: number, col: number, rows: number, cols: number) {
 		return (
 			this.mouseRow >= row &&
-			this.mouseRow < row + rowLen &&
+			this.mouseRow < row + rows &&
 			this.mouseCol >= col &&
-			this.mouseCol < col + colLen
+			this.mouseCol < col + cols
 		);
 	}
 

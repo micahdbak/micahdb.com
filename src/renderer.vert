@@ -25,6 +25,7 @@ uniform int u_rows;
 uniform int u_cols;
 uniform vec3 u_palette[PALETTE_SIZE];
 uniform sampler2D u_visuals;
+uniform int u_visuals_row, u_visuals_col, u_visuals_rows, u_visuals_cols;
 
 out vec3 v_bgColour;
 out vec3 v_fgColour;
@@ -60,8 +61,17 @@ void main() {
 	// top left / bottom right uv coordinates
 	vec2 tl = glyphTopLeft(a_charCode);
 
-	if (tl == vec2(0.0, 0.0) && a_bgColour == 0U && a_fgColour == 0U) {
-		vec2 texCell = vec2(float(col) / float(u_cols), float(row) / float(u_rows));
+	if (tl == vec2(0.0, 0.0) &&
+		a_bgColour == 0U &&
+		a_fgColour == 0U &&
+		row >= u_visuals_row &&
+		col >= u_visuals_col &&
+		row < u_visuals_row + u_visuals_rows &&
+		col < u_visuals_col + u_visuals_cols) {
+		int vrow = row - u_visuals_row;
+		int vcol = col - u_visuals_col;
+
+		vec2 texCell = vec2(float(vcol) / float(u_visuals_cols), float(vrow) / float(u_visuals_rows));
 		vec4 texSample = texture(u_visuals, texCell);
 
 		v_charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
