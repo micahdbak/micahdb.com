@@ -2,6 +2,7 @@ import { Terminal } from "../terminal.ts";
 
 class Divider {
 	private terminal: Terminal;
+	private frac: number;
 	private mouseWasDown: boolean;
 	private dragging: boolean;
 	private hovering: boolean;
@@ -15,7 +16,8 @@ class Divider {
 	static readonly INTERSECT_TOP = 3;
 	static readonly INTERSECT_BOTTOM = 4;
 
-	public frac: number;
+	public trows: number;
+	public lcols: number;
 
 	constructor(terminal: Terminal, frac: number) {
 		this.terminal = terminal;
@@ -34,6 +36,8 @@ class Divider {
 		col: number,
 		rows: number,
 		cols: number,
+		minRow: number = 0,
+		minCol: number = 0,
 		intRow: number = 0,
 		intCol: number = 0,
 		intersect: number = Divider.INTERSECT_NONE
@@ -68,6 +72,14 @@ class Divider {
 			drawn_cols = cols;
 			intRow = drawn_row;
 
+			if (drawn_row < minRow) {
+				drawn_row = minRow;
+				intRow = minRow;
+			}
+
+			this.trows = drawn_row - row;
+			this.lcols = cols;
+
 			const str = "─".repeat(cols);
 
 			this.terminal.drawText(
@@ -79,8 +91,9 @@ class Divider {
 			);
 
 			if (this.dragging) {
-				const mouseRow =
+				let mouseRow =
 					Math.max(Math.min(this.terminal.mouseRow, row + rows - 1), row) - row;
+				mouseRow = Math.max(mouseRow, minRow);
 				this.frac = mouseRow / (rows - 1);
 			}
 		} else {
@@ -89,6 +102,14 @@ class Divider {
 			drawn_rows = rows;
 			drawn_cols = 1;
 			intCol = drawn_col;
+
+			if (drawn_col < minCol) {
+				drawn_col = minCol;
+				intCol = minCol;
+			}
+
+			this.trows = rows;
+			this.lcols = drawn_col - col;
 
 			for (let i = 0; i < rows; i++) {
 				const ch = "│";
@@ -102,8 +123,9 @@ class Divider {
 			}
 
 			if (this.dragging) {
-				const mouseCol =
+				let mouseCol =
 					Math.max(Math.min(this.terminal.mouseCol, col + cols - 1), col) - col;
+				mouseCol = Math.max(mouseCol, minCol);
 				this.frac = mouseCol / (cols - 1);
 			}
 		}

@@ -1,6 +1,9 @@
 import { Terminal } from "./terminal.ts";
-import { FileTree, File, Folder } from "./components/file_tree.ts";
+
+// components
 import { Divider } from "./components/divider.ts";
+import { Link } from "./components/link.ts";
+import { Table } from "./components/table.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -29,6 +32,24 @@ const PALETTE = [
 	0xcd, 0xcd, 0xcd  // 17: fg
 ];
 
+const BIO_ART = `\
+ ▄▄ ▐   
+ ▌▌▌▐▀▌ 
+ ▌▌▌▐▄▌ `;
+
+const BIO = `\
+Micah Baker
+Software Developer
+Vancouver, BC, Canada`;
+
+const EMAIL = "mailto:<micah_baker@sfu.ca>";
+const GITHUB = "https://github.com/micahdbak";
+const LINKEDIN = "https://linkedin.com/in/micahdbak";
+const RESUME = "/resume.pdf";
+
+const BIO_ROWS = 8;
+const BIO_COLS = 40;
+
 /*
 const ASCII_ART =
 	"░░░░░░░█▐▓▓░████▄▄▄█▀▄▓▓▓▌█\n" +
@@ -51,39 +72,15 @@ Useful Chars:
 █ ▓ ▒ ░
 */
 
-const ROOT = new Folder("micahdb.com/", [
-	new File("README.md", "# TODO"),
-	new Folder("Experience/", [
-		new Folder("Open WebUI/", [
-			new File("company.txt", "Open WebUI, Austin, TX, USA"),
-			new File("role.txt", "Software Developer (Co-op)"),
-			new File("tasks.txt", "I did things")
-		]),
-		new Folder("Improving/", [
-			new File("company.txt", "Improving, Vancouver, BC, Canada"),
-			new File("role.txt", "Software Developer 1 (Co-op)"),
-			new File("tasks.txt", "I did things")
-		]),
-		new Folder("Brave Technology Coop/", [
-			new File("company.txt", "Brave Technology Coop, Vancouver, BC, Canada"),
-			new File("role.txt", "Firmware and Software Developer (Co-op)"),
-			new File("tasks.txt", "I did things")
-		])
-	]),
-	new Folder("Education/", [
-		new Folder("Simon Fraser University/", [
-			new File("location.txt", "Burnaby, BC, Canada"),
-			new Folder("Research/", [new File("TODO.txt", "")])
-		])
-	])
-]);
-
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
 		const terminal = new Terminal(canvas);
 		await terminal.init();
+		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
+
+		// components
 
 		let hsplit, vsplit;
 
@@ -95,11 +92,12 @@ const main = async () => {
 			hsplit = new Divider(terminal, 1.0 / 1.618);
 		}
 
-		const file_tree = new FileTree(terminal, ROOT);
+		const table = new Table(terminal);
+		const link = new Link(terminal);
+
+		// draw loop
 
 		let wide = false;
-
-		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
 
 		const draw = () => {
 			terminal.clear();
@@ -118,9 +116,11 @@ const main = async () => {
 				wide = _wide;
 			}
 
+			// pane management
+
 			let pane1, pane2, pane3;
-			const lcols = Math.floor((terminal.cols - 1) * hsplit.frac); // columns in the left split
-			const trows = Math.floor((terminal.rows - 1) * vsplit.frac); // rows in the top split
+			const trows = vsplit.trows; // rows in the top split
+			const lcols = hsplit.lcols; // columns in the left split
 
 			if (wide) {
 				pane1 = [0, 0, trows, lcols]; // top-left
@@ -134,16 +134,21 @@ const main = async () => {
 					0,
 					terminal.rows,
 					lcols,
+					BIO_ROWS + 2,
+					BIO_COLS + 2,
 					trows,
 					lcols,
 					Divider.INTERSECT_RIGHT
 				);
+
 				hsplit.draw(
 					Divider.VERTICAL,
 					0,
 					0,
 					terminal.rows,
 					terminal.cols,
+					BIO_ROWS + 2,
+					BIO_COLS + 2,
 					trows,
 					lcols,
 					Divider.INTERSECT_LEFT
@@ -160,49 +165,67 @@ const main = async () => {
 					0,
 					trows,
 					terminal.cols,
+					BIO_ROWS + 2,
+					BIO_COLS + 2,
 					trows,
 					lcols,
 					Divider.INTERSECT_BOTTOM
 				);
+
 				vsplit.draw(
 					Divider.HORIZONTAL,
 					0,
 					0,
 					terminal.rows,
 					terminal.cols,
+					BIO_ROWS + 2,
+					BIO_COLS + 2,
 					trows,
 					lcols,
 					Divider.INTERSECT_TOP
 				);
 			}
 
-			file_tree.draw(
-				15,
-				12,
+			// TUI
+
+			const bio_row = Math.floor((pane1[2] - BIO_ROWS) / 2);
+			const bio_col = Math.floor((pane1[3] - BIO_COLS) / 2);
+			const trow = bio_row + 4;
+			const tcol1 = bio_col + 2;
+			const tcol2 = bio_col + 1 + 10 + 2;
+
+			terminal.drawText(BIO_ART, bio_row, tcol1, 15, 16);
+
+			terminal.drawText(BIO, bio_row, tcol2, 16, 17);
+			table.draw(bio_row + 3, bio_col, 1, 2, [4], [10, 27], 16, 8);
+
+			terminal.drawText("E-mail", trow, tcol1, 16, 17);
+			terminal.drawText("GitHub", trow + 1, tcol1, 16, 17);
+			terminal.drawText("LinkedIn", trow + 2, tcol1, 16, 17);
+			terminal.drawText("Resume", trow + 3, tcol1, 16, 17);
+
+			link.draw("<micah_baker@sfu.ca>", EMAIL, trow, tcol2, 16, 12, 15, 16);
+			link.draw(
+				"github.com/micahdbak",
+				GITHUB,
+				trow + 1,
+				tcol2,
 				16,
-				pane1[0] + 1,
-				pane1[1] + 2,
-				pane1[2] - 2,
-				pane1[3] - 4
-			);
-
-			terminal.drawText("2", pane2[0], pane2[1], 11, 8);
-			terminal.drawText("3", pane3[0], pane3[1], 11, 8);
-
-			terminal.drawText(
-				"2",
-				pane2[0] + pane2[2] - 1,
-				pane2[1] + pane2[3] - 1,
 				12,
-				8
+				15,
+				16
 			);
-			terminal.drawText(
-				"3",
-				pane3[0] + pane3[2] - 1,
-				pane3[1] + pane3[3] - 1,
+			link.draw(
+				"linkedin.com/in/micahdbak",
+				LINKEDIN,
+				trow + 2,
+				tcol2,
+				16,
 				12,
-				8
+				15,
+				16
 			);
+			link.draw(RESUME, RESUME, trow + 3, tcol2, 16, 12, 15, 16);
 
 			terminal.draw();
 

@@ -14,6 +14,7 @@
 
 #define GLYPH_LINE_TR		0x2514U // └
 #define GLYPH_LINE_TRB		0x251CU // ├
+#define GLYPH_LINE_TRBL		0x253CU // ┼
 #define GLYPH_LINE_TRL		0x2534U // ┴
 #define GLYPH_LINE_TBL		0x2524U // ┤
 #define GLYPH_LINE_TB		0x2502U // │
@@ -121,6 +122,12 @@ void main() {
 
 	case GLYPH_LINE_TRB:
 		if (centerX || (centerY && v_cellCoord.x > 0.5)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_TRBL:
+		if (centerX || centerY) {
 			foreground = true;
 		}
 		break;
