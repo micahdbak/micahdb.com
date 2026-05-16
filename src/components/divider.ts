@@ -4,9 +4,16 @@ class Divider {
 	private terminal: Terminal;
 	private mouseWasDown: boolean;
 	private dragging: boolean;
+	private hovering: boolean;
 
 	static readonly HORIZONTAL = 0;
 	static readonly VERTICAL = 1;
+
+	static readonly INTERSECT_NONE = 0;
+	static readonly INTERSECT_RIGHT = 2;
+	static readonly INTERSECT_LEFT = 1;
+	static readonly INTERSECT_TOP = 3;
+	static readonly INTERSECT_BOTTOM = 4;
 
 	public frac: number;
 
@@ -26,8 +33,21 @@ class Divider {
 		row: number,
 		col: number,
 		rows: number,
-		cols: number
+		cols: number,
+		intRow: number = 0,
+		intCol: number = 0,
+		intersect: number = Divider.INTERSECT_NONE
 	) {
+		if (
+			intersect !== Divider.INTERSECT_NONE &&
+			(intRow < row ||
+				intRow >= row + rows ||
+				intCol < col ||
+				intCol >= col + cols)
+		) {
+			intersect = Divider.INTERSECT_NONE;
+		}
+
 		if (
 			row < 0 ||
 			col < 0 ||
@@ -46,18 +66,17 @@ class Divider {
 			drawn_col = col;
 			drawn_rows = 1;
 			drawn_cols = cols;
+			intRow = drawn_row;
 
-			let str;
+			const str = "─".repeat(cols);
 
-			if (cols % 2 === 0) {
-				const padding = " ".repeat((cols - 2) / 2);
-				str = padding + "──" + padding;
-			} else {
-				const padding = " ".repeat((cols - 3) / 2);
-				str = padding + "───" + padding;
-			}
-
-			this.terminal.drawText(str, drawn_row, drawn_col, 0, 8);
+			this.terminal.drawText(
+				str,
+				drawn_row,
+				drawn_col,
+				16,
+				this.hovering ? 8 : 0
+			);
 
 			if (this.dragging) {
 				const mouseRow =
@@ -69,20 +88,17 @@ class Divider {
 			drawn_col = col + Math.floor((cols - 1) * this.frac);
 			drawn_rows = rows;
 			drawn_cols = 1;
-
-			const center = Math.floor(rows / 2);
+			intCol = drawn_col;
 
 			for (let i = 0; i < rows; i++) {
-				let bar = false;
-
-				if (rows % 2 === 0) {
-					bar = i === center - 1 || i === center;
-				} else {
-					bar = i === center;
-				}
-
-				const ch = bar ? "│" : " ";
-				this.terminal.drawText(ch, drawn_row + i, drawn_col, 0, 8);
+				const ch = "│";
+				this.terminal.drawText(
+					ch,
+					drawn_row + i,
+					drawn_col,
+					16,
+					this.hovering ? 8 : 0
+				);
 			}
 
 			if (this.dragging) {
@@ -90,6 +106,27 @@ class Divider {
 					Math.max(Math.min(this.terminal.mouseCol, col + cols - 1), col) - col;
 				this.frac = mouseCol / (cols - 1);
 			}
+		}
+
+		if (intersect !== Divider.INTERSECT_NONE) {
+			let ch;
+
+			switch (intersect) {
+				case Divider.INTERSECT_RIGHT:
+					ch = "├";
+					break;
+				case Divider.INTERSECT_LEFT:
+					ch = "┤";
+					break;
+				case Divider.INTERSECT_TOP:
+					ch = "┴";
+					break;
+				case Divider.INTERSECT_BOTTOM:
+					ch = "┬";
+					break;
+			}
+
+			this.terminal.drawText(ch, intRow, intCol, 16, this.hovering ? 8 : 0);
 		}
 
 		// mouse tracking
@@ -107,6 +144,9 @@ class Divider {
 
 			if (mouseInside) {
 				document.body.className = "grab";
+				this.hovering = true;
+			} else {
+				this.hovering = false;
 			}
 		} else if (!this.mouseWasDown) {
 			if (mouseInside) {
@@ -119,6 +159,7 @@ class Divider {
 		} else if (this.dragging) {
 			// mouse is dragging
 			document.body.className = "grabbing";
+			this.hovering = false;
 		}
 	}
 }

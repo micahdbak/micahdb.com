@@ -46,7 +46,7 @@ const ASCII_ART =
 
 /*
 Useful Chars:
-┐ ┌ ┘ └ │ ─ ├
+┐ ┌ ┘ └ │ ─ ├ ┤ ┴ ┬
 ▄ ▀ ▐ ▌
 █ ▓ ▒ ░
 */
@@ -128,16 +128,52 @@ const main = async () => {
 				pane3 = [0, lcols + 1, terminal.rows, terminal.cols - lcols - 1]; // right (visuals)
 				terminal.resize(...pane3);
 
-				vsplit.draw(Divider.HORIZONTAL, 0, 0, terminal.rows, lcols);
-				hsplit.draw(Divider.VERTICAL, 0, 0, terminal.rows, terminal.cols);
+				vsplit.draw(
+					Divider.HORIZONTAL,
+					0,
+					0,
+					terminal.rows,
+					lcols,
+					trows,
+					lcols,
+					Divider.INTERSECT_RIGHT
+				);
+				hsplit.draw(
+					Divider.VERTICAL,
+					0,
+					0,
+					terminal.rows,
+					terminal.cols,
+					trows,
+					lcols,
+					Divider.INTERSECT_LEFT
+				);
 			} else {
 				pane1 = [0, 0, trows, lcols]; // top-left
 				pane2 = [0, lcols + 1, trows, terminal.cols - lcols - 1]; // top-right
 				pane3 = [trows + 1, 0, terminal.rows - trows - 1, terminal.cols]; // bottom (visuals)
 				terminal.resize(...pane3);
 
-				hsplit.draw(Divider.VERTICAL, 0, 0, trows, terminal.cols);
-				vsplit.draw(Divider.HORIZONTAL, 0, 0, terminal.rows, terminal.cols);
+				hsplit.draw(
+					Divider.VERTICAL,
+					0,
+					0,
+					trows,
+					terminal.cols,
+					trows,
+					lcols,
+					Divider.INTERSECT_BOTTOM
+				);
+				vsplit.draw(
+					Divider.HORIZONTAL,
+					0,
+					0,
+					terminal.rows,
+					terminal.cols,
+					trows,
+					lcols,
+					Divider.INTERSECT_TOP
+				);
 			}
 
 			file_tree.draw(

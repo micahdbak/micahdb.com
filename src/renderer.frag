@@ -2,23 +2,26 @@
 
 #define PALETTE_SIZE 18
 
-#define GLYPH_FULL_BLOCK	0x2588U
-#define GLYPH_75P_FILL		0x2593U
-#define GLYPH_50P_FILL		0x2592U
-#define GLYPH_25P_FILL		0x2591U
+#define GLYPH_FULL_BLOCK	0x2588U // █
+#define GLYPH_75P_FILL		0x2593U // ▓
+#define GLYPH_50P_FILL		0x2592U // ▒
+#define GLYPH_25P_FILL		0x2591U // ░
 
-#define GLYPH_TOP_HALF		0x2580U
-#define GLYPH_BOTTOM_HALF	0x2584U
-#define GLYPH_LEFT_HALF		0x258CU
-#define GLYPH_RIGHT_HALF	0x2590U
+#define GLYPH_TOP_HALF		0x2580U // ▀
+#define GLYPH_BOTTOM_HALF	0x2584U // ▄
+#define GLYPH_LEFT_HALF		0x258CU // ▌
+#define GLYPH_RIGHT_HALF	0x2590U // ▐
 
-#define GLYPH_LINE_TR		0x2514U
-#define GLYPH_LINE_TRB		0x251CU
-#define GLYPH_LINE_TB		0x2502U
-#define GLYPH_LINE_TL		0x2518U
-#define GLYPH_LINE_RB		0x250CU
-#define GLYPH_LINE_RL		0x2500U
-#define GLYPH_LINE_BL		0x2510U
+#define GLYPH_LINE_TR		0x2514U // └
+#define GLYPH_LINE_TRB		0x251CU // ├
+#define GLYPH_LINE_TRL		0x2534U // ┴
+#define GLYPH_LINE_TBL		0x2524U // ┤
+#define GLYPH_LINE_TB		0x2502U // │
+#define GLYPH_LINE_TL		0x2518U // ┘
+#define GLYPH_LINE_RB		0x250CU // ┌
+#define GLYPH_LINE_RBL		0x252CU // ┬
+#define GLYPH_LINE_RL		0x2500U // ─
+#define GLYPH_LINE_BL		0x2510U // ┐
 
 precision mediump float;
 
@@ -122,6 +125,18 @@ void main() {
 		}
 		break;
 
+	case GLYPH_LINE_TRL:
+		if (centerY || (centerX && v_cellCoord.y < 0.5)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_TBL:
+		if (centerX || (centerY && v_cellCoord.x < 0.5)) {
+			foreground = true;
+		}
+		break;
+
 	case GLYPH_LINE_TB:
 		if (centerX) {
 			foreground = true;
@@ -136,6 +151,12 @@ void main() {
 
 	case GLYPH_LINE_RB:
 		if ((centerX && v_cellCoord.y > 0.5) || (centerY && v_cellCoord.x > 0.5) || (centerX && centerY)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_LINE_RBL:
+		if (centerY || (centerX && v_cellCoord.y > 0.5)) {
 			foreground = true;
 		}
 		break;
