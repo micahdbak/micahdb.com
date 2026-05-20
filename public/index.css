@@ -21,6 +21,10 @@ body.grabbing {
 	cursor: grabbing;
 }
 
+body.pointer {
+	cursor: pointer;
+}
+
 #webgl {
 	width: 100%;
 	height: 100%;

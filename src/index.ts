@@ -3,8 +3,8 @@ import { Terminal } from "./terminal.ts";
 // components
 import { Divider } from "./components/divider.ts";
 import { Link } from "./components/link.ts";
+import { Markdown } from "./components/markdown.ts";
 import { Table } from "./components/table.ts";
-import { Tabs } from "./components/tabs.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -44,6 +44,19 @@ const BIO = `\
 Micah Baker
 Software Developer
 Vancouver, BC, Canada`;
+
+const BODY = `\
+# micahdb.com
+
+Welcome to &11b;&0;my&17;&16b; &15;&9b;website&17;&16b;.
+
+Here is a [link](https://micahdb.com).
+
+## This is a subheading
+
+1. This is a list item
+1. This is another
+1. This is another, another`;
 
 const EMAIL = "mailto:<micah_baker@sfu.ca>";
 const GITHUB = "https://github.com/micahdbak";
@@ -85,18 +98,9 @@ const main = async () => {
 
 		// components
 
-		const vsplit = new Divider(terminal, PANE_RATIO);
-		const hsplit = new Divider(terminal, PANE_RATIO);
-
+		const divider = new Divider(terminal, PANE_RATIO);
 		const table = new Table(terminal);
-
-		// links
-		const email = new Link(terminal, "<micah_baker@sfu.ca>", EMAIL);
-		const github = new Link(terminal, "@micahdbak", GITHUB);
-		const linkedin = new Link(terminal, "/in/micahdbak", LINKEDIN);
-		const resume = new Link(terminal, "/resume.pdf", RESUME);
-
-		const tabs = new Tabs(terminal);
+		const markdown = new Markdown(terminal, BODY);
 
 		// draw loop
 
@@ -104,133 +108,58 @@ const main = async () => {
 
 		const draw = () => {
 			terminal.clear();
-			const _wide = terminal.cols > 2 * terminal.rows;
-
-			// on horiz -> vert (vice-versa) switch, re-set the dividers
-			if (wide !== _wide) {
-				vsplit.setFrac(PANE_RATIO);
-				hsplit.setFrac(PANE_RATIO);
-
-				wide = _wide;
-			}
 
 			// pane management
 
-			let pane1, pane2, pane3;
-			const trows = vsplit.trows; // rows in the top split
-			const lcols = hsplit.lcols; // columns in the left split
+			let pane1, pane2;
+			const lcols = divider.lcols;
 
-			if (wide) {
-				pane1 = [0, 0, trows, lcols]; // top-left
-				pane2 = [trows + 1, 0, terminal.rows - trows - 1, lcols]; // bottom-left
-				pane3 = [0, lcols + 1, terminal.rows, terminal.cols - lcols - 1]; // right (visuals)
-				terminal.resize(...pane3);
+			pane1 = [0, 0, terminal.rows, lcols]; // left
+			pane2 = [0, lcols, terminal.rows, terminal.cols - lcols - 1]; // right
+			terminal.resize(...pane2);
 
-				vsplit.draw(
-					Divider.HORIZONTAL,
-					0,
-					0,
-					terminal.rows,
-					lcols,
-					BIO_ROWS + 2,
-					BIO_COLS + 2,
-					trows,
-					lcols,
-					Divider.INTERSECT_RIGHT
-				);
-
-				hsplit.draw(
-					Divider.VERTICAL,
-					0,
-					0,
-					terminal.rows,
-					terminal.cols,
-					BIO_ROWS + 2,
-					BIO_COLS + 2,
-					trows,
-					lcols,
-					Divider.INTERSECT_LEFT
-				);
-			} else {
-				pane1 = [0, 0, trows, lcols]; // top-left
-				pane2 = [0, lcols + 1, trows, terminal.cols - lcols - 1]; // top-right
-				pane3 = [trows + 1, 0, terminal.rows - trows - 1, terminal.cols]; // bottom (visuals)
-				terminal.resize(...pane3);
-
-				hsplit.draw(
-					Divider.VERTICAL,
-					0,
-					0,
-					trows,
-					terminal.cols,
-					BIO_ROWS + 2,
-					BIO_COLS + 2,
-					trows,
-					lcols,
-					Divider.INTERSECT_BOTTOM
-				);
-
-				vsplit.draw(
-					Divider.HORIZONTAL,
-					0,
-					0,
-					terminal.rows,
-					terminal.cols,
-					BIO_ROWS + 2,
-					BIO_COLS + 2,
-					trows,
-					lcols,
-					Divider.INTERSECT_TOP
-				);
-			}
+			divider.draw(
+				Divider.VERTICAL,
+				0,
+				0,
+				terminal.rows,
+				terminal.cols,
+				0,
+				BIO_COLS + 4
+			);
 
 			// TUI
 
-			// first pane (bio)
+			// bio
 
-			const bio_row = Math.floor((pane1[2] - BIO_ROWS) / 2);
-			const bio_col = Math.floor((pane1[3] - BIO_COLS) / 2);
-			const trow = bio_row + 4;
-			const tcol1 = bio_col + 2;
-			const tcol2 = bio_col + 1 + 10 + 2;
+			const bio_row = 2;
+			const bio_col = 2;
+			const trow = bio_row + 4; // first table *text* row
+			const tcol1 = bio_col + 2; // first table column
+			const tcol2 = bio_col + 1 + 10 + 2; // second table column
 
+			// bio art / blurb
 			terminal.drawText(BIO_ART, bio_row, tcol1, 8, 12);
-
 			terminal.drawText(BIO, bio_row, tcol2, 16, 17);
+
 			table.draw(bio_row + 3, bio_col, 1, 2, [4], [10, 27], 16, 8);
 
+			// column 1
 			terminal.drawText("E-mail", trow, tcol1, 16, 17);
 			terminal.drawText("GitHub", trow + 1, tcol1, 16, 17);
 			terminal.drawText("LinkedIn", trow + 2, tcol1, 16, 17);
 			terminal.drawText("Resume", trow + 3, tcol1, 16, 17);
 
-			email.draw(trow, tcol2, 0, 12, 15, 16);
-			github.draw(trow + 1, tcol2, 0, 12, 15, 16);
-			linkedin.draw(trow + 2, tcol2, 0, 12, 15, 16);
-			resume.draw(trow + 3, tcol2, 0, 12, 15, 16);
+			// column 2
+			Link.draw(terminal, "<micah_baker@sfu.ca>", EMAIL, trow, tcol2);
+			Link.draw(terminal, "@micahdbak", GITHUB, trow + 1, tcol2);
+			Link.draw(terminal, "/in/micahdbak", LINKEDIN, trow + 2, tcol2);
+			Link.draw(terminal, "/resume.pdf", RESUME, trow + 3, tcol2);
 
-			// second pane (portfolio)
+			// README.md
 
-			tabs.draw(
-				["About", "Education", "Experience", "Projects"],
-				pane2[0],
-				pane2[1],
-				pane2[3],
-				8,
-				17,
-				0
-			);
-
-			switch (tabs.which) {
-				case 0: // About
-					break;
-				case 1: // Education
-					break;
-				case 2: // Experience
-					break;
-				case 3: // Projects
-					break;
-			}
+			const readme_row = bio_row + trow + 4;
+			markdown.draw(readme_row, pane1[1] + 2, pane1[3] - 4);
 
 			terminal.draw();
 
