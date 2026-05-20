@@ -73,6 +73,8 @@ class Terminal {
 
 	public mouseCol: number;
 	public mouseRow: number;
+	public mouseDownRow: number;
+	public mouseDownCol: number;
 	public mouseClick: boolean;
 	public mouseDown: boolean;
 
@@ -111,6 +113,8 @@ class Terminal {
 
 		this.renderer.canvas.addEventListener("mousedown", () => {
 			this.mouseDown = true;
+			this.mouseDownRow = this.mouseRow;
+			this.mouseDownCol = this.mouseCol;
 		});
 
 		this.renderer.canvas.addEventListener("mouseup", () => {
@@ -137,8 +141,10 @@ class Terminal {
 			event.preventDefault();
 		});
 
-		this.mouseCol = 0;
 		this.mouseRow = 0;
+		this.mouseCol = 0;
+		this.mouseDownRow = 0;
+		this.mouseDownCol = 0;
 		this.mouseClick = false;
 		this.mouseDown = false;
 	}
@@ -344,6 +350,15 @@ class Terminal {
 			this.mouseRow < row + rows &&
 			this.mouseCol >= col &&
 			this.mouseCol < col + cols
+		);
+	}
+
+	mouseDownAt(row: number, col: number, rows: number, cols: number) {
+		return (
+			this.mouseDownRow >= row &&
+			this.mouseDownRow < row + rows &&
+			this.mouseDownCol >= col &&
+			this.mouseDownCol < col + cols
 		);
 	}
 

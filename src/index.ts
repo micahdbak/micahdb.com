@@ -4,6 +4,7 @@ import { Terminal } from "./terminal.ts";
 import { Divider } from "./components/divider.ts";
 import { Link } from "./components/link.ts";
 import { Table } from "./components/table.ts";
+import { Tabs } from "./components/tabs.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -31,6 +32,8 @@ const PALETTE = [
 	0x14, 0x14, 0x15, // 16: bg
 	0xcd, 0xcd, 0xcd  // 17: fg
 ];
+
+const PANE_RATIO = 1.0 - 1.0 / 1.618;
 
 const BIO_ART = `\
  ▄▄ ▐   
@@ -82,18 +85,18 @@ const main = async () => {
 
 		// components
 
-		let hsplit, vsplit;
-
-		if (terminal.cols > 2 * terminal.rows) {
-			vsplit = new Divider(terminal, 1.0 / 1.618);
-			hsplit = new Divider(terminal, 1.0 - 1.0 / 1.618);
-		} else {
-			vsplit = new Divider(terminal, 1.0 - 1.0 / 1.618);
-			hsplit = new Divider(terminal, 1.0 / 1.618);
-		}
+		const vsplit = new Divider(terminal, PANE_RATIO);
+		const hsplit = new Divider(terminal, PANE_RATIO);
 
 		const table = new Table(terminal);
-		const link = new Link(terminal);
+
+		// links
+		const email = new Link(terminal, "<micah_baker@sfu.ca>", EMAIL);
+		const github = new Link(terminal, "@micahdbak", GITHUB);
+		const linkedin = new Link(terminal, "/in/micahdbak", LINKEDIN);
+		const resume = new Link(terminal, "/resume.pdf", RESUME);
+
+		const tabs = new Tabs(terminal);
 
 		// draw loop
 
@@ -105,13 +108,8 @@ const main = async () => {
 
 			// on horiz -> vert (vice-versa) switch, re-set the dividers
 			if (wide !== _wide) {
-				if (_wide) {
-					vsplit.setFrac(1.0 / 1.618);
-					hsplit.setFrac(1.0 - 1.0 / 1.618);
-				} else {
-					vsplit.setFrac(1.0 - 1.0 / 1.618);
-					hsplit.setFrac(1.0 / 1.618);
-				}
+				vsplit.setFrac(PANE_RATIO);
+				hsplit.setFrac(PANE_RATIO);
 
 				wide = _wide;
 			}
@@ -188,13 +186,15 @@ const main = async () => {
 
 			// TUI
 
+			// first pane (bio)
+
 			const bio_row = Math.floor((pane1[2] - BIO_ROWS) / 2);
 			const bio_col = Math.floor((pane1[3] - BIO_COLS) / 2);
 			const trow = bio_row + 4;
 			const tcol1 = bio_col + 2;
 			const tcol2 = bio_col + 1 + 10 + 2;
 
-			terminal.drawText(BIO_ART, bio_row, tcol1, 15, 16);
+			terminal.drawText(BIO_ART, bio_row, tcol1, 8, 12);
 
 			terminal.drawText(BIO, bio_row, tcol2, 16, 17);
 			table.draw(bio_row + 3, bio_col, 1, 2, [4], [10, 27], 16, 8);
@@ -204,28 +204,33 @@ const main = async () => {
 			terminal.drawText("LinkedIn", trow + 2, tcol1, 16, 17);
 			terminal.drawText("Resume", trow + 3, tcol1, 16, 17);
 
-			link.draw("<micah_baker@sfu.ca>", EMAIL, trow, tcol2, 16, 12, 15, 16);
-			link.draw(
-				"github.com/micahdbak",
-				GITHUB,
-				trow + 1,
-				tcol2,
-				16,
-				12,
-				15,
-				16
+			email.draw(trow, tcol2, 0, 12, 15, 16);
+			github.draw(trow + 1, tcol2, 0, 12, 15, 16);
+			linkedin.draw(trow + 2, tcol2, 0, 12, 15, 16);
+			resume.draw(trow + 3, tcol2, 0, 12, 15, 16);
+
+			// second pane (portfolio)
+
+			tabs.draw(
+				["About", "Education", "Experience", "Projects"],
+				pane2[0],
+				pane2[1],
+				pane2[3],
+				8,
+				17,
+				0
 			);
-			link.draw(
-				"linkedin.com/in/micahdbak",
-				LINKEDIN,
-				trow + 2,
-				tcol2,
-				16,
-				12,
-				15,
-				16
-			);
-			link.draw(RESUME, RESUME, trow + 3, tcol2, 16, 12, 15, 16);
+
+			switch (tabs.which) {
+				case 0: // About
+					break;
+				case 1: // Education
+					break;
+				case 2: // Experience
+					break;
+				case 3: // Projects
+					break;
+			}
 
 			terminal.draw();
 

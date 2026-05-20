@@ -2,14 +2,16 @@ import { Glyph, Terminal } from "../terminal.ts";
 
 class Link {
 	private terminal: Terminal;
+	private text: string;
+	private url: string;
 
-	constructor(terminal: Terminal) {
+	constructor(terminal: Terminal, text: string, url: string) {
 		this.terminal = terminal;
+		this.text = text;
+		this.url = url;
 	}
 
 	draw(
-		text: string,
-		url: string,
 		row: number,
 		col: number,
 		backColour: number,
@@ -17,16 +19,17 @@ class Link {
 		hoverBackColour: number,
 		hoverFgColour: number
 	) {
-		const isHovered = this.terminal.mouseAt(row, col, 1, text.length);
+		const isHovered = this.terminal.mouseAt(row, col, 1, this.text.length);
+		const wasHovered = this.terminal.mouseDownAt(row, col, 1, this.text.length);
 
-		if (isHovered && this.terminal.mouseClick) {
-			if (url.startsWith("mailto:")) {
+		if (isHovered && wasHovered && this.terminal.mouseClick) {
+			if (this.url.startsWith("mailto:")) {
 				const a = document.createElement("a");
-				a.href = url;
+				a.href = this.url;
 				a.click();
 			} else {
 				// opens in new tab
-				window.open(url, "_blank");
+				window.open(this.url, "_blank");
 			}
 		}
 
@@ -34,7 +37,7 @@ class Link {
 		const fg = isHovered ? hoverFgColour : fgColour;
 
 		this.terminal.drawText(
-			text,
+			this.text,
 			row,
 			col,
 			bg,
