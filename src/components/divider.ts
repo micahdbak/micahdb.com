@@ -3,6 +3,7 @@ import { Terminal } from "../terminal.ts";
 class Divider {
 	private terminal: Terminal;
 	private frac: number;
+	private interactive: boolean;
 	private mouseWasDown: boolean;
 	private dragging: boolean;
 	private hovering: boolean;
@@ -19,11 +20,12 @@ class Divider {
 	public trows: number;
 	public lcols: number;
 
-	constructor(terminal: Terminal, frac: number) {
+	constructor(terminal: Terminal, frac: number, interactive: boolean) {
 		this.terminal = terminal;
+		this.frac = frac;
+		this.interactive = interactive;
 		this.mouseWasDown = false;
 		this.dragging = false;
-		this.frac = frac;
 	}
 
 	setFrac(frac: number) {
@@ -112,9 +114,8 @@ class Divider {
 			this.lcols = drawn_col - col;
 
 			for (let i = 0; i < rows; i++) {
-				const ch = "│";
 				this.terminal.drawText(
-					ch,
+					"│",
 					drawn_row + i,
 					drawn_col,
 					16,
@@ -153,6 +154,10 @@ class Divider {
 
 		// mouse tracking
 
+		if (!this.interactive) {
+			return;
+		}
+
 		const mouseInside = this.terminal.mouseAt(
 			drawn_row,
 			drawn_col,
@@ -161,6 +166,9 @@ class Divider {
 		);
 
 		if (!this.terminal.mouseDown) {
+			if (this.dragging) {
+				this.terminal.mouseOwner = "";
+			}
 			this.mouseWasDown = false;
 			this.dragging = false;
 
@@ -171,8 +179,9 @@ class Divider {
 				this.hovering = false;
 			}
 		} else if (!this.mouseWasDown) {
-			if (mouseInside) {
+			if (mouseInside && this.terminal.mouseOwner === "") {
 				this.dragging = true;
+				this.terminal.mouseOwner = "divider";
 			} else {
 				this.dragging = false;
 			}

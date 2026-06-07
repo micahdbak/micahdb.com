@@ -11,6 +11,9 @@ body {
 	width: 100svw;
 	height: 100svh;
 	overflow: hidden;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
 }
 
 body.grab {

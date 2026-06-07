@@ -52,6 +52,8 @@ void main() {
 	bool specialBlock = true;
 	bool foreground = false;
 
+	vec3 fgColour = v_fgColour;
+
 	// check for special (fragment rendered) block characters
 	switch (v_charCode) {
 
@@ -69,21 +71,33 @@ void main() {
 		break;
 
 	case GLYPH_75P_FILL:
+		/*
 		if (cellX % 2 == 0 || cellY % 2 == 0) {
 			foreground = true;
 		}
+		*/
+		fgColour = 0.75 * v_fgColour + 0.25 * v_bgColour;
+		foreground = true;
 		break;
 
 	case GLYPH_50P_FILL:
+		/*
 		if ((cellY % 2 == 0 && cellX % 2 == 1) || (cellY % 2 == 1 && cellX % 2 == 0)) {
 			foreground = true;
 		}
+		*/
+		fgColour = 0.50 * v_fgColour + 0.50 * v_bgColour;
+		foreground = true;
 		break;
 	
 	case GLYPH_25P_FILL:
+		/*
 		if (cellX % 2 == 1 && cellY % 2 == 1) {
 			foreground = true;
 		}
+		*/
+		fgColour = 0.25 * v_fgColour + 0.75 * v_bgColour;
+		foreground = true;
 		break;
 
 	// block characters
@@ -189,7 +203,7 @@ void main() {
 
 	if (specialBlock) {
 		if (foreground) {
-			fragColour = vec4(v_fgColour, 1.0);
+			fragColour = vec4(fgColour, 1.0);
 		} else {
 			fragColour = vec4(v_bgColour, 1.0);
 		}
@@ -201,5 +215,5 @@ void main() {
 	vec4 glyphSample = texture(u_glyphAtlas, v_uvCoord);
 	float fgMask = clamp(glyphSample.a, 0.0, 1.0);
 	float bgMask = 1.0 - fgMask;
-	fragColour = vec4(v_bgColour * bgMask, bgMask) + vec4(v_fgColour * fgMask, fgMask);
+	fragColour = vec4(v_bgColour * bgMask, bgMask) + vec4(fgColour * fgMask, fgMask);
 }

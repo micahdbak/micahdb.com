@@ -18,14 +18,16 @@ class Markdown {
 	private terminal: Terminal;
 	private root: Node;
 
+	public rows: number = 1;
+
 	constructor(terminal: Terminal, markdown: string) {
 		this.terminal = terminal;
 		this.root = fromMarkdown(markdown);
-		console.log(this.root);
+		// console.log(this.root);
 	}
 
-	draw(row: number, col: number, cols: number) {
-		if (row < 0 || col < 0 || cols <= 0) {
+	draw(row: number, col: number, rows: number, cols: number) {
+		if (rows <= 0 || cols <= 0) {
 			return;
 		}
 
@@ -91,7 +93,11 @@ class Markdown {
 				switch (node.type) {
 					case "heading":
 						const heading = node as Heading;
-						this.terminal.drawText("#".repeat(heading.depth), r, c, 16, 8);
+
+						if (r >= row && r < row + rows) {
+							this.terminal.drawText("#".repeat(heading.depth), r, c, 16, 8);
+						}
+
 						c += heading.depth + 1;
 						break;
 
@@ -101,7 +107,11 @@ class Markdown {
 
 					case "listItem":
 						const text = `${list_idx < 10 ? " " : ""}${list_idx++}. `;
-						this.terminal.drawText(text, r, c, 16, 8);
+
+						if (r >= row && r < row + rows) {
+							this.terminal.drawText(text, r, c, 16, 8);
+						}
+
 						c += text.length;
 						list_content_flag = true; // waiting for list content
 						break;
@@ -132,7 +142,10 @@ class Markdown {
 			text = text.replace(/\s+/g, " ");
 
 			if (is_link) {
-				Link.draw(this.terminal, text, link_url, r, c);
+				if (r >= row && r < row + rows) {
+					Link.draw(this.terminal, text, link_url, r, c);
+				}
+
 				c += text.length;
 
 				if (c > col + cols) {
@@ -164,7 +177,10 @@ class Markdown {
 					if (!match) {
 						// no more settings - draw word directly
 						if (word.length > 0) {
-							this.terminal.drawText(word, r, c, bg, fg, 0, 0, false, font);
+							if (r >= row && r < row + rows) {
+								this.terminal.drawText(word, r, c, bg, fg, 0, 0, false, font);
+							}
+
 							c += word.length;
 						}
 
@@ -175,7 +191,10 @@ class Markdown {
 					const prefix = word.substring(0, match.index);
 
 					if (prefix.length > 0) {
-						this.terminal.drawText(prefix, r, c, bg, fg, 0, 0, false, font);
+						if (r >= row && r < row + rows) {
+							this.terminal.drawText(prefix, r, c, bg, fg, 0, 0, false, font);
+						}
+
 						c += prefix.length;
 					}
 
@@ -190,6 +209,8 @@ class Markdown {
 				}
 			}
 		}
+
+		this.rows = r - row + 1;
 	}
 }
 

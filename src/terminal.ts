@@ -49,22 +49,22 @@ class Glyph {
 }
 
 class Terminal {
-	static readonly CELL_SIZE = 10;
+	static readonly CELL_SIZE = 8;
 	static readonly BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
 	static readonly UINT32_PER_GLYPH = Glyph.VERTICES;
-
-	private renderer: Renderer;
 
 	private mouseX: number;
 	private mouseY: number;
 
-	private cellWidth: number;
-	private cellHeight: number;
-
 	private data: Uint32Array;
+
+	private renderer: Renderer;
 
 	public cols: number;
 	public rows: number;
+
+	public cellWidth: number;
+	public cellHeight: number;
 
 	public visualsRow: number;
 	public visualsCol: number;
@@ -77,6 +77,7 @@ class Terminal {
 	public mouseDownCol: number;
 	public mouseClick: boolean;
 	public mouseDown: boolean;
+	public mouseOwner: string = "";
 
 	constructor(canvas: HTMLCanvasElement) {
 		this.renderer = new Renderer(canvas);
@@ -105,40 +106,38 @@ class Terminal {
 			const dpr = window.devicePixelRatio || 1;
 			this.mouseX = dpr * e.clientX;
 			this.mouseY = dpr * e.clientY;
+			this.mouseRow = Math.floor(this.mouseY / this.cellHeight);
+			this.mouseCol = Math.floor(this.mouseX / this.cellWidth);
 		});
 
-		this.renderer.canvas.addEventListener("click", () => {
+		this.renderer.canvas.addEventListener("pointerdown", (e: PointerEvent) => {
+			const dpr = window.devicePixelRatio || 1;
+			this.mouseX = dpr * e.clientX;
+			this.mouseY = dpr * e.clientY;
+
+			const row = Math.floor(this.mouseY / this.cellHeight);
+			const col = Math.floor(this.mouseX / this.cellWidth);
+			this.mouseRow = row;
+			this.mouseCol = col;
+
+			this.mouseDown = true;
+			this.mouseDownRow = row;
+			this.mouseDownCol = col;
+
+			(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		});
+
+		this.renderer.canvas.addEventListener("pointerup", () => {
+			this.mouseDown = false;
 			this.mouseClick = true;
 		});
 
-		this.renderer.canvas.addEventListener("mousedown", () => {
-			this.mouseDown = true;
-			this.mouseDownRow = this.mouseRow;
-			this.mouseDownCol = this.mouseCol;
-		});
-
-		this.renderer.canvas.addEventListener("mouseup", () => {
+		this.renderer.canvas.addEventListener("pointercancel", () => {
 			this.mouseDown = false;
 		});
 
-		this.renderer.canvas.addEventListener("mouseleave", () => {
+		this.renderer.canvas.addEventListener("pointerleave", () => {
 			this.mouseDown = false;
-		});
-
-		this.renderer.canvas.addEventListener("touchstart", (event) => {
-			event.preventDefault();
-		});
-
-		this.renderer.canvas.addEventListener("touchend", (event) => {
-			event.preventDefault();
-		});
-
-		this.renderer.canvas.addEventListener("touchcancel", (event) => {
-			event.preventDefault();
-		});
-
-		this.renderer.canvas.addEventListener("touchmove", (event) => {
-			event.preventDefault();
 		});
 
 		this.mouseRow = 0;
@@ -218,6 +217,9 @@ class Terminal {
 		shadow: boolean = false,
 		fontOffset: number = Glyph.NORMAL_FONT
 	) {
+		row = Math.round(row);
+		col = Math.round(col);
+
 		const textLength = text.length;
 
 		// don't display shadow for multi-line text
@@ -365,24 +367,19 @@ class Terminal {
 	draw() {
 		// highlight mouse cursor
 		if (this.mouseCol !== undefined && this.mouseRow !== undefined) {
-			let col = Math.floor(this.mouseX / this.cellWidth);
-			let row = Math.floor(this.mouseY / this.cellHeight);
-			this.mouseCol = col;
-			this.mouseRow = row;
-
-			if (col < 0) {
-				col = 0;
-			} else if (col >= this.cols) {
-				col = this.cols - 1;
+			if (this.mouseCol < 0) {
+				this.mouseCol = 0;
+			} else if (this.mouseCol >= this.cols) {
+				this.mouseCol = this.cols - 1;
 			}
 
-			if (row < 0) {
-				row = 0;
-			} else if (row >= this.rows) {
-				row = this.rows - 1;
+			if (this.mouseRow < 0) {
+				this.mouseRow = 0;
+			} else if (this.mouseRow >= this.rows) {
+				this.mouseRow = this.rows - 1;
 			}
 
-			const glyphIndex = row * this.cols + col;
+			const glyphIndex = this.mouseRow * this.cols + this.mouseCol;
 			const uint32Index = glyphIndex * Terminal.UINT32_PER_GLYPH;
 
 			const cellData = this.data.subarray(
