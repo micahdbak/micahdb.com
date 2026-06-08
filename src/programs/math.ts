@@ -355,6 +355,46 @@ class Mat4 {
 		o[15] = 1;
 		return o;
 	}
+
+	static rotation(axis: str, radians: number): Float32Array {
+		const c = Math.cos(radians);
+		const s = Math.sin(radians);
+		const T = Mat4.create();
+
+		switch (axis) {
+			case "x":
+				// prettier-ignore
+				Mat4.set(T,
+				1, 0, 0, 0,
+				0, c, s, 0,
+				0, -s, c, 0,
+				0, 0, 0, 1);
+
+				break;
+
+			case "y":
+				// prettier-ignore
+				Mat4.set(T,
+				c, 0, -s, 0,
+				0, 1, 0, 0,
+				s, 0, c, 0,
+				0, 0, 0, 1);
+
+				break;
+
+			case "z":
+				// prettier-ignore
+				Mat4.set(T,
+				c, s, 0, 0,
+				-s, c, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1);
+
+				break;
+		}
+
+		return T;
+	}
 }
 
 class Vec4 {

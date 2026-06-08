@@ -36,18 +36,44 @@ const PALETTE = [
 
 const PANE_RATIO = 1.0 - 1.0 / 1.618;
 
+/*
+Useful Chars:
+┐ ┌ ┘ └ │ ─ ├ ┤ ┴ ┬
+▄ ▀ ▐ ▌
+█ ▓ ▒ ░
+*/
+
+/*
 const CARD_ART = `\
  ▄▄ ▐   
  ▌▌▌▐▀▌ 
  ▌▌▌▐▄▌ `;
+*/
 
+/*
+▄▄ ▀   ▄ ▌   ▐▀▄ ▄ ▌▌ ▄ ▄ 
+▌▌▌█▐▀ ▄▌█▀▌ ▐▀▄ ▄▌█ █▄▌▌▀
+▌▌▌█▐▄▐▄▌▌ ▌ ▐▄▀▐▄▌▌▌▀▄ ▌ 
+*/
+
+const NAME_ART = `\
+
+█▄ ▄█ ▀  ▄▄  ▄▄ █     █▀▄  ▄▄ █ ▄ ▄▄  ▄▄
+█ ▀ █ █ █   █ █ █▀▄   █▀▄ █ █ █▄▀ █▄█ █ ▀
+█   █ █ ▀▄▄ ▀▄█ █ █   █▄▀ ▀▄█ █ █ ▀▄▄ █ 
+
+Software Developer
+Vancouver, BC, Canada
+`;
+
+/*
 const CARD_TEXT = `\
-Micah Baker
 Software Developer
 Vancouver, BC, Canada`;
+*/
 
 const CARD_ROWS = 9;
-const CARD_COLS = 40;
+const CARD_COLS = 44;
 const CARD_PADDING = 1;
 
 const BODY = `\
@@ -105,13 +131,6 @@ const ASCII_ART =
 	"▌▓▄▌▀░▀░▐▀█▄▓▓██████████▓▓▓▌█▌\n" +
 	"▌▓▓▓▄▄▀▀▓▓▓▀▓▓▓▓▓▓▓▓█▓█▓█▓▓▌█▌\n" +
 	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓█▓█▓▐█▌";
-*/
-
-/*
-Useful Chars:
-┐ ┌ ┘ └ │ ─ ├ ┤ ┴ ┬
-▄ ▀ ▐ ▌
-█ ▓ ▒ ░
 */
 
 const main = async () => {
@@ -181,16 +200,15 @@ const main = async () => {
 			// card
 
 			const card_row = CARD_PADDING - row_offset;
-			const card_col = 2;
-			const trow = card_row + 4; // first table *text* row
+			const card_col = 4;
+			const trow = card_row + 9; // first table *text* row
 			const tcol1 = card_col + 2; // first table column
 			const tcol2 = card_col + 1 + 10 + 2; // second table column
 
 			// card art / text
-			terminal.drawText(CARD_ART, card_row, tcol1, 8, 15);
-			terminal.drawText(CARD_TEXT, card_row, tcol2, 16, 17);
+			terminal.drawText(NAME_ART, card_row, card_col, 16, 15);
 
-			table.draw(card_row + 3, card_col, 1, 2, [4], [10, 27], 16, 8);
+			table.draw(trow - 1, card_col, 1, 2, [4], [10, 27], 16, 8);
 
 			// column 1
 			terminal.drawText("E-mail", trow, tcol1, 16, 17);

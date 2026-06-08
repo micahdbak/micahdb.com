@@ -24,8 +24,8 @@ in uint a_charCode; // 0..65535
 uniform int u_rows;
 uniform int u_cols;
 uniform vec3 u_palette[PALETTE_SIZE];
-uniform sampler2D u_visuals;
-uniform int u_visuals_row, u_visuals_col, u_visuals_rows, u_visuals_cols;
+uniform sampler2D u_program;
+uniform int u_program_row, u_program_col, u_program_rows, u_program_cols;
 
 out vec3 v_bgColour;
 out vec3 v_fgColour;
@@ -64,15 +64,15 @@ void main() {
 	if (tl == vec2(0.0, 0.0) &&
 		a_bgColour == 0U &&
 		a_fgColour == 0U &&
-		row >= u_visuals_row &&
-		col >= u_visuals_col &&
-		row < u_visuals_row + u_visuals_rows &&
-		col < u_visuals_col + u_visuals_cols) {
-		int vrow = row - u_visuals_row;
-		int vcol = col - u_visuals_col;
+		row >= u_program_row &&
+		col >= u_program_col &&
+		row < u_program_row + u_program_rows &&
+		col < u_program_col + u_program_cols) {
+		int vrow = row - u_program_row;
+		int vcol = col - u_program_col;
 
-		vec2 texCell = vec2(float(vcol) / float(u_visuals_cols), float(vrow) / float(u_visuals_rows));
-		vec4 texSample = texture(u_visuals, texCell);
+		vec2 texCell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
+		vec4 texSample = texture(u_program, texCell);
 
 		v_charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
 		v_bgColour = u_palette[int(round(texSample.b * 256.0))];

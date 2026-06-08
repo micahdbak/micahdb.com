@@ -4,10 +4,10 @@ import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
 import {
 	GLYPH_ATLAS_TEXTURE_INDEX,
 	GLYPH_ATLAS_TEXTURE_PATH,
-	VISUALS_TEXTURE_INDEX
+	PROGRAM_TEXTURE_INDEX
 } from "./textures.ts";
-import { Visuals } from "./visuals.ts";
-import { VisualsManager } from "./visuals_manager.ts";
+import { Program } from "./program.ts";
+import { ProgramManager } from "./program_manager.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
@@ -18,7 +18,7 @@ class Renderer {
 	static readonly STRIDE = 4;
 
 	private gl: WebGL2RenderingContext;
-	private program: WebGLProgram;
+	private glProgram: WebGLProgram;
 
 	private attributes: {
 		bgColour: number;
@@ -29,17 +29,17 @@ class Renderer {
 	private uniforms: {
 		rows: WebGLUniformLocation;
 		cols: WebGLUniformLocation;
-		visualsRow: WebGLUniformLocation;
-		visualsCol: WebGLUniformLocation;
-		visualsRows: WebGLUniformLocation;
-		visualsCols: WebGLUniformLocation;
+		programRow: WebGLUniformLocation;
+		programCol: WebGLUniformLocation;
+		programRows: WebGLUniformLocation;
+		programCols: WebGLUniformLocation;
 		glyphAtlas: WebGLUniformLocation;
-		visuals: WebGLUniformLocation;
+		program: WebGLUniformLocation;
 		palette: WebGLUniformLocation;
 	};
 
-	private visuals: Visuals;
-	private visualsManager: VisualsManager;
+	private program: Program;
+	private programManager: ProgramManager;
 
 	private vbo: WebGLBuffer;
 	private count: number;
@@ -53,10 +53,10 @@ class Renderer {
 
 	private rows: number;
 	private cols: number;
-	private visualsRow: number;
-	private visualsCol: number;
-	private visualsRows: number;
-	private visualsCols: number;
+	private programRow: number;
+	private programCol: number;
+	private programRows: number;
+	private programCols: number;
 
 	public canvas: HTMLCanvasElement;
 
@@ -73,10 +73,10 @@ class Renderer {
 
 		this.rows = 1;
 		this.cols = 1;
-		this.visualsRow = 0;
-		this.visualsCol = 0;
-		this.visualsRows = 1;
-		this.visualsCols = 1;
+		this.programRow = 0;
+		this.programCol = 0;
+		this.programRows = 1;
+		this.programCols = 1;
 	}
 
 	async init() {
@@ -88,14 +88,14 @@ class Renderer {
 		this.gl.uniform1i(this.uniforms.rows, this.rows);
 		this.gl.uniform1i(this.uniforms.cols, this.cols);
 
-		this.gl.uniform1i(this.uniforms.visualsRow, this.visualsRow);
-		this.gl.uniform1i(this.uniforms.visualsCol, this.visualsCol);
-		this.gl.uniform1i(this.uniforms.visualsRows, this.visualsRows);
-		this.gl.uniform1i(this.uniforms.visualsCols, this.visualsCols);
+		this.gl.uniform1i(this.uniforms.programRow, this.programRow);
+		this.gl.uniform1i(this.uniforms.programCol, this.programCol);
+		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
+		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
 
-		this.visualsManager = new VisualsManager(this.gl);
-		this.visuals = this.visualsManager.get("cube");
-		await this.visuals.init();
+		this.programManager = new ProgramManager(this.gl);
+		this.program = this.programManager.get("sphere");
+		await this.program.init();
 	}
 
 	initializeProgram() {
@@ -126,32 +126,32 @@ class Renderer {
 			);
 		}
 
-		const program = this.gl.createProgram();
-		if (!program) {
-			throw new Error("When creating GPU program");
+		const glProgram = this.gl.createProgram();
+		if (!glProgram) {
+			throw new Error("When creating GPU glProgram");
 		}
 
-		this.program = program;
+		this.glProgram = glProgram;
 
-		this.gl.attachShader(this.program, vertShader);
-		this.gl.attachShader(this.program, fragShader);
-		this.gl.linkProgram(this.program);
-		if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+		this.gl.attachShader(this.glProgram, vertShader);
+		this.gl.attachShader(this.glProgram, fragShader);
+		this.gl.linkProgram(this.glProgram);
+		if (!this.gl.getProgramParameter(this.glProgram, this.gl.LINK_STATUS)) {
 			throw new Error(
 				"When linking shader program: " +
-					this.gl.getProgramInfoLog(this.program)
+					this.gl.getProgramInfoLog(this.glProgram)
 			);
 		}
 
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.glProgram);
 	}
 
 	initializeLocations() {
 		// store attribute locations
 		this.attributes = {
-			bgColour: this.gl.getAttribLocation(this.program, "a_bgColour"),
-			fgColour: this.gl.getAttribLocation(this.program, "a_fgColour"),
-			charCode: this.gl.getAttribLocation(this.program, "a_charCode")
+			bgColour: this.gl.getAttribLocation(this.glProgram, "a_bgColour"),
+			fgColour: this.gl.getAttribLocation(this.glProgram, "a_fgColour"),
+			charCode: this.gl.getAttribLocation(this.glProgram, "a_charCode")
 		};
 
 		if (
@@ -162,54 +162,57 @@ class Renderer {
 			throw new Error("When getting attribute locations");
 		}
 
-		const rows = this.gl.getUniformLocation(this.program, "u_rows");
-		const cols = this.gl.getUniformLocation(this.program, "u_cols");
-		const visualsRow = this.gl.getUniformLocation(
-			this.program,
-			"u_visuals_row"
+		const rows = this.gl.getUniformLocation(this.glProgram, "u_rows");
+		const cols = this.gl.getUniformLocation(this.glProgram, "u_cols");
+		const programRow = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_program_row"
 		);
-		const visualsCol = this.gl.getUniformLocation(
-			this.program,
-			"u_visuals_col"
+		const programCol = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_program_col"
 		);
-		const visualsRows = this.gl.getUniformLocation(
-			this.program,
-			"u_visuals_rows"
+		const programRows = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_program_rows"
 		);
-		const visualsCols = this.gl.getUniformLocation(
-			this.program,
-			"u_visuals_cols"
+		const programCols = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_program_cols"
 		);
-		const glyphAtlas = this.gl.getUniformLocation(this.program, "u_glyphAtlas");
-		const visuals = this.gl.getUniformLocation(this.program, "u_visuals");
-		const palette = this.gl.getUniformLocation(this.program, "u_palette");
+		const glyphAtlas = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_glyphAtlas"
+		);
+		const program = this.gl.getUniformLocation(this.glProgram, "u_program");
+		const palette = this.gl.getUniformLocation(this.glProgram, "u_palette");
 
 		if (
 			!rows ||
 			!cols ||
-			!visualsRow ||
-			!visualsCol ||
-			!visualsRows ||
-			!visualsCols ||
+			!programRow ||
+			!programCol ||
+			!programRows ||
+			!programCols ||
 			!glyphAtlas ||
-			!visuals ||
+			!program ||
 			!palette
 		) {
 			throw new Error("When getting uniform locations");
 		}
 
-		this.gl.uniform1i(visuals, VISUALS_TEXTURE_INDEX);
+		this.gl.uniform1i(program, PROGRAM_TEXTURE_INDEX);
 
 		// store uniform locations
 		this.uniforms = {
 			rows,
 			cols,
-			visualsRow,
-			visualsCol,
-			visualsRows,
-			visualsCols,
+			programRow,
+			programCol,
+			programRows,
+			programCols,
 			glyphAtlas,
-			visuals,
+			program,
 			palette
 		};
 	}
@@ -328,7 +331,7 @@ class Renderer {
 		this.canvasHeight = canvasHeight;
 
 		// set GL program to renderer
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.glProgram);
 
 		if (rows !== this.rows || cols !== this.cols) {
 			this.rows = rows;
@@ -343,45 +346,45 @@ class Renderer {
 		}
 
 		if (
-			vrow !== this.visualsRow ||
-			vcol !== this.visualsCol ||
-			vrows !== this.visualsRows ||
-			vcols !== this.visualsCols
+			vrow !== this.programRow ||
+			vcol !== this.programCol ||
+			vrows !== this.programRows ||
+			vcols !== this.programCols
 		) {
-			this.visualsRow = vrow;
-			this.visualsCol = vcol;
-			this.visualsRows = vrows;
-			this.visualsCols = vcols;
+			this.programRow = vrow;
+			this.programCol = vcol;
+			this.programRows = vrows;
+			this.programCols = vcols;
 
-			// update visuals uniforms
-			this.gl.uniform1i(this.uniforms.visualsRow, vrow);
-			this.gl.uniform1i(this.uniforms.visualsCol, vcol);
-			this.gl.uniform1i(this.uniforms.visualsRows, vrows);
-			this.gl.uniform1i(this.uniforms.visualsCols, vcols);
+			// update program uniforms
+			this.gl.uniform1i(this.uniforms.programRow, vrow);
+			this.gl.uniform1i(this.uniforms.programCol, vcol);
+			this.gl.uniform1i(this.uniforms.programRows, vrows);
+			this.gl.uniform1i(this.uniforms.programCols, vcols);
 
-			// resize visuals
-			this.visuals.resize(vcols, vrows);
+			// resize program
+			this.program.resize(vcols, vrows);
 		}
 	}
 
 	setData(data: Uint32Array) {
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.glProgram);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
 	}
 
 	setPalette(palette: Float32Array) {
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.glProgram);
 		this.gl.uniform3fv(this.uniforms.palette, palette);
 		this.palette = palette;
 	}
 
 	draw() {
-		// render the visuals program first
-		this.visuals.draw();
+		// render the internal program first
+		this.program.draw();
 
 		// use renderer program
-		this.gl.useProgram(this.program);
+		this.gl.useProgram(this.glProgram);
 
 		this.enableAttributes();
 
@@ -397,12 +400,15 @@ class Renderer {
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
-		this.gl.activeTexture(this.gl.TEXTURE0 + VISUALS_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.visuals.texture);
+		this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.program.texture);
 
 		// render to the canvas
 		this.gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, this.count);
+
+		// Unbind the program texture to prevent feedback loops in the next frame
+		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 	}
 }
 

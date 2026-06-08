@@ -4,12 +4,9 @@
 
 precision mediump float;
 
-in vec3 v_normal;
+in mat3 v_TBN;
+in vec3 v_position;
 in vec2 v_uvCoord;
-
-uniform sampler2D u_cubeTexture;
-//uniform float u_cols;
-//uniform float u_rows;
 
 out vec4 fragColour;
 
@@ -46,10 +43,13 @@ float getLuminance(vec3 colour, uint dim) {
 }
 
 void main() {
-	vec3 colour = texture(u_cubeTexture, v_uvCoord).rgb;
-	vec3 normal = normalize(v_normal);
-	vec3 light = normalize(vec3(0.0, -0.25, 1.0));
+	vec3 normal = vec3(0.0, 0.0, 1.0);
+	normal = normalize(v_TBN * normal);
 
+	vec3 light = vec3(1.0, -1.0, 1.0); // fixed position
+	light = normalize(light - v_position);
+
+	vec3 colour = vec3(0.0, 0.0, 1.0);
 	uint dim = getDimension(colour);
 	float lam = max(dot(normal, light), 0.0);
 	float lum = lam * getLuminance(colour, dim) * 0.8;
@@ -78,5 +78,3 @@ void main() {
 		float(fgColour) / 256.0
 	);
 }
-
-

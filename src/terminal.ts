@@ -66,10 +66,10 @@ class Terminal {
 	public cellWidth: number;
 	public cellHeight: number;
 
-	public visualsRow: number;
-	public visualsCol: number;
-	public visualsRows: number;
-	public visualsCols: number;
+	public programRow: number;
+	public programCol: number;
+	public programRows: number;
+	public programCols: number;
 
 	public mouseCol: number;
 	public mouseRow: number;
@@ -86,19 +86,19 @@ class Terminal {
 	async init() {
 		await this.renderer.init();
 
-		this.visualsRow = 0;
-		this.visualsCol = 0;
-		this.visualsRows = 0;
-		this.visualsCols = 0;
+		this.programRow = 0;
+		this.programCol = 0;
+		this.programRows = 0;
+		this.programCols = 0;
 
 		this.resize(0, 0, 1, 1);
 
 		window.addEventListener("resize", () => {
 			this.resize(
-				this.visualsRow,
-				this.visualsCol,
-				this.visualsRows,
-				this.visualsCols
+				this.programRow,
+				this.programCol,
+				this.programRows,
+				this.programCols
 			);
 		});
 
@@ -151,15 +151,15 @@ class Terminal {
 	resize(vrow: number, vcol: number, vrows: number, vcols: number) {
 		// keep track of these for reuse in windows resize events
 		if (
-			vrow !== this.visualsRow ||
-			vcol !== this.visualsCol ||
-			vrows !== this.visualsRows ||
-			vcols !== this.visualsCols
+			vrow !== this.programRow ||
+			vcol !== this.programCol ||
+			vrows !== this.programRows ||
+			vcols !== this.programCols
 		) {
-			this.visualsRow = vrow;
-			this.visualsCol = vcol;
-			this.visualsRows = vrows;
-			this.visualsCols = vcols;
+			this.programRow = vrow;
+			this.programCol = vcol;
+			this.programRows = vrows;
+			this.programCols = vcols;
 		}
 
 		const dpr = window.devicePixelRatio || 1;
@@ -185,19 +185,19 @@ class Terminal {
 		this.cellWidth = canvasWidth / this.cols;
 		this.cellHeight = canvasHeight / this.rows;
 
-		// if visuals dimensions are not set, default them to full screen
-		if (this.visualsRows === 0) this.visualsRows = this.rows;
-		if (this.visualsCols === 0) this.visualsCols = this.cols;
+		// if program dimensions are not set, default them to full screen
+		if (this.programRows === 0) this.programRows = this.rows;
+		if (this.programCols === 0) this.programCols = this.cols;
 
 		this.renderer.resize(
 			canvasWidth,
 			canvasHeight,
 			this.rows,
 			this.cols,
-			this.visualsRow,
-			this.visualsCol,
-			this.visualsRows,
-			this.visualsCols
+			this.programRow,
+			this.programCol,
+			this.programRows,
+			this.programCols
 		);
 	}
 
