@@ -1,6 +1,11 @@
 import VERTEX_SHADER from "./sphere.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./sphere.frag" with { type: "text" };
 
+import {
+	GLOBE_TEXTURE_INDEX,
+	GLOBE_TEXTURE_PATH,
+	loadTexture
+} from "../textures.ts";
 import { Program } from "../program.ts";
 import { Mat4 } from "./math.ts";
 import { SphereMesh } from "./meshes/sphere.ts";
@@ -18,6 +23,7 @@ export class SphereProgram extends Program {
 		viewMatrix: WebGLUniformLocation;
 		modelMatrix: WebGLUniformLocation;
 		normalMatrix: WebGLUniformLocation;
+		globeTexture: WebGLUniformLocation;
 	};
 
 	private vbo: WebGLBuffer;
@@ -25,15 +31,18 @@ export class SphereProgram extends Program {
 
 	private sphere: SphereMesh;
 
-	init() {
+	private globeTexture: WebGLTexture;
+
+	async init() {
 		this.initializeProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
 		this.initializeDBO();
 		this.initializeFBO();
 		this.initializeVBO();
 		this.initializeIBO();
+		await this.initializeTexture();
 
-		this.sphere = new SphereMesh(10, 10);
+		this.sphere = new SphereMesh(15, 31);
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(
@@ -83,8 +92,18 @@ export class SphereProgram extends Program {
 			this.glProgram,
 			"u_normalMatrix"
 		);
+		const globeTexture = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_globeTexture"
+		);
 
-		if (!projectionMatrix || !viewMatrix || !modelMatrix || !normalMatrix) {
+		if (
+			!projectionMatrix ||
+			!viewMatrix ||
+			!modelMatrix ||
+			!normalMatrix ||
+			!globeTexture
+		) {
 			throw new Error("When getting uniform locations");
 		}
 
@@ -93,7 +112,8 @@ export class SphereProgram extends Program {
 			projectionMatrix,
 			modelMatrix,
 			viewMatrix,
-			normalMatrix
+			normalMatrix,
+			globeTexture
 		};
 	}
 
@@ -109,6 +129,11 @@ export class SphereProgram extends Program {
 		if (!this.ibo) {
 			throw new Error("When creating index buffer");
 		}
+	}
+
+	async initializeTexture() {
+		this.globeTexture = await loadTexture(this.gl, GLOBE_TEXTURE_PATH);
+		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
 	}
 
 	resized(width: number, height: number) {
@@ -141,13 +166,18 @@ export class SphereProgram extends Program {
 		this.gl.enable(this.gl.DEPTH_TEST);
 
 		const viewMatrix = Mat4.create();
-		Mat4.lookAt(viewMatrix, [0.0, 3.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(viewMatrix, [0.0, 0.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
-		const modelMatrix = Mat4.rotation(
+		const upright = Mat4.rotation("x", Math.PI / 2);
+		const upright2 = Mat4.rotation("z", Math.PI);
+		Mat4.multiply(upright, upright2, upright);
+		const spin = Mat4.rotation(
 			"y",
-			(2.0 * Math.PI * (Date.now() % 5000)) / 5000
+			(2.0 * Math.PI * (Date.now() % 10000)) / 10000
 		);
+		const modelMatrix = Mat4.create();
+		Mat4.multiply(modelMatrix, spin, upright);
 		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
 
 		const normalMatrix = new Float32Array(9); // 3x3 matrix
@@ -160,6 +190,9 @@ export class SphereProgram extends Program {
 
 		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.globeTexture);
 
 		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
 

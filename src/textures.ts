@@ -1,3 +1,5 @@
+// renderer
+
 export const GLYPH_ATLAS_TEXTURE_INDEX = 0;
 export const GLYPH_ATLAS_TEXTURE_PATH = "/glyphatlas.png";
 
@@ -9,6 +11,13 @@ export const CUBE_TEXTURE_INDEX = 2;
 export const CUBE_TEXTURE_PATH = "/cube/texture.jpg";
 export const CUBE_NORMAL_INDEX = 3;
 export const CUBE_NORMAL_PATH = "/cube/normal.jpg";
+
+// sphere program
+
+export const GLOBE_TEXTURE_INDEX = 2;
+export const GLOBE_TEXTURE_PATH = "/globe.jpg";
+
+// misc functions
 
 export function loadTexture(
 	gl: WebGL2RenderingContext,
