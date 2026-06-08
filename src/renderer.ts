@@ -94,7 +94,7 @@ class Renderer {
 		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
 
 		this.programManager = new ProgramManager(this.gl);
-		this.program = this.programManager.get("sphere");
+		this.program = this.programManager.get("globe");
 		await this.program.init();
 	}
 

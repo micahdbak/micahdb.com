@@ -1,16 +1,18 @@
-import VERTEX_SHADER from "./sphere.vert" with { type: "text" };
-import FRAGMENT_SHADER from "./sphere.frag" with { type: "text" };
+import VERTEX_SHADER from "./globe.vert" with { type: "text" };
+import FRAGMENT_SHADER from "./globe.frag" with { type: "text" };
 
 import {
 	GLOBE_TEXTURE_INDEX,
 	GLOBE_TEXTURE_PATH,
+	GLOBE_NORMAL_INDEX,
+	GLOBE_NORMAL_PATH,
 	loadTexture
 } from "../textures.ts";
 import { Program } from "../program.ts";
 import { Mat4 } from "./math.ts";
 import { SphereMesh } from "./meshes/sphere.ts";
 
-export class SphereProgram extends Program {
+export class GlobeProgram extends Program {
 	private attributes: {
 		position: number;
 		normal: number;
@@ -24,6 +26,8 @@ export class SphereProgram extends Program {
 		modelMatrix: WebGLUniformLocation;
 		normalMatrix: WebGLUniformLocation;
 		globeTexture: WebGLUniformLocation;
+		globeNormal: WebGLUniformLocation;
+		lightPosition: WebGLUniformLocation;
 	};
 
 	private vbo: WebGLBuffer;
@@ -32,6 +36,7 @@ export class SphereProgram extends Program {
 	private sphere: SphereMesh;
 
 	private globeTexture: WebGLTexture;
+	private globeNormal: WebGLTexture;
 
 	async init() {
 		this.initializeProgram(VERTEX_SHADER, FRAGMENT_SHADER);
@@ -96,13 +101,23 @@ export class SphereProgram extends Program {
 			this.glProgram,
 			"u_globeTexture"
 		);
+		const globeNormal = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_globeNormal"
+		);
+		const lightPosition = this.gl.getUniformLocation(
+			this.glProgram,
+			"u_lightPosition"
+		);
 
 		if (
 			!projectionMatrix ||
 			!viewMatrix ||
 			!modelMatrix ||
 			!normalMatrix ||
-			!globeTexture
+			!globeTexture ||
+			!globeNormal ||
+			!lightPosition
 		) {
 			throw new Error("When getting uniform locations");
 		}
@@ -113,7 +128,9 @@ export class SphereProgram extends Program {
 			modelMatrix,
 			viewMatrix,
 			normalMatrix,
-			globeTexture
+			globeTexture,
+			globeNormal,
+			lightPosition
 		};
 	}
 
@@ -134,6 +151,8 @@ export class SphereProgram extends Program {
 	async initializeTexture() {
 		this.globeTexture = await loadTexture(this.gl, GLOBE_TEXTURE_PATH);
 		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
+		this.globeNormal = await loadTexture(this.gl, GLOBE_NORMAL_PATH);
+		this.gl.uniform1i(this.uniforms.globeNormal, GLOBE_NORMAL_INDEX);
 	}
 
 	resized(width: number, height: number) {
@@ -166,7 +185,7 @@ export class SphereProgram extends Program {
 		this.gl.enable(this.gl.DEPTH_TEST);
 
 		const viewMatrix = Mat4.create();
-		Mat4.lookAt(viewMatrix, [0.0, 0.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(viewMatrix, [0.0, 2.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
 		const upright = Mat4.rotation("x", Math.PI / 2);
@@ -174,7 +193,7 @@ export class SphereProgram extends Program {
 		Mat4.multiply(upright, upright2, upright);
 		const spin = Mat4.rotation(
 			"y",
-			(2.0 * Math.PI * (Date.now() % 10000)) / 10000
+			(2.0 * Math.PI * (Date.now() % 30000)) / 30000
 		);
 		const modelMatrix = Mat4.create();
 		Mat4.multiply(modelMatrix, spin, upright);
@@ -186,6 +205,16 @@ export class SphereProgram extends Program {
 		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
 		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
+		const lightX =
+			5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
+		const lightY =
+			5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
+		this.gl.uniform3fv(this.uniforms.lightPosition, [
+			lightX + 10.0,
+			lightY + 10.0,
+			20.0
+		]);
+
 		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
 
 		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -193,6 +222,8 @@ export class SphereProgram extends Program {
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.globeTexture);
+		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_NORMAL_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.globeNormal);
 
 		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
 

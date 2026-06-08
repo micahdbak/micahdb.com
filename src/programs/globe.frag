@@ -7,19 +7,21 @@ precision mediump float;
 in mat3 v_TBN;
 in vec3 v_position;
 in vec2 v_uvCoord;
-
-out vec4 fragColour;
+in vec3 v_light;
 
 uniform sampler2D u_globeTexture;
+uniform sampler2D u_globeNormal;
+
+out vec4 fragColour;
 
 const vec3 dimensions[NUM_DIMENSIONS] = vec3[NUM_DIMENSIONS](
 	vec3(1.0, 1.0, 1.0),	// white
 	vec3(1.0, 0.0, 0.0),	// red
-	vec3(0.0, 1.0, 0.0),	// green
 	vec3(1.0, 1.0, 0.0),	// yellow
+	vec3(0.0, 1.0, 0.0),	// green
+	vec3(0.0, 1.0, 1.0),	// cyan
 	vec3(0.0, 0.0, 1.0),	// blue
-	vec3(1.0, 0.0, 1.0),	// purple
-	vec3(0.0, 1.0, 1.0)	// cyan
+	vec3(1.0, 0.0, 1.0)	// purple
 );
 
 uint getDimension(vec3 colour) {
@@ -46,11 +48,11 @@ float getLuminance(vec3 colour, uint dim) {
 }
 
 void main() {
-	vec3 normal = vec3(0.0, 0.0, 1.0);
+	vec3 normal = texture(u_globeNormal, v_uvCoord).rgb;
+	normal = normal * 2.0 - 1.0;
 	normal = normalize(v_TBN * normal);
 
-	vec3 light = vec3(-4.0, -2.0, 4.0); // fixed position
-	light = normalize(light - v_position);
+	vec3 light = normalize(v_light);
 
 	vec3 colour = texture(u_globeTexture, v_uvCoord).rgb;
 	uint dim = getDimension(colour);
@@ -67,18 +69,19 @@ void main() {
 	float ditherOffset = (bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4] - 0.5) / 12.0;
 	lum += ditherOffset;
 
-	uint fgColours[3] = uint[3](8U, dim, dim + 8U);
-	// uint bgColours[3] = uint[3](16U, 16U, 0U);
+	uint fgColours[3] = uint[3](dim, dim + 8U, dim + 8U);
+	uint bgColours[3] = uint[3](16U, 0U, dim);
 
 	// white needs a special selection
 	if (dim == 0U) {
-		fgColours = uint[3](8U, 17U, 17U);
+		fgColours = uint[3](8U, 7U, 17U);
+		bgColours = uint[3](16U, 0U, 8U);
 	}
 
-	// int bgColourIdx = min(int(lum * 3.0), 3);
+	int bgColourIdx = clamp(int(lum * 3.0), 0, 2);
 	int fgColourIdx = clamp(int(lum * 3.0), 0, 2);
 
-	uint bgColour = 16U; // bgColours[bgColourIdx];
+	uint bgColour = bgColours[bgColourIdx];
 	uint fgColour = fgColours[fgColourIdx];
 
 	//                             .    -    ,    :    ;    =    !    *    #    $    @

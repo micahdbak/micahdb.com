@@ -12,10 +12,12 @@ export const CUBE_TEXTURE_PATH = "/cube/texture.jpg";
 export const CUBE_NORMAL_INDEX = 3;
 export const CUBE_NORMAL_PATH = "/cube/normal.jpg";
 
-// sphere program
+// globe program
 
 export const GLOBE_TEXTURE_INDEX = 2;
-export const GLOBE_TEXTURE_PATH = "/globe.jpg";
+export const GLOBE_TEXTURE_PATH = "/globe/texture.jpg";
+export const GLOBE_NORMAL_INDEX = 3;
+export const GLOBE_NORMAL_PATH = "/globe/normal.jpg";
 
 // misc functions
 

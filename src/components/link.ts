@@ -8,7 +8,7 @@ class Link {
 		row: number,
 		col: number,
 		backColour: number = 0,
-		fgColour: number = 12,
+		fgColour: number = 13,
 		hoverBackColour: number = 15,
 		hoverFgColour: number = 16
 	) {

@@ -1,14 +1,14 @@
 import { Program } from "./program.ts";
 import { CubeProgram } from "./programs/cube.ts";
-import { SphereProgram } from "./programs/sphere.ts";
+import { GlobeProgram } from "./programs/globe.ts";
 
 class ProgramManager {
 	private cube: CubeProgram;
-	private sphere: SphereProgram;
+	private globe: GlobeProgram;
 
 	constructor(gl: WebGL2RenderingContext) {
 		this.cube = new CubeProgram(gl);
-		this.sphere = new SphereProgram(gl);
+		this.globe = new GlobeProgram(gl);
 	}
 
 	get(name: str): Program {
@@ -17,8 +17,8 @@ class ProgramManager {
 				return this.cube;
 				break;
 
-			case "sphere":
-				return this.sphere;
+			case "globe":
+				return this.globe;
 				break;
 
 			default:
