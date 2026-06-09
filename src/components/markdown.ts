@@ -1,6 +1,5 @@
 import { fromMarkdown } from "mdast-util-from-markdown";
-import type { Node, Parent } from "mdast";
-import type { Text, Heading, Link as MdastLink } from "mdast";
+import type { Node, Parent, Text, Heading, Link as MdastLink } from "mdast";
 
 import { Link } from "./link.ts";
 import { Glyph, Terminal } from "../terminal.ts";
@@ -95,7 +94,7 @@ class Markdown {
 						const heading = node as Heading;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText("#".repeat(heading.depth), r, c, 16, 8);
+							this.terminal.drawText("#".repeat(heading.depth), r, c, 16, 7);
 						}
 
 						c += heading.depth + 1;
@@ -109,7 +108,7 @@ class Markdown {
 						const text = `${list_idx < 10 ? " " : ""}${list_idx++}. `;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(text, r, c, 16, 8);
+							this.terminal.drawText(text, r, c, 16, 7);
 						}
 
 						c += text.length;

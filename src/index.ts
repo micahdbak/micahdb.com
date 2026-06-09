@@ -2,10 +2,8 @@ import { Terminal } from "./terminal.ts";
 
 // components
 import { Divider } from "./components/divider.ts";
-import { Link } from "./components/link.ts";
-import { Markdown } from "./components/markdown.ts";
 import { Scrollable } from "./components/scrollable.ts";
-import { Table } from "./components/table.ts";
+import { Markdown } from "./components/markdown.ts";
 
 // prettier-ignore
 const PALETTE = [
@@ -17,7 +15,7 @@ const PALETTE = [
 	0x5e, 0x8d, 0x87, // 4: cyan
 	0x5f, 0x81, 0x9d, // 5: blue
 	0x85, 0x67, 0x8f, // 6: purple
-	0x96, 0x98, 0x96, // 7: white
+	0x86, 0x88, 0x86, // 7: white
 
 	// bright colours
 	0x37, 0x3b, 0x41, // 8: gray
@@ -27,14 +25,17 @@ const PALETTE = [
 	0x8a, 0xbe, 0xb7, // 12: cyan
 	0x81, 0xa2, 0xbe, // 13: blue
 	0xb2, 0x94, 0xbb, // 14: purple
-	0xc5, 0xc8, 0xc6, // 15: white
+	0xd5, 0xd8, 0xd6, // 15: white
 
 	// extra colours
-	0, 0, 0, //0x14, 0x14, 0x15, // 16: bg
+	0x11, 0x11, 0x12, // 16: bg
 	0xcd, 0xcd, 0xcd  // 17: fg
 ];
 
 const PANE_RATIO = 1.0 - 1.0 / 1.618;
+const PANE_COLS = 48;
+const PANE_ROW_PADDING = 1;
+const PANE_COL_PADDING = 2;
 
 /*
 Useful Chars:
@@ -55,44 +56,47 @@ Useful Chars:
 │ ─
 */
 
-const PANE_COLS = 48;
-const PANE_ROW_PADDING = 2;
-const PANE_COL_PADDING = 2;
-
-const NAME_ART = `\
-█▐▌▀   ▄▖▐  ▐▀▄ ▄ ▌▄ ▄ ▄ 
-▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘█▄▌▌▀
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▀▄ ▌ 
-
-Software Developer
-Vancouver, BC, Canada
-`;
-
-const BODY = `\
-&16;&17b;██&16b;&0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
-&16;&17b;██&16b;&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
-&17;
-
-# micahdb.com
-
-Welcome to &11b;&0;my&17;&16b; &15;&9b;website&17;&16b;.
-
-Here is a [link](https://micahdb.com).
-
-## &12;This is a _subheading_&17;
-
-1. This is a list item
-1. This is another
-1. This is another, another
-
-### This is a sub-sub-heading
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.`;
-
+/*
 const EMAIL = "mailto:<micah_baker@sfu.ca>";
 const GITHUB = "https://github.com/micahdbak";
 const LINKEDIN = "https://linkedin.com/in/micahdbak";
 const RESUME = "/resume.pdf";
+*/
+
+const NAME = `&15;\
+█▐▌▀ @ ▄▖▐@ ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
+▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;`.replaceAll("@", "&17; &15;");
+
+const CARD = `\
+${NAME}&n;
+&7;-------------------------&17;&n;
+&11;**I am a**&17;: Software Engineer&n;
+&11;**Based in**&17;: Vancouver, BC, Canada&n;
+&11;**Currently**&17;: Studying&n;
+&11;**Previously**&17;: Open WebUI, Improving, Brave&n;
+&11;**Education**&17;: BSc Computing Science at [SFU](https://sfu.ca)&n;
+&11;**E-mail**&17;: [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
+&11;**GitHub**&17;: [@micahdbak](https://github.com/micahdbak)&n;
+&11;**LinkedIn**&17;: [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
+&11;**Resume/CV**&17;: [/resume.pdf](https://micahdb.com/resume.pdf)
+
+&0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
+&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███&n;`;
+
+const BODY = `\
+&7;\\*&17; &7;*About*&17;&n;
+&7;\\*&17; [Education](#)&n;
+&7;\\*&17; [Experience](#)&n;
+&7;\\*&17; [Research](#)&n;
+&7;\\*&17; [Projects](#)&n;
+&7;\\*&17; [Blog](#) &7;- Updated *2026, June 9th*&17;
+
+\\&7;----&17;
+
+# About
+
+Welcome to my website.`;
 
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
@@ -105,9 +109,9 @@ const main = async () => {
 		// components
 
 		const divider = new Divider(terminal, PANE_RATIO, false);
-		const table = new Table(terminal);
-		const markdown = new Markdown(terminal, BODY);
 		const scrollable = new Scrollable(terminal);
+		const mdcard = new Markdown(terminal, CARD);
+		const mdbody = new Markdown(terminal, BODY);
 
 		// draw loop
 
@@ -158,43 +162,23 @@ const main = async () => {
 
 			// TUI
 
-			// card
-
-			const card_rows = 14;
 			const card_row = PANE_ROW_PADDING - row_offset;
-			const card_col = PANE_COL_PADDING;
-			const trow = card_row + 8; // first table *text* row
-			const tcol1 = card_col + 2; // first table column
-			const tcol2 = card_col + 1 + 10 + 2; // second table column
-
-			// card art / text
-			terminal.drawText(NAME_ART, card_row, tcol1, 16, 15);
-			table.draw(trow - 1, card_col, 1, 2, [4], [10, 27], 16, 8);
-
-			// column 1
-			terminal.drawText("E-mail", trow, tcol1, 16, 17);
-			terminal.drawText("GitHub", trow + 1, tcol1, 16, 17);
-			terminal.drawText("LinkedIn", trow + 2, tcol1, 16, 17);
-			terminal.drawText("Resume", trow + 3, tcol1, 16, 17);
-
-			// column 2
-			Link.draw(terminal, "<micah_baker@sfu.ca>", EMAIL, trow, tcol2);
-			Link.draw(terminal, "@micahdbak", GITHUB, trow + 1, tcol2);
-			Link.draw(terminal, "/in/micahdbak", LINKEDIN, trow + 2, tcol2);
-			Link.draw(terminal, "/resume.pdf", RESUME, trow + 3, tcol2);
-
-			// README.md
-
-			const md_row = card_row + card_rows;
-			markdown.draw(
-				md_row,
+			mdcard.draw(
+				card_row,
 				pane1[1] + PANE_COL_PADDING,
-				pane1[2] - md_row,
+				pane1[2] - card_row,
 				pane1[3] - 2 * PANE_COL_PADDING
 			);
 
-			const inner_rows = card_rows + markdown.rows + 2 * PANE_ROW_PADDING;
+			const body_row = card_row + mdcard.rows;
+			mdbody.draw(
+				body_row,
+				pane1[1] + PANE_COL_PADDING,
+				pane1[2] - body_row,
+				pane1[3] - 2 * PANE_COL_PADDING
+			);
 
+			const inner_rows = mdcard.rows + mdbody.rows + 2 * PANE_ROW_PADDING;
 			scrollable.draw(pane1[0], pane1[1], pane1[2], pane1[3], inner_rows);
 			row_offset = scrollable.row_offset;
 			terminal.draw();
