@@ -3,9 +3,11 @@ import FRAGMENT_SHADER from "./globe.frag" with { type: "text" };
 
 import {
 	GLOBE_TEXTURE_INDEX,
-	GLOBE_TEXTURE_PATH,
 	GLOBE_NORMAL_INDEX,
-	GLOBE_NORMAL_PATH,
+	EARTH_TEXTURE_PATH,
+	EARTH_NORMAL_PATH,
+	WHITE_TEXTURE_PATH,
+	SMOOTH_NORMAL_PATH,
 	loadTexture
 } from "../textures.ts";
 import { Program } from "../program.ts";
@@ -35,8 +37,10 @@ export class GlobeProgram extends Program {
 
 	private sphere: SphereMesh;
 
-	private globeTexture: WebGLTexture;
-	private globeNormal: WebGLTexture;
+	private earthTexture: WebGLTexture;
+	private earthNormal: WebGLTexture;
+	private moonTexture: WebGLTexture;
+	private moonNormal: WebGLTexture;
 
 	async init() {
 		this.initializeProgram(VERTEX_SHADER, FRAGMENT_SHADER);
@@ -149,9 +153,12 @@ export class GlobeProgram extends Program {
 	}
 
 	async initializeTexture() {
-		this.globeTexture = await loadTexture(this.gl, GLOBE_TEXTURE_PATH);
+		this.earthTexture = await loadTexture(this.gl, EARTH_TEXTURE_PATH);
+		this.earthNormal = await loadTexture(this.gl, EARTH_NORMAL_PATH);
+		this.moonTexture = await loadTexture(this.gl, WHITE_TEXTURE_PATH);
+		this.moonNormal = await loadTexture(this.gl, SMOOTH_NORMAL_PATH);
+
 		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
-		this.globeNormal = await loadTexture(this.gl, GLOBE_NORMAL_PATH);
 		this.gl.uniform1i(this.uniforms.globeNormal, GLOBE_NORMAL_INDEX);
 	}
 
@@ -184,26 +191,17 @@ export class GlobeProgram extends Program {
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
 		this.gl.enable(this.gl.DEPTH_TEST);
 
+		// consistent for both earth and moon
+
+		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
+		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
+
 		const viewMatrix = Mat4.create();
-		Mat4.lookAt(viewMatrix, [0.0, 2.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(viewMatrix, [0.0, 1.0, 5.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
-
-		const upright = Mat4.rotation("x", Math.PI / 2);
-		const upright2 = Mat4.rotation("z", Math.PI);
-		Mat4.multiply(upright, upright2, upright);
-		const spin = Mat4.rotation(
-			"y",
-			(2.0 * Math.PI * (Date.now() % 30000)) / 30000
-		);
-		const modelMatrix = Mat4.create();
-		Mat4.multiply(modelMatrix, spin, upright);
-		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
-
-		const normalMatrix = new Float32Array(9); // 3x3 matrix
-		const modelViewMatrix = Mat4.create();
-		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
-		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
-		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
 		const lightX =
 			5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
@@ -215,17 +213,63 @@ export class GlobeProgram extends Program {
 			20.0
 		]);
 
-		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
+		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.globeNormal, GLOBE_NORMAL_INDEX);
 
-		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		const modelMatrix = Mat4.create();
+		const modelViewMatrix = Mat4.create();
+		const normalMatrix = new Float32Array(9); // 3x3 matrix
+
+		// earth
+
+		const upright = Mat4.rotation("x", Math.PI / 2);
+		const upright2 = Mat4.rotation("z", Math.PI);
+		Mat4.multiply(upright, upright2, upright);
+		const spin = Mat4.rotation(
+			"y",
+			(2.0 * Math.PI * (Date.now() % 30000)) / 30000
+		);
+		Mat4.multiply(modelMatrix, spin, upright);
+		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
+
+		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
+		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.globeTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthTexture);
 		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_NORMAL_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.globeNormal);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthNormal);
 
-		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
+		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
+		this.gl.drawElements(
+			this.gl.TRIANGLES,
+			this.sphere.indices.length,
+			this.gl.UNSIGNED_SHORT,
+			0
+		);
+
+		// moon
+
+		const moonX =
+			2.0 * Math.cos((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
+		const moonZ =
+			2.0 * Math.sin((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
+		Mat4.multiply(
+			modelMatrix,
+			Mat4.translation(moonX, 0.0, moonZ),
+			Mat4.scale(0.27, 0.27, 0.27)
+		);
+		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
+
+		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
+		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+
+		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonTexture);
+		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_NORMAL_INDEX);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonNormal);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
 		this.gl.drawElements(

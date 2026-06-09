@@ -162,7 +162,7 @@ class Markdown {
 				let word: string = i === words.length - 1 ? words[i] : words[i] + " ";
 
 				// calculate visible length for wrapping
-				const visible_word = word.replace(/&(\d{1,2})(.)?;/g, ""); // e.g., "&10b;" for bg, "&1;" for fg
+				const visible_word = word.replace(/&(\d{1,2}|n)(.)?;/g, ""); // e.g., "&10b;" for bg, "&1;" for fg, "&n;" for newline
 				const visible_len = visible_word.trimEnd().length;
 
 				if (visible_len <= cols && c + visible_len > col + cols) {
@@ -172,16 +172,17 @@ class Markdown {
 				}
 
 				while (true) {
-					const match = word.match(/&(\d{1,2})(.)?;/); // same as above, non-global
+					const match = word.match(/&(\d{1,2}|n)(.)?;/); // same as above, non-global
 
 					if (!match) {
 						// no more settings - draw word directly
 						if (word.length > 0) {
-							if (r >= row && r < row + rows) {
+							if (word === " " && c === col) {
+								// skip trailing space of a word that ended in a newline to avoid leading spaces
+							} else if (r >= row && r < row + rows) {
 								this.terminal.drawText(word, r, c, bg, fg, 0, 0, false, font);
+								c += word.length;
 							}
-
-							c += word.length;
 						}
 
 						break;
@@ -198,8 +199,11 @@ class Markdown {
 						c += prefix.length;
 					}
 
-					// update colors
-					if (match[2] === "b") {
+					// update colors or newline
+					if (match[1] === "n") {
+						r++;
+						c = col;
+					} else if (match[2] === "b") {
 						bg = parseInt(match[1]);
 					} else {
 						fg = parseInt(match[1]);

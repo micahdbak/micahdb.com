@@ -38,50 +38,42 @@ const PANE_RATIO = 1.0 - 1.0 / 1.618;
 
 /*
 Useful Chars:
-┐ ┌ ┘ └ │ ─ ├ ┤ ┴ ┬
-▄ ▀ ▐ ▌
 █ ▓ ▒ ░
+
+▄ ▀ ▐ ▌
+
+▝ ▗ ▖ ▘
+
+▙ ▛ ▜ ▟
+
+▞ ▚
+
+┐ ┌ ┘ └
+
+├ ┤ ┴ ┬
+
+│ ─
 */
 
-/*
-const CARD_ART = `\
- ▄▄ ▐   
- ▌▌▌▐▀▌ 
- ▌▌▌▐▄▌ `;
-*/
-
-/*
-▄▄ ▀   ▄ ▌   ▐▀▄ ▄ ▌▌ ▄ ▄ 
-▌▌▌█▐▀ ▄▌█▀▌ ▐▀▄ ▄▌█ █▄▌▌▀
-▌▌▌█▐▄▐▄▌▌ ▌ ▐▄▀▐▄▌▌▌▀▄ ▌ 
-*/
+const PANE_COLS = 48;
+const PANE_ROW_PADDING = 2;
+const PANE_COL_PADDING = 2;
 
 const NAME_ART = `\
-
-█▄ ▄█ ▀  ▄▄  ▄▄ █     █▀▄  ▄▄ █ ▄ ▄▄  ▄▄
-█ ▀ █ █ █   █ █ █▀▄   █▀▄ █ █ █▄▀ █▄█ █ ▀
-█   █ █ ▀▄▄ ▀▄█ █ █   █▄▀ ▀▄█ █ █ ▀▄▄ █ 
+█▐▌▀   ▄▖▐  ▐▀▄ ▄ ▌▄ ▄ ▄ 
+▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘█▄▌▌▀
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▀▄ ▌ 
 
 Software Developer
 Vancouver, BC, Canada
 `;
 
-/*
-const CARD_TEXT = `\
-Software Developer
-Vancouver, BC, Canada`;
-*/
-
-const CARD_ROWS = 9;
-const CARD_COLS = 44;
-const CARD_PADDING = 1;
-
 const BODY = `\
-# micahdb.com
-
-1. &0;██&1;██&2;██&3;██&4;██&5;██&6;██&7;██
-1. &8;██&9;██&10;██&11;██&12;██&13;██&14;██&15;██
+&16;&17b;██&16b;&0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
+&16;&17b;██&16b;&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
 &17;
+
+# micahdb.com
 
 Welcome to &11b;&0;my&17;&16b; &15;&9b;website&17;&16b;.
 
@@ -95,47 +87,12 @@ Here is a [link](https://micahdb.com).
 
 ### This is a sub-sub-heading
 
-This is a paragraph
-
-### This is a sub-sub-heading
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.
-
-### This is a sub-sub-heading
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.
-
-### This is a sub-sub-heading
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.
-
-### This is a sub-sub-heading
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.
-
-### This is a sub-sub-heading
-
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eu efficitur dolor, non vestibulum tellus. Morbi vel porttitor lacus. Mauris maximus, ante vitae sollicitudin porttitor, nibh mi eleifend urna, vitae blandit augue mauris sit amet metus. Aenean posuere vitae sem aliquam efficitur. Proin sem sapien, iaculis vitae lacinia vitae, efficitur ac tortor. Nam eget lectus sollicitudin, gravida risus nec, dapibus diam. Quisque quis pretium nunc. Fusce ultricies, nunc id tempor porta, lectus nibh consectetur ante, eu tristique dui neque id sapien. Mauris sollicitudin libero a massa egestas suscipit. Sed tempus rutrum neque, eget volutpat nisi venenatis vitae. In eu iaculis.`;
 
 const EMAIL = "mailto:<micah_baker@sfu.ca>";
 const GITHUB = "https://github.com/micahdbak";
 const LINKEDIN = "https://linkedin.com/in/micahdbak";
 const RESUME = "/resume.pdf";
-
-/*
-const ASCII_ART =
-	"░░░░░░░█▐▓▓░████▄▄▄█▀▄▓▓▓▌█\n" +
-	"░░░░░▄█▌▀▄▓▓▄▄▄▄▀▀▀▄▓▓▓▓▓▌█\n" +
-	"░░░▄█▀▀▄▓█▓▓▓▓▓▓▓▓▓▓▓▓▀░▓▌█\n" +
-	"░░█▀▄▓▓▓███▓▓▓███▓▓▓▄░░▄▓▐█▌\n" +
-	"░█▌▓▓▓▀▀▓▓▓▓███▓▓▓▓▓▓▓▄▀▓▓▐█\n" +
-	"▐█▐██▐░▄▓▓▓▓▓▀▄░▀▓▓▓▓▓▓▓▓▓▌█▌\n" +
-	"█▌███▓▓▓▓▓▓▓▓▐░░▄▓▓███▓▓▓▄▀▐█\n" +
-	"█▐█▓▀░░▀▓▓▓▓▓▓▓▓▓██████▓▓▓▓▐█\n" +
-	"▌▓▄▌▀░▀░▐▀█▄▓▓██████████▓▓▓▌█▌\n" +
-	"▌▓▓▓▄▄▀▀▓▓▓▀▓▓▓▓▓▓▓▓█▓█▓█▓▓▌█▌\n" +
-	"█▐▓▓▓▓▓▓▄▄▄▓▓▓▓▓▓█▓█▓█▓█▓█▓▐█▌";
-*/
 
 const main = async () => {
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
@@ -172,7 +129,7 @@ const main = async () => {
 					terminal.rows,
 					terminal.cols,
 					0,
-					CARD_COLS + 4
+					PANE_COLS
 				);
 
 				const lcols = divider.lcols;
@@ -203,15 +160,15 @@ const main = async () => {
 
 			// card
 
-			const card_row = CARD_PADDING - row_offset;
-			const card_col = 4;
-			const trow = card_row + 9; // first table *text* row
+			const card_rows = 14;
+			const card_row = PANE_ROW_PADDING - row_offset;
+			const card_col = PANE_COL_PADDING;
+			const trow = card_row + 8; // first table *text* row
 			const tcol1 = card_col + 2; // first table column
 			const tcol2 = card_col + 1 + 10 + 2; // second table column
 
 			// card art / text
-			terminal.drawText(NAME_ART, card_row, card_col, 16, 15);
-
+			terminal.drawText(NAME_ART, card_row, tcol1, 16, 15);
 			table.draw(trow - 1, card_col, 1, 2, [4], [10, 27], 16, 8);
 
 			// column 1
@@ -228,15 +185,15 @@ const main = async () => {
 
 			// README.md
 
-			const readme_row = trow + 5 + CARD_PADDING;
+			const md_row = card_row + card_rows;
 			markdown.draw(
-				readme_row,
-				pane1[1] + 2,
-				pane1[2] - readme_row - 1,
-				pane1[3] - 4
+				md_row,
+				pane1[1] + PANE_COL_PADDING,
+				pane1[2] - md_row,
+				pane1[3] - 2 * PANE_COL_PADDING
 			);
 
-			const inner_rows = 2 * CARD_PADDING + CARD_ROWS + markdown.rows + 1;
+			const inner_rows = card_rows + markdown.rows + 2 * PANE_ROW_PADDING;
 
 			scrollable.draw(pane1[0], pane1[1], pane1[2], pane1[3], inner_rows);
 			row_offset = scrollable.row_offset;

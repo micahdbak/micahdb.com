@@ -356,6 +356,32 @@ class Mat4 {
 		return o;
 	}
 
+	static translation(tx: number, ty: number, tz: number): Float32Array {
+		const T = Mat4.create();
+
+		// prettier-ignore
+		Mat4.set(T,
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		tx, ty, tz, 1);
+
+		return T;
+	}
+
+	static scale(sx: number, sy: number, sz: number): Float32Array {
+		const T = Mat4.create();
+
+		// prettier-ignore
+		Mat4.set(T,
+		sx, 0,  0,  0,
+		0,  sy, 0,  0,
+		0,  0,  sz, 0,
+		0,  0,  0,  1);
+
+		return T;
+	}
+
 	static rotation(axis: str, radians: number): Float32Array {
 		const c = Math.cos(radians);
 		const s = Math.sin(radians);

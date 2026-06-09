@@ -11,6 +11,16 @@
 #define GLYPH_BOTTOM_HALF	0x2584U // ▄
 #define GLYPH_LEFT_HALF		0x258CU // ▌
 #define GLYPH_RIGHT_HALF	0x2590U // ▐
+#define GLYPH_JUST_TR_QUART	0x259DU // ▝
+#define GLYPH_JUST_BR_QUART	0x2597U // ▗
+#define GLYPH_JUST_BL_QUART	0x2596U // ▖
+#define GLYPH_JUST_TL_QUART	0x2598U // ▘
+#define GLYPH_EMPTY_TR_QUART	0x2599U // ▙
+#define GLYPH_EMPTY_BR_QUART	0x259BU // ▛
+#define GLYPH_EMPTY_BL_QUART	0x259CU // ▜
+#define GLYPH_EMPTY_TL_QUART	0x259FU // ▟
+#define GLYPH_TR_AND_BL_QUART	0x259EU // ▞
+#define GLYPH_TL_AND_BR_QUART	0x259AU // ▚
 
 #define GLYPH_LINE_TR		0x2514U // └
 #define GLYPH_LINE_TRB		0x251CU // ├
@@ -122,6 +132,66 @@ void main() {
 
 	case GLYPH_RIGHT_HALF:
 		if (v_cellCoord.x > 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_JUST_TR_QUART:
+		if (v_cellCoord.x > 0.5 && v_cellCoord.y < 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_JUST_BR_QUART:
+		if (v_cellCoord.x > 0.5 && v_cellCoord.y > 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_JUST_BL_QUART:
+		if (v_cellCoord.x < 0.5 && v_cellCoord.y > 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_JUST_TL_QUART:
+		if (v_cellCoord.x < 0.5 && v_cellCoord.y < 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_EMPTY_TR_QUART:
+		if (v_cellCoord.x < 0.5 || v_cellCoord.y > 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_EMPTY_BR_QUART:
+		if (v_cellCoord.x < 0.5 || v_cellCoord.y < 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_EMPTY_BL_QUART:
+		if (v_cellCoord.x > 0.5 || v_cellCoord.y < 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_EMPTY_TL_QUART:
+		if (v_cellCoord.x > 0.5 || v_cellCoord.y > 0.5) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_TR_AND_BL_QUART:
+		if ((v_cellCoord.x > 0.5 && v_cellCoord.y < 0.5) || (v_cellCoord.x < 0.5 && v_cellCoord.y > 0.5)) {
+			foreground = true;
+		}
+		break;
+
+	case GLYPH_TL_AND_BR_QUART:
+		if ((v_cellCoord.x < 0.5 && v_cellCoord.y < 0.5) || (v_cellCoord.x > 0.5 && v_cellCoord.y > 0.5)) {
 			foreground = true;
 		}
 		break;
