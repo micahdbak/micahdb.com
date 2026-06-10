@@ -1,20 +1,20 @@
-import VERTEX_SHADER from "./globe.vert" with { type: "text" };
-import FRAGMENT_SHADER from "./globe.frag" with { type: "text" };
+import VERTEX_SHADER from "./sphere.vert" with { type: "text" };
+import FRAGMENT_SHADER from "./sphere.frag" with { type: "text" };
 
 import {
-	GLOBE_TEXTURE_INDEX,
-	GLOBE_NORMAL_INDEX,
+	SPHERE_TEXTURE_INDEX,
+	SPHERE_NORMAL_INDEX,
 	EARTH_TEXTURE_PATH,
 	EARTH_NORMAL_PATH,
 	WHITE_TEXTURE_PATH,
 	SMOOTH_NORMAL_PATH,
 	loadTexture
-} from "../textures.ts";
-import { Program } from "../program.ts";
-import { Mat4 } from "./math.ts";
-import { SphereMesh } from "./meshes/sphere.ts";
+} from "../../textures.ts";
+import { Program } from "../../program.ts";
+import { Mat4 } from "../math.ts";
+import { SphereMesh } from "../meshes/sphere.ts";
 
-export class GlobeProgram extends Program {
+export class EarthProgram extends Program {
 	private attributes: {
 		position: number;
 		normal: number;
@@ -27,31 +27,38 @@ export class GlobeProgram extends Program {
 		viewMatrix: WebGLUniformLocation;
 		modelMatrix: WebGLUniformLocation;
 		normalMatrix: WebGLUniformLocation;
-		globeTexture: WebGLUniformLocation;
-		globeNormal: WebGLUniformLocation;
+		sphereTexture: WebGLUniformLocation;
+		sphereNormal: WebGLUniformLocation;
 		lightPosition: WebGLUniformLocation;
 	};
 
 	private vbo: WebGLBuffer;
 	private ibo: WebGLBuffer;
 
-	private sphere: SphereMesh;
-
 	private earthTexture: WebGLTexture;
 	private earthNormal: WebGLTexture;
 	private moonTexture: WebGLTexture;
 	private moonNormal: WebGLTexture;
 
+	private sphere: SphereMesh;
+
 	async init() {
-		this.initializeProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
-		this.initializeDBO();
-		this.initializeFBO();
-		this.initializeVBO();
-		this.initializeIBO();
+
+		this.vbo = this.gl.createBuffer();
+		if (!this.vbo) {
+			throw new Error("When creating vertex buffer");
+		}
+
+		this.ibo = this.gl.createBuffer();
+		if (!this.ibo) {
+			throw new Error("When creating index buffer");
+		}
+
 		await this.initializeTexture();
 
-		this.sphere = new SphereMesh(15, 31);
+		this.sphere = new SphereMesh(7, 15);
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(
@@ -68,6 +75,8 @@ export class GlobeProgram extends Program {
 	}
 
 	initializeLocations() {
+		this.gl.useProgram(this.glProgram);
+
 		// store attribute locations
 		this.attributes = {
 			position: this.gl.getAttribLocation(this.glProgram, "a_position"),
@@ -101,13 +110,13 @@ export class GlobeProgram extends Program {
 			this.glProgram,
 			"u_normalMatrix"
 		);
-		const globeTexture = this.gl.getUniformLocation(
+		const sphereTexture = this.gl.getUniformLocation(
 			this.glProgram,
-			"u_globeTexture"
+			"u_sphereTexture"
 		);
-		const globeNormal = this.gl.getUniformLocation(
+		const sphereNormal = this.gl.getUniformLocation(
 			this.glProgram,
-			"u_globeNormal"
+			"u_sphereNormal"
 		);
 		const lightPosition = this.gl.getUniformLocation(
 			this.glProgram,
@@ -119,8 +128,8 @@ export class GlobeProgram extends Program {
 			!viewMatrix ||
 			!modelMatrix ||
 			!normalMatrix ||
-			!globeTexture ||
-			!globeNormal ||
+			!sphereTexture ||
+			!sphereNormal ||
 			!lightPosition
 		) {
 			throw new Error("When getting uniform locations");
@@ -132,24 +141,10 @@ export class GlobeProgram extends Program {
 			modelMatrix,
 			viewMatrix,
 			normalMatrix,
-			globeTexture,
-			globeNormal,
+			sphereTexture,
+			sphereNormal,
 			lightPosition
 		};
-	}
-
-	initializeVBO() {
-		this.vbo = this.gl.createBuffer();
-		if (!this.vbo) {
-			throw new Error("When creating vertex buffer");
-		}
-	}
-
-	initializeIBO() {
-		this.ibo = this.gl.createBuffer();
-		if (!this.ibo) {
-			throw new Error("When creating index buffer");
-		}
 	}
 
 	async initializeTexture() {
@@ -158,63 +153,30 @@ export class GlobeProgram extends Program {
 		this.moonTexture = await loadTexture(this.gl, WHITE_TEXTURE_PATH);
 		this.moonNormal = await loadTexture(this.gl, SMOOTH_NORMAL_PATH);
 
-		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.globeNormal, GLOBE_NORMAL_INDEX);
+		this.gl.useProgram(this.glProgram);
+		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
 	}
 
-	resized(width: number, height: number) {
-		// reset projection matrix
-		const projectionMatrix = Mat4.create();
-		const fovy = Math.PI / 4;
-		const aspect = (0.5 * width) / height;
-		const near = 0.1;
-		const far = 100.0;
-		Mat4.perspective(projectionMatrix, fovy, aspect, near, far);
+	draw(projectionMatrix: Float32Array, viewMatrix: Float32Array) {
+		this.gl.useProgram(this.glProgram);
+
+		// consistent for both earth and moon
+
+		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
+
 		this.gl.uniformMatrix4fv(
 			this.uniforms.projectionMatrix,
 			false,
 			projectionMatrix
 		);
 
-		// update depth buffer size to match texture
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
-		this.gl.renderbufferStorage(
-			this.gl.RENDERBUFFER,
-			this.gl.DEPTH_COMPONENT16,
-			width,
-			height
-		);
-	}
-
-	draw() {
-		this.gl.useProgram(this.glProgram);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
-		this.gl.enable(this.gl.DEPTH_TEST);
-
-		// consistent for both earth and moon
-
-		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
-		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
-
-		const viewMatrix = Mat4.create();
-		Mat4.lookAt(viewMatrix, [0.0, 1.0, 5.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
-		const lightX =
-			5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
-		const lightY =
-			5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
-		this.gl.uniform3fv(this.uniforms.lightPosition, [
-			lightX + 10.0,
-			lightY + 10.0,
-			20.0
-		]);
+		this.gl.uniform3fv(this.uniforms.lightPosition, [64.0, 32.0, 128.0]);
 
-		this.gl.uniform1i(this.uniforms.globeTexture, GLOBE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.globeNormal, GLOBE_NORMAL_INDEX);
+		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
 
 		const modelMatrix = Mat4.create();
 		const modelViewMatrix = Mat4.create();
@@ -236,9 +198,9 @@ export class GlobeProgram extends Program {
 		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
 		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
-		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
+		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthTexture);
-		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_NORMAL_INDEX);
+		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthNormal);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
@@ -266,9 +228,9 @@ export class GlobeProgram extends Program {
 		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
 		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
-		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_TEXTURE_INDEX);
+		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonTexture);
-		this.gl.activeTexture(this.gl.TEXTURE0 + GLOBE_NORMAL_INDEX);
+		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonNormal);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
@@ -278,7 +240,5 @@ export class GlobeProgram extends Program {
 			this.gl.UNSIGNED_SHORT,
 			0
 		);
-
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 	}
 }

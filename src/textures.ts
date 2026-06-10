@@ -17,14 +17,79 @@ export const CUBE_NORMAL_INDEX = 3;
 export const CUBE_TEXTURE_PATH = "/cube/texture.jpg";
 export const CUBE_NORMAL_PATH = "/cube/normal.jpg";
 
-// globe program
+// skybox program
 
-export const GLOBE_TEXTURE_INDEX = 2;
-export const GLOBE_NORMAL_INDEX = 3;
-export const EARTH_TEXTURE_PATH = "/globe/texture.jpg";
-export const EARTH_NORMAL_PATH = "/globe/normal.jpg";
+export const SKYBOX_TEXTURE_INDEX = 2;
+export const EARTH_SKYBOX_FACES = [
+	"/earth/right.png",
+	"/earth/left.png",
+	"/earth/top.png",
+	"/earth/bottom.png",
+	"/earth/front.png",
+	"/earth/back.png"
+];
+
+// earth program
+
+export const SPHERE_TEXTURE_INDEX = 2;
+export const SPHERE_NORMAL_INDEX = 3;
+export const EARTH_TEXTURE_PATH = "/earth/texture.jpg";
+export const EARTH_NORMAL_PATH = "/earth/normal.jpg";
+export const EARTH_SKYBOX_PATH = "/earth/skybox.png";
 
 // misc functions
+
+export async function loadCubeMap(
+	gl: WebGL2RenderingContext,
+	faces: string[]
+): Promise<WebGLTexture> {
+	if (faces.length !== 6) {
+		throw new Error("Cube map requires exactly 6 faces");
+	}
+
+	const texture = gl.createTexture();
+	if (!texture) {
+		throw new Error("When creating cube map texture");
+	}
+
+	gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+
+	const targets = [
+		gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+		gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+		gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+		gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+		gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+	];
+
+	const promises = faces.map(async (path, index) => {
+		const image = new Promise<HTMLImageElement>((resolve, reject) => {
+			const img = new Image();
+			img.src = path;
+			img.onload = () => resolve(img);
+			img.onerror = (err) =>
+				reject(new Error(`When loading image at ${path}`, { cause: err }));
+		});
+
+		const img = await image;
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+		gl.texImage2D(targets[index], 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+	});
+
+	await Promise.all(promises);
+
+	gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+
+	gl.texParameteri(
+		gl.TEXTURE_CUBE_MAP,
+		gl.TEXTURE_MIN_FILTER,
+		gl.LINEAR_MIPMAP_LINEAR
+	);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	return texture;
+}
 
 export function loadTexture(
 	gl: WebGL2RenderingContext,

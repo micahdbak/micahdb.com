@@ -20,6 +20,8 @@ class Link {
 				const a = document.createElement("a");
 				a.href = url;
 				a.click();
+			} else if (url.startsWith("#")) {
+				history.pushState(null, null, url);
 			} else {
 				// opens in new tab
 				window.open(url, "_blank");

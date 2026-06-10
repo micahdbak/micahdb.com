@@ -7,10 +7,10 @@ import {
 	CUBE_NORMAL_INDEX,
 	CUBE_NORMAL_PATH,
 	loadTexture
-} from "../textures.ts";
-import { Program } from "../program.ts";
-import { Mat4 } from "./math.ts";
-import { CubeMesh } from "./meshes/cube.ts";
+} from "../../textures.ts";
+import { Program } from "../../program.ts";
+import { Mat4 } from "../math.ts";
+import { CubeMesh } from "../meshes/cube.ts";
 
 class CubeProgram extends Program {
 	private attributes: {
@@ -31,17 +31,20 @@ class CubeProgram extends Program {
 
 	private vbo: WebGLBuffer;
 
-	private cube: CubeMesh;
-
 	private cubeTexture: WebGLTexture;
 	private cubeNormal: WebGLTexture;
 
+	private cube: CubeMesh;
+
 	async init() {
-		this.initializeProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
-		this.initializeDBO();
-		this.initializeFBO();
-		this.initializeVBO();
+
+		this.vbo = this.gl.createBuffer();
+		if (!this.vbo) {
+			throw new Error("When creating vertex buffer");
+		}
+
 		await this.initializeTexture();
 
 		this.cube = new CubeMesh();
@@ -118,48 +121,23 @@ class CubeProgram extends Program {
 		};
 	}
 
-	initializeVBO() {
-		this.vbo = this.gl.createBuffer();
-		if (!this.vbo) {
-			throw new Error("When creating vertex buffer");
-		}
-	}
-
 	async initializeTexture() {
 		this.cubeTexture = await loadTexture(this.gl, CUBE_TEXTURE_PATH);
 		this.cubeNormal = await loadTexture(this.gl, CUBE_NORMAL_PATH);
+
+		this.gl.useProgram(this.glProgram);
 		this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
 		this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
 	}
 
-	resized(width: number, height: number) {
-		// reset projection matrix
-		const projectionMatrix = Mat4.create();
-		const fovy = Math.PI / 4;
-		const aspect = (0.5 * width) / height;
-		const near = 0.1;
-		const far = 100.0;
-		Mat4.perspective(projectionMatrix, fovy, aspect, near, far);
+	draw(projectionMatrix: Float32Array) {
+		this.gl.useProgram(this.glProgram);
+
 		this.gl.uniformMatrix4fv(
 			this.uniforms.projectionMatrix,
 			false,
 			projectionMatrix
 		);
-
-		// update depth buffer size to match texture
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
-		this.gl.renderbufferStorage(
-			this.gl.RENDERBUFFER,
-			this.gl.DEPTH_COMPONENT16,
-			width,
-			height
-		);
-	}
-
-	draw() {
-		this.gl.useProgram(this.glProgram);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
-		this.gl.enable(this.gl.DEPTH_TEST);
 
 		const viewMatrix = Mat4.create();
 		Mat4.lookAt(viewMatrix, [0.0, 3.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
@@ -190,21 +168,14 @@ class CubeProgram extends Program {
 
 		this.cube.enableAttributes(this.gl, this.vbo, this.attributes);
 
-		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
 		this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeTexture);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_NORMAL_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeNormal);
 
-		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
-
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, CubeMesh.NUM_VERTICES);
-
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 	}
 }
 

@@ -6,7 +6,6 @@ import {
 	GLYPH_ATLAS_TEXTURE_PATH,
 	PROGRAM_TEXTURE_INDEX
 } from "./textures.ts";
-import { Program } from "./program.ts";
 import { ProgramManager } from "./program_manager.ts";
 
 class Renderer {
@@ -38,8 +37,7 @@ class Renderer {
 		palette: WebGLUniformLocation;
 	};
 
-	private program: Program;
-	private programManager: ProgramManager;
+	private program: ProgramManager;
 
 	private vbo: WebGLBuffer;
 	private count: number;
@@ -93,9 +91,9 @@ class Renderer {
 		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
 		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
 
-		this.programManager = new ProgramManager(this.gl);
-		this.program = this.programManager.get("globe");
+		this.program = new ProgramManager(this.gl);
 		await this.program.init();
+		this.program.which = "earth";
 	}
 
 	initializeProgram() {
