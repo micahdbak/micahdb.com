@@ -916,8 +916,6 @@ void main() {
 var GLYPH_ATLAS_TEXTURE_INDEX = 0;
 var GLYPH_ATLAS_TEXTURE_PATH = "/glyphatlas.png";
 var PROGRAM_TEXTURE_INDEX = 1;
-var WHITE_TEXTURE_PATH = "/white.png";
-var SMOOTH_NORMAL_PATH = "/smooth.png";
 var CUBE_TEXTURE_INDEX = 2;
 var CUBE_NORMAL_INDEX = 3;
 var CUBE_TEXTURE_PATH = "/cube/texture.jpg";
@@ -935,6 +933,8 @@ var SPHERE_TEXTURE_INDEX = 2;
 var SPHERE_NORMAL_INDEX = 3;
 var EARTH_TEXTURE_PATH = "/earth/texture.jpg";
 var EARTH_NORMAL_PATH = "/earth/normal.jpg";
+var MOON_TEXTURE_PATH = "/earth/moon_texture.jpg";
+var MOON_NORMAL_PATH = "/earth/moon_normal.jpg";
 async function loadCubeMap(gl, faces) {
   if (faces.length !== 6) {
     throw new Error("Cube map requires exactly 6 faces");
@@ -1390,8 +1390,10 @@ void main() {
 class Program {
   gl;
   glProgram;
-  constructor(gl) {
+  logMessage;
+  constructor(gl, logMessage) {
     this.gl = gl;
+    this.logMessage = logMessage;
   }
   loadProgram(vertex_shader, fragment_shader) {
     const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER);
@@ -1664,8 +1666,10 @@ class CubeProgram extends Program {
     };
   }
   async initializeTexture() {
+    this.logMessage("cube", "loading textures");
     this.cubeTexture = await loadTexture(this.gl, CUBE_TEXTURE_PATH);
     this.cubeNormal = await loadTexture(this.gl, CUBE_NORMAL_PATH);
+    this.logMessage("cube", "done loading textures");
     this.gl.useProgram(this.glProgram);
     this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
     this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
@@ -1728,7 +1732,7 @@ void main() {
 	v_position = vec3(modelViewMatrix * vec4(a_position, 1.0));
 	v_uvCoord = a_uvCoord;
 
-	v_light = vec3(u_viewMatrix * vec4(u_lightPosition, 1.0)) - v_position;
+	v_light = vec3(u_viewMatrix * vec4(u_lightPosition, 0.0));
 
 	gl_Position = u_projectionMatrix * modelViewMatrix * vec4(a_position, 1.0);
 }
@@ -1791,7 +1795,7 @@ void main() {
 	normal = normalize(v_TBN * normal);
 
 	vec3 light = normalize(v_light);
-	float lam = dot(normal, light);
+	float lam = 1.5 * dot(normal, light);
 
 	vec3 col = texture(u_sphereTexture, v_uvCoord).rgb;
 
@@ -1806,7 +1810,7 @@ void main() {
 		0.9375, 0.4375, 0.8125, 0.3125
 	);
 	float dither = (bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4] - 0.5) / 12.0;
-	lum = clamp(lum + dither, 0.05, 1.0);
+	lum = clamp(lum + dither, 4.0 / (3.0 * 12.0), 1.0);
 	int layer = clamp(int(lum * 3.0), 0, 2);
 
 	//                           '.'  '-'  ','  ':'  ';'  '='  '!'  '*'  '#'  '$'  '@'
@@ -1940,10 +1944,12 @@ class EarthProgram extends Program {
     };
   }
   async initializeTexture() {
+    this.logMessage("earth", "loading textures");
     this.earthTexture = await loadTexture(this.gl, EARTH_TEXTURE_PATH);
     this.earthNormal = await loadTexture(this.gl, EARTH_NORMAL_PATH);
-    this.moonTexture = await loadTexture(this.gl, WHITE_TEXTURE_PATH);
-    this.moonNormal = await loadTexture(this.gl, SMOOTH_NORMAL_PATH);
+    this.moonTexture = await loadTexture(this.gl, MOON_TEXTURE_PATH);
+    this.moonNormal = await loadTexture(this.gl, MOON_NORMAL_PATH);
+    this.logMessage("earth", "done loading textures");
     this.gl.useProgram(this.glProgram);
     this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
     this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
@@ -1953,7 +1959,7 @@ class EarthProgram extends Program {
     this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
     this.gl.uniformMatrix4fv(this.uniforms.projectionMatrix, false, projectionMatrix);
     this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
-    this.gl.uniform3fv(this.uniforms.lightPosition, [64, 32, 128]);
+    this.gl.uniform3fv(this.uniforms.lightPosition, [1, 0.1, 0]);
     this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
     this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
     const modelMatrix = Mat4.create();
@@ -1974,9 +1980,11 @@ class EarthProgram extends Program {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthNormal);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
     this.gl.drawElements(this.gl.TRIANGLES, this.sphere.indices.length, this.gl.UNSIGNED_SHORT, 0);
-    const moonX = 2 * Math.cos(2 * Math.PI * (Date.now() % 1e4) / 1e4);
-    const moonZ = 2 * Math.sin(2 * Math.PI * (Date.now() % 1e4) / 1e4);
-    Mat4.multiply(modelMatrix, Mat4.translation(moonX, 0, moonZ), Mat4.scale(0.27, 0.27, 0.27));
+    const moonAngle = 2 * Math.PI * (Date.now() % 25000) / 25000;
+    const moonX = 3 * Math.cos(moonAngle);
+    const moonZ = 3 * Math.sin(moonAngle);
+    Mat4.multiply(modelMatrix, Mat4.translation(moonX, 0, moonZ), Mat4.rotation("y", -moonAngle));
+    Mat4.multiply(modelMatrix, modelMatrix, Mat4.scale(0.27, 0.27, 0.27));
     this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
     Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
     Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
@@ -2142,7 +2150,9 @@ class SkyboxProgram extends Program {
     };
   }
   async initializeTexture() {
+    this.logMessage("skybox", "loading textures");
     this.skyboxTexture = await loadCubeMap(this.gl, EARTH_SKYBOX_FACES);
+    this.logMessage("skybox", "done loading textures");
     this.gl.useProgram(this.glProgram);
     this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
   }
@@ -2180,15 +2190,15 @@ class ProgramManager {
   programs;
   which;
   texture;
-  constructor(gl) {
+  constructor(gl, logMessage) {
     this.gl = gl;
     this.initializeTexture();
     this.initializeDBO();
     this.initializeFBO();
     this.projectionMatrix = Mat4.create();
-    this.cube = new CubeProgram(gl);
-    this.earth = new EarthProgram(gl);
-    this.skybox = new SkyboxProgram(gl);
+    this.cube = new CubeProgram(gl, logMessage);
+    this.earth = new EarthProgram(gl, logMessage);
+    this.skybox = new SkyboxProgram(gl, logMessage);
     this.programs = [this.cube, this.earth, this.skybox];
     this.which = "";
   }
@@ -2253,9 +2263,10 @@ class ProgramManager {
         break;
       case "earth":
         const viewX = 5 * Math.cos(2 * Math.PI * (Date.now() % 77777) / 77777);
+        const viewY = 1 * Math.cos(2 * Math.PI * (Date.now() % 75000) / 75000);
         const viewZ = 5 * Math.sin(2 * Math.PI * (Date.now() % 77777) / 77777);
         const viewMatrix = Mat4.create();
-        Mat4.lookAt(viewMatrix, [viewX, 1, viewZ], [0, 0, 0], [0, -1, 0]);
+        Mat4.lookAt(viewMatrix, [viewX, viewY, viewZ], [0, 0, 0], [0, -1, 0]);
         this.skybox.draw(this.projectionMatrix, viewMatrix);
         this.earth.draw(this.projectionMatrix, viewMatrix);
         break;
@@ -2273,6 +2284,7 @@ class Renderer {
   glProgram;
   attributes;
   uniforms;
+  logMessage;
   program;
   vbo;
   count;
@@ -2287,7 +2299,7 @@ class Renderer {
   programRows;
   programCols;
   canvas;
-  constructor(canvas) {
+  constructor(canvas, logMessage) {
     this.canvas = canvas;
     const gl = this.canvas.getContext("webgl2");
     if (!gl) {
@@ -2301,6 +2313,7 @@ class Renderer {
     this.programCol = 0;
     this.programRows = 1;
     this.programCols = 1;
+    this.logMessage = logMessage;
   }
   async init() {
     this.initializeProgram();
@@ -2313,7 +2326,7 @@ class Renderer {
     this.gl.uniform1i(this.uniforms.programCol, this.programCol);
     this.gl.uniform1i(this.uniforms.programRows, this.programRows);
     this.gl.uniform1i(this.uniforms.programCols, this.programCols);
-    this.program = new ProgramManager(this.gl);
+    this.program = new ProgramManager(this.gl, this.logMessage);
     await this.program.init();
     this.program.which = "earth";
   }
@@ -2514,10 +2527,10 @@ class Terminal {
   static CELL_SIZE = 8;
   static BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
   static UINT32_PER_GLYPH = Glyph.VERTICES;
+  renderer;
   mouseX;
   mouseY;
   data;
-  renderer;
   cols;
   rows;
   cellWidth;
@@ -2533,8 +2546,8 @@ class Terminal {
   mouseClick;
   mouseDown;
   mouseOwner = "";
-  constructor(canvas) {
-    this.renderer = new Renderer(canvas);
+  constructor(canvas, logMessage) {
+    this.renderer = new Renderer(canvas, logMessage);
   }
   async init() {
     await this.renderer.init();
@@ -8249,10 +8262,27 @@ var BODY = `&7;\\*&17; &7;*About*&17;&n;
 
 Welcome to my website.`;
 var main = async () => {
+  const log = document.getElementById("log");
   const canvas = document.getElementById("webgl");
   try {
-    const terminal = new Terminal(canvas);
+    const startTime = Date.now();
+    const logMessage = (source, message) => {
+      let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
+      const leadingSpaces = " ".repeat(12 - timestamp.length);
+      timestamp = `[${leadingSpaces}${timestamp}]`;
+      const pre = document.createElement("pre");
+      pre.textContent = `${timestamp} ${source}: ${message}`;
+      log.appendChild(pre);
+    };
+    logMessage("micahdb.com", "init");
+    const terminal = new Terminal(canvas, logMessage);
     await terminal.init();
+    logMessage("micahdb.com", "done loading");
+    await new Promise((resolve) => {
+      setTimeout(resolve, 250);
+    });
+    log.className = "hidden";
+    canvas.className = "";
     terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 255)));
     const divider = new Divider(terminal, PANE_RATIO, false);
     const scrollable = new Scrollable(terminal);
