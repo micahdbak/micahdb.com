@@ -6,8 +6,8 @@ import {
 	SPHERE_NORMAL_INDEX,
 	EARTH_TEXTURE_PATH,
 	EARTH_NORMAL_PATH,
-	WHITE_TEXTURE_PATH,
-	SMOOTH_NORMAL_PATH,
+	MOON_TEXTURE_PATH,
+	MOON_NORMAL_PATH,
 	loadTexture
 } from "../../textures.ts";
 import { Program } from "../../program.ts";
@@ -148,10 +148,12 @@ export class EarthProgram extends Program {
 	}
 
 	async initializeTexture() {
+		this.logMessage("earth", "loading textures");
 		this.earthTexture = await loadTexture(this.gl, EARTH_TEXTURE_PATH);
 		this.earthNormal = await loadTexture(this.gl, EARTH_NORMAL_PATH);
-		this.moonTexture = await loadTexture(this.gl, WHITE_TEXTURE_PATH);
-		this.moonNormal = await loadTexture(this.gl, SMOOTH_NORMAL_PATH);
+		this.moonTexture = await loadTexture(this.gl, MOON_TEXTURE_PATH);
+		this.moonNormal = await loadTexture(this.gl, MOON_NORMAL_PATH);
+		this.logMessage("earth", "done loading textures");
 
 		this.gl.useProgram(this.glProgram);
 		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
@@ -173,7 +175,7 @@ export class EarthProgram extends Program {
 
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
-		this.gl.uniform3fv(this.uniforms.lightPosition, [64.0, 32.0, 128.0]);
+		this.gl.uniform3fv(this.uniforms.lightPosition, [1.0, 0.1, 0.0]);
 
 		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
 		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
@@ -213,15 +215,15 @@ export class EarthProgram extends Program {
 
 		// moon
 
-		const moonX =
-			2.0 * Math.cos((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
-		const moonZ =
-			2.0 * Math.sin((2.0 * Math.PI * (Date.now() % 10000)) / 10000);
+		const moonAngle = (2.0 * Math.PI * (Date.now() % 25000)) / 25000;
+		const moonX = 3.0 * Math.cos(moonAngle);
+		const moonZ = 3.0 * Math.sin(moonAngle);
 		Mat4.multiply(
 			modelMatrix,
 			Mat4.translation(moonX, 0.0, moonZ),
-			Mat4.scale(0.27, 0.27, 0.27)
+			Mat4.rotation("y", -moonAngle)
 		);
+		Mat4.multiply(modelMatrix, modelMatrix, Mat4.scale(0.27, 0.27, 0.27));
 		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
 
 		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);

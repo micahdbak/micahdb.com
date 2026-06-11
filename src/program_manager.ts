@@ -26,7 +26,10 @@ class ProgramManager {
 	// to be used by renderer.ts; each pixel is a glyph
 	public texture: WebGLTexture;
 
-	constructor(gl: WebGL2RenderingContext) {
+	constructor(
+		gl: WebGL2RenderingContext,
+		logMessage: (source: string, message: string) => void
+	) {
 		this.gl = gl;
 
 		this.initializeTexture();
@@ -35,9 +38,9 @@ class ProgramManager {
 
 		this.projectionMatrix = Mat4.create();
 
-		this.cube = new CubeProgram(gl);
-		this.earth = new EarthProgram(gl);
-		this.skybox = new SkyboxProgram(gl);
+		this.cube = new CubeProgram(gl, logMessage);
+		this.earth = new EarthProgram(gl, logMessage);
+		this.skybox = new SkyboxProgram(gl, logMessage);
 
 		this.programs = [this.cube, this.earth, this.skybox];
 		this.which = "";
@@ -184,13 +187,15 @@ class ProgramManager {
 			case "earth":
 				const viewX =
 					5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
+				const viewY =
+					1.0 * Math.cos((2.0 * Math.PI * (Date.now() % 75000)) / 75000);
 				const viewZ =
 					5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
 
 				const viewMatrix = Mat4.create();
 				Mat4.lookAt(
 					viewMatrix,
-					[viewX, 1.0, viewZ],
+					[viewX, viewY, viewZ],
 					[0.0, 0.0, 0.0],
 					[0.0, -1.0, 0.0]
 				);

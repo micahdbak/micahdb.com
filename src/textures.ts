@@ -35,6 +35,8 @@ export const SPHERE_TEXTURE_INDEX = 2;
 export const SPHERE_NORMAL_INDEX = 3;
 export const EARTH_TEXTURE_PATH = "/earth/texture.jpg";
 export const EARTH_NORMAL_PATH = "/earth/normal.jpg";
+export const MOON_TEXTURE_PATH = "/earth/moon_texture.jpg";
+export const MOON_NORMAL_PATH = "/earth/moon_normal.jpg";
 export const EARTH_SKYBOX_PATH = "/earth/skybox.png";
 
 // misc functions

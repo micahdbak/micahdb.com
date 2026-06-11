@@ -99,11 +99,37 @@ const BODY = `\
 Welcome to my website.`;
 
 const main = async () => {
+	const log = document.getElementById("log");
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const terminal = new Terminal(canvas);
+		const startTime = Date.now();
+
+		const logMessage = (source: string, message: string) => {
+			let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
+			const leadingSpaces = " ".repeat(12 - timestamp.length);
+			timestamp = `[${leadingSpaces}${timestamp}]`;
+
+			const pre = document.createElement("pre");
+			pre.textContent = `${timestamp} ${source}: ${message}`;
+			log.appendChild(pre);
+		};
+
+		logMessage("micahdb.com", "init");
+
+		const terminal = new Terminal(canvas, logMessage);
 		await terminal.init();
+
+		logMessage("micahdb.com", "done loading");
+
+		// spare a moment before displaying the canvas
+		await new Promise((resolve) => {
+			setTimeout(resolve, 250);
+		});
+
+		log.className = "hidden";
+		canvas.className = "";
+
 		terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 0xff)));
 
 		// components

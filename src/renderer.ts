@@ -37,6 +37,8 @@ class Renderer {
 		palette: WebGLUniformLocation;
 	};
 
+	private logMessage: (source: string, message: string) => void;
+
 	private program: ProgramManager;
 
 	private vbo: WebGLBuffer;
@@ -58,7 +60,10 @@ class Renderer {
 
 	public canvas: HTMLCanvasElement;
 
-	constructor(canvas: HTMLCanvasElement) {
+	constructor(
+		canvas: HTMLCanvasElement,
+		logMessage: (source: string, message: string) => void
+	) {
 		this.canvas = canvas;
 
 		const gl: WebGL2RenderingContext | null = this.canvas.getContext("webgl2");
@@ -75,6 +80,8 @@ class Renderer {
 		this.programCol = 0;
 		this.programRows = 1;
 		this.programCols = 1;
+
+		this.logMessage = logMessage;
 	}
 
 	async init() {
@@ -91,7 +98,7 @@ class Renderer {
 		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
 		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
 
-		this.program = new ProgramManager(this.gl);
+		this.program = new ProgramManager(this.gl, this.logMessage);
 		await this.program.init();
 		this.program.which = "earth";
 	}

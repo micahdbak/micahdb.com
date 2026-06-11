@@ -28,6 +28,22 @@ body.pointer {
 	cursor: pointer;
 }
 
+.hidden {
+	display: none;
+}
+
+#log {
+	padding: 4px;
+}
+
+#log pre {
+	font-family: monospace;
+	font-size: 10pt;
+	margin: 0;
+	padding: 0;
+	line-height: 1.5;
+}
+
 #webgl {
 	width: 100%;
 	height: 100%;

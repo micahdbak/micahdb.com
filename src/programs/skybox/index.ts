@@ -82,7 +82,9 @@ export class SkyboxProgram extends Program {
 	}
 
 	async initializeTexture() {
+		this.logMessage("skybox", "loading textures");
 		this.skyboxTexture = await loadCubeMap(this.gl, EARTH_SKYBOX_FACES);
+		this.logMessage("skybox", "done loading textures");
 
 		this.gl.useProgram(this.glProgram);
 		this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);

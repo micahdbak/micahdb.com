@@ -54,7 +54,7 @@ void main() {
 	normal = normalize(v_TBN * normal);
 
 	vec3 light = normalize(v_light);
-	float lam = dot(normal, light);
+	float lam = 1.5 * dot(normal, light);
 
 	vec3 col = texture(u_sphereTexture, v_uvCoord).rgb;
 
@@ -69,7 +69,7 @@ void main() {
 		0.9375, 0.4375, 0.8125, 0.3125
 	);
 	float dither = (bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4] - 0.5) / 12.0;
-	lum = clamp(lum + dither, 0.05, 1.0);
+	lum = clamp(lum + dither, 4.0 / (3.0 * 12.0), 1.0);
 	int layer = clamp(int(lum * 3.0), 0, 2);
 
 	//                           '.'  '-'  ','  ':'  ';'  '='  '!'  '*'  '#'  '$'  '@'

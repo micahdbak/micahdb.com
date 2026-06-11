@@ -27,7 +27,7 @@ void main() {
 	v_position = vec3(modelViewMatrix * vec4(a_position, 1.0));
 	v_uvCoord = a_uvCoord;
 
-	v_light = vec3(u_viewMatrix * vec4(u_lightPosition, 1.0)) - v_position;
+	v_light = vec3(u_viewMatrix * vec4(u_lightPosition, 0.0));
 
 	gl_Position = u_projectionMatrix * modelViewMatrix * vec4(a_position, 1.0);
 }

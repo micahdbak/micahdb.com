@@ -122,8 +122,10 @@ class CubeProgram extends Program {
 	}
 
 	async initializeTexture() {
+		this.logMessage("cube", "loading textures");
 		this.cubeTexture = await loadTexture(this.gl, CUBE_TEXTURE_PATH);
 		this.cubeNormal = await loadTexture(this.gl, CUBE_NORMAL_PATH);
+		this.logMessage("cube", "done loading textures");
 
 		this.gl.useProgram(this.glProgram);
 		this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);

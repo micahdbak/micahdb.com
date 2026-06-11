@@ -53,12 +53,12 @@ class Terminal {
 	static readonly BYTES_PER_GLYPH = Glyph.VERTICES * Renderer.STRIDE;
 	static readonly UINT32_PER_GLYPH = Glyph.VERTICES;
 
+	private renderer: Renderer;
+
 	private mouseX: number;
 	private mouseY: number;
 
 	private data: Uint32Array;
-
-	private renderer: Renderer;
 
 	public cols: number;
 	public rows: number;
@@ -79,8 +79,11 @@ class Terminal {
 	public mouseDown: boolean;
 	public mouseOwner: string = "";
 
-	constructor(canvas: HTMLCanvasElement) {
-		this.renderer = new Renderer(canvas);
+	constructor(
+		canvas: HTMLCanvasElement,
+		logMessage: (source: string, message: string) => void
+	) {
+		this.renderer = new Renderer(canvas, logMessage);
 	}
 
 	async init() {
