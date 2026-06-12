@@ -122,9 +122,35 @@ const main = async () => {
 
 		logMessage("micahdb.com", "done loading");
 
+		const prompt = "[micah@micahdb.com ~]$ ";
+		const pre = document.createElement("pre");
+		pre.textContent = prompt;
+		log.appendChild(pre);
+
+		for (let i = 0; i < 3; i++) {
+			await new Promise((resolve) => {
+				setTimeout(resolve, 500);
+			});
+
+			// blinking block
+			const block = i % 2 === 0 ? "█" : "";
+			pre.textContent = prompt + block;
+		}
+
+		const cmd = "./dashboard.sh";
+		for (let i = 0; i <= cmd.length; i++) {
+			pre.textContent = prompt + cmd.substr(0, i) + "█";
+
+			await new Promise((resolve) => {
+				setTimeout(resolve, 50);
+			});
+		}
+
+		pre.textContent = prompt + cmd + "\n█";
+
 		// spare a moment before displaying the canvas
 		await new Promise((resolve) => {
-			setTimeout(resolve, 250);
+			setTimeout(resolve, 500);
 		});
 
 		log.className = "hidden";
