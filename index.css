@@ -1,11 +1,14 @@
+/* JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+
 html {
 	margin: 0;
 	padding: 0;
 }
 
 body {
-	background-color: #141415;
-	color: white;
+	background-color: #111112;
+	color: #cdcdcd;
 	margin: 0;
 	padding: 0;
 	width: 100svw;
@@ -32,12 +35,11 @@ body.pointer {
 	display: none;
 }
 
-#log {
-	padding: 4px;
-}
-
 #log pre {
-	font-family: monospace;
+	font-family: "JetBrains Mono", monospace;
+	font-optical-sizing: auto;
+	font-weight: 400;
+	font-style: normal;
 	font-size: 10pt;
 	margin: 0;
 	padding: 0;

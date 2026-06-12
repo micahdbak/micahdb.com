@@ -8270,16 +8270,36 @@ var main = async () => {
       let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
       const leadingSpaces = " ".repeat(12 - timestamp.length);
       timestamp = `[${leadingSpaces}${timestamp}]`;
-      const pre = document.createElement("pre");
-      pre.textContent = `${timestamp} ${source}: ${message}`;
-      log.appendChild(pre);
+      const pre2 = document.createElement("pre");
+      pre2.textContent = `${timestamp} ${source}: ${message}`;
+      log.appendChild(pre2);
     };
     logMessage("micahdb.com", "init");
     const terminal = new Terminal(canvas, logMessage);
     await terminal.init();
     logMessage("micahdb.com", "done loading");
+    const prompt = "[micah@micahdb.com ~]$ ";
+    const pre = document.createElement("pre");
+    pre.textContent = prompt;
+    log.appendChild(pre);
+    for (let i = 0;i < 3; i++) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 500);
+      });
+      const block = i % 2 === 0 ? "█" : "";
+      pre.textContent = prompt + block;
+    }
+    const cmd = "./dashboard.sh";
+    for (let i = 0;i <= cmd.length; i++) {
+      pre.textContent = prompt + cmd.substr(0, i) + "█";
+      await new Promise((resolve) => {
+        setTimeout(resolve, 50);
+      });
+    }
+    pre.textContent = prompt + cmd + `
+█`;
     await new Promise((resolve) => {
-      setTimeout(resolve, 250);
+      setTimeout(resolve, 500);
     });
     log.className = "hidden";
     canvas.className = "";
