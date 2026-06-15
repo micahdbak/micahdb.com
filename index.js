@@ -913,13 +913,16 @@ void main() {
 `;
 
 // src/textures.ts
+var TEXTURES = {};
 var GLYPH_ATLAS_TEXTURE_INDEX = 0;
-var GLYPH_ATLAS_TEXTURE_PATH = "/glyphatlas.png";
+var GLYPH_ATLAS_TEXTURE = "/glyphatlas.png";
 var PROGRAM_TEXTURE_INDEX = 1;
+var WHITE_TEXTURE = "/white.png";
+var SMOOTH_NORMAL = "/smooth.png";
 var CUBE_TEXTURE_INDEX = 2;
 var CUBE_NORMAL_INDEX = 3;
-var CUBE_TEXTURE_PATH = "/cube/texture.jpg";
-var CUBE_NORMAL_PATH = "/cube/normal.jpg";
+var CUBE_TEXTURE = "/cube/texture.jpg";
+var CUBE_NORMAL = "/cube/normal.jpg";
 var SKYBOX_TEXTURE_INDEX = 2;
 var EARTH_SKYBOX_FACES = [
   "/earth/right.png",
@@ -929,12 +932,83 @@ var EARTH_SKYBOX_FACES = [
   "/earth/front.png",
   "/earth/back.png"
 ];
+var EARTH_CUBEMAP = "earth_cubemap";
 var SPHERE_TEXTURE_INDEX = 2;
 var SPHERE_NORMAL_INDEX = 3;
-var EARTH_TEXTURE_PATH = "/earth/texture.jpg";
-var EARTH_NORMAL_PATH = "/earth/normal.jpg";
-var MOON_TEXTURE_PATH = "/earth/moon_texture.jpg";
-var MOON_NORMAL_PATH = "/earth/moon_normal.jpg";
+var EARTH_TEXTURE = "/earth/texture.jpg";
+var EARTH_NORMAL = "/earth/normal.jpg";
+var MOON_TEXTURE = "/earth/moon_texture.jpg";
+var MOON_NORMAL = "/earth/moon_normal.jpg";
+async function loadTextures(gl, logMessage) {
+  const textures = [
+    WHITE_TEXTURE,
+    SMOOTH_NORMAL,
+    CUBE_TEXTURE,
+    CUBE_NORMAL,
+    EARTH_TEXTURE,
+    EARTH_NORMAL,
+    MOON_TEXTURE,
+    MOON_NORMAL
+  ];
+  const promises = [];
+  promises.push((async () => {
+    TEXTURES[GLYPH_ATLAS_TEXTURE] = await loadGlyphAtlas(gl);
+    logMessage("font_loader", `loaded ${GLYPH_ATLAS_TEXTURE}`);
+  })());
+  for (let i = 0;i < textures.length; i++) {
+    promises.push((async () => {
+      const texture = await loadTexture(gl, textures[i]);
+      TEXTURES[textures[i]] = texture;
+      logMessage("texture_loader", `loaded ${textures[i]}`);
+    })());
+  }
+  promises.push((async () => {
+    const texture = await loadCubeMap(gl, EARTH_SKYBOX_FACES);
+    TEXTURES[EARTH_CUBEMAP] = texture;
+    logMessage("cubemap_loader", `loaded ${EARTH_CUBEMAP}`);
+  })());
+  await Promise.all(promises);
+}
+function loadGlyphAtlas(gl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image;
+    image.src = GLYPH_ATLAS_TEXTURE;
+    image.onload = () => {
+      const texture = gl.createTexture();
+      if (!texture) {
+        reject(new Error("When creating GL texture"));
+        return;
+      }
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      resolve(texture);
+    };
+  });
+}
+function loadTexture(gl, path) {
+  return new Promise((resolve, reject) => {
+    const image = new Image;
+    image.src = path;
+    image.onload = () => {
+      const tex = gl.createTexture();
+      if (!tex) {
+        reject(new Error("When creating GL texture"));
+        return;
+      }
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      resolve(tex);
+    };
+  });
+}
 async function loadCubeMap(gl, faces) {
   if (faces.length !== 6) {
     throw new Error("Cube map requires exactly 6 faces");
@@ -968,26 +1042,6 @@ async function loadCubeMap(gl, faces) {
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   return texture;
-}
-function loadTexture(gl, path) {
-  return new Promise((resolve, reject) => {
-    const image = new Image;
-    image.src = path;
-    image.onload = () => {
-      const tex = gl.createTexture();
-      if (!tex) {
-        reject(new Error("When creating GL texture"));
-        return;
-      }
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      resolve(tex);
-    };
-  });
 }
 
 // src/programs/math.ts
@@ -1390,10 +1444,8 @@ void main() {
 class Program {
   gl;
   glProgram;
-  logMessage;
-  constructor(gl, logMessage) {
+  constructor(gl) {
     this.gl = gl;
-    this.logMessage = logMessage;
   }
   loadProgram(vertex_shader, fragment_shader) {
     const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER);
@@ -1622,17 +1674,17 @@ class CubeProgram extends Program {
   attributes;
   uniforms;
   vbo;
-  cubeTexture;
-  cubeNormal;
   cube;
-  async init() {
+  init() {
     this.loadProgram(cube_default, cube_default2);
     this.initializeLocations();
     this.vbo = this.gl.createBuffer();
     if (!this.vbo) {
       throw new Error("When creating vertex buffer");
     }
-    await this.initializeTexture();
+    this.gl.useProgram(this.glProgram);
+    this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
+    this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
     this.cube = new CubeMesh;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.cube.data(), this.gl.DYNAMIC_DRAW);
@@ -1665,15 +1717,6 @@ class CubeProgram extends Program {
       cubeNormal
     };
   }
-  async initializeTexture() {
-    this.logMessage("cube", "loading textures");
-    this.cubeTexture = await loadTexture(this.gl, CUBE_TEXTURE_PATH);
-    this.cubeNormal = await loadTexture(this.gl, CUBE_NORMAL_PATH);
-    this.logMessage("cube", "done loading textures");
-    this.gl.useProgram(this.glProgram);
-    this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
-    this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
-  }
   draw(projectionMatrix) {
     this.gl.useProgram(this.glProgram);
     this.gl.uniformMatrix4fv(this.uniforms.projectionMatrix, false, projectionMatrix);
@@ -1694,9 +1737,9 @@ class CubeProgram extends Program {
     this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
     this.cube.enableAttributes(this.gl, this.vbo, this.attributes);
     this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_TEXTURE_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[CUBE_TEXTURE]);
     this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_NORMAL_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeNormal);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[CUBE_NORMAL]);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, CubeMesh.NUM_VERTICES);
   }
@@ -1889,12 +1932,8 @@ class EarthProgram extends Program {
   uniforms;
   vbo;
   ibo;
-  earthTexture;
-  earthNormal;
-  moonTexture;
-  moonNormal;
   sphere;
-  async init() {
+  init() {
     this.loadProgram(sphere_default, sphere_default2);
     this.initializeLocations();
     this.vbo = this.gl.createBuffer();
@@ -1905,7 +1944,9 @@ class EarthProgram extends Program {
     if (!this.ibo) {
       throw new Error("When creating index buffer");
     }
-    await this.initializeTexture();
+    this.gl.useProgram(this.glProgram);
+    this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
+    this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
     this.sphere = new SphereMesh(7, 15);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.sphere.data(), this.gl.STATIC_DRAW);
@@ -1943,17 +1984,6 @@ class EarthProgram extends Program {
       lightPosition
     };
   }
-  async initializeTexture() {
-    this.logMessage("earth", "loading textures");
-    this.earthTexture = await loadTexture(this.gl, EARTH_TEXTURE_PATH);
-    this.earthNormal = await loadTexture(this.gl, EARTH_NORMAL_PATH);
-    this.moonTexture = await loadTexture(this.gl, MOON_TEXTURE_PATH);
-    this.moonNormal = await loadTexture(this.gl, MOON_NORMAL_PATH);
-    this.logMessage("earth", "done loading textures");
-    this.gl.useProgram(this.glProgram);
-    this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
-    this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
-  }
   draw(projectionMatrix, viewMatrix) {
     this.gl.useProgram(this.glProgram);
     this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
@@ -1975,9 +2005,9 @@ class EarthProgram extends Program {
     Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
     this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
     this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_TEXTURE]);
     this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthNormal);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_NORMAL]);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
     this.gl.drawElements(this.gl.TRIANGLES, this.sphere.indices.length, this.gl.UNSIGNED_SHORT, 0);
     const moonAngle = 2 * Math.PI * (Date.now() % 25000) / 25000;
@@ -1990,9 +2020,9 @@ class EarthProgram extends Program {
     Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
     this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
     this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_TEXTURE]);
     this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonNormal);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_NORMAL]);
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
     this.gl.drawElements(this.gl.TRIANGLES, this.sphere.indices.length, this.gl.UNSIGNED_SHORT, 0);
   }
@@ -2042,21 +2072,34 @@ const vec3 dimensions[NUM_DIMENSIONS] = vec3[NUM_DIMENSIONS](
 	vec3(1.0, 1.0, 1.0)	// white
 );
 
-uint getDim(vec3 col) {
-	col = normalize(col);
-	float dist = 1000.0;
-	uint dim = 0U;
+struct Dims {
+	uint dim1;
+	uint dim2;
+	float ratio;
+};
+
+Dims getDims(vec3 col) {
+	vec3 ncol = normalize(col);
+	float d1 = 1000.0;
+	float d2 = 1000.0;
+	uint dim1 = 0U;
+	uint dim2 = 0U;
 
 	for (uint i = 1U; i < NUM_DIMENSIONS; i++) {
-		float d = distance(col, normalize(dimensions[i]));
+		float d = distance(ncol, normalize(dimensions[i]));
 
-		if (d < dist) {
-			dist = d;
-			dim = i;
+		if (d < d1) {
+			d2 = d1;
+			dim2 = dim1;
+			d1 = d;
+			dim1 = i;
+		} else if (d < d2) {
+			d2 = d;
+			dim2 = i;
 		}
 	}
 
-	return dim;
+	return Dims(dim1, dim2, d1 / (d1 + d2));
 }
 
 float getLum(vec3 col, uint dim) {
@@ -2067,9 +2110,6 @@ float getLum(vec3 col, uint dim) {
 void main() {
 	vec3 col = texture(u_skyboxTexture, v_position).rgb;
 
-	uint dim = getDim(col);
-	float lum = getLum(col, dim);
-
 	// dithering
 	float bayer[16] = float[](
 		0.0, 0.5, 0.125, 0.625,
@@ -2077,7 +2117,13 @@ void main() {
 		0.1875, 0.6875, 0.0625, 0.5625,
 		0.9375, 0.4375, 0.8125, 0.3125
 	);
-	float dither = (bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4] - 0.5) / 12.0;
+	float bayerVal = bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4];
+
+	Dims dims = getDims(col);
+	uint dim = (bayerVal < dims.ratio) ? dims.dim2 : dims.dim1;
+	float lum = getLum(col, dim);
+
+	float dither = (bayerVal - 0.5) / 12.0;
 	lum = clamp(lum + dither, 0.0, 1.0);
 	int layer = clamp(int(lum * 3.0), 0, 2);
 
@@ -2115,16 +2161,16 @@ class SkyboxProgram extends Program {
   attributes;
   uniforms;
   vbo;
-  skyboxTexture;
   cube;
-  async init() {
+  init() {
     this.loadProgram(skybox_default, skybox_default2);
     this.initializeLocations();
     this.vbo = this.gl.createBuffer();
     if (!this.vbo) {
       throw new Error("When creating vertex buffer");
     }
-    await this.initializeTexture();
+    this.gl.useProgram(this.glProgram);
+    this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
     this.cube = new CubeMesh;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.cube.data(), this.gl.STATIC_DRAW);
@@ -2149,13 +2195,6 @@ class SkyboxProgram extends Program {
       skyboxTexture
     };
   }
-  async initializeTexture() {
-    this.logMessage("skybox", "loading textures");
-    this.skyboxTexture = await loadCubeMap(this.gl, EARTH_SKYBOX_FACES);
-    this.logMessage("skybox", "done loading textures");
-    this.gl.useProgram(this.glProgram);
-    this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
-  }
   enablePositionAttribute(gl, vbo, attribute) {
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.vertexAttribPointer(attribute, 3, gl.FLOAT, false, 44, 0);
@@ -2167,7 +2206,7 @@ class SkyboxProgram extends Program {
     this.gl.uniformMatrix4fv(this.uniforms.projectionMatrix, false, projectionMatrix);
     this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
     this.gl.activeTexture(this.gl.TEXTURE0 + SKYBOX_TEXTURE_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.skyboxTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, TEXTURES[EARTH_CUBEMAP]);
     this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
     this.enablePositionAttribute(this.gl, this.vbo, this.attributes.position);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -2190,21 +2229,21 @@ class ProgramManager {
   programs;
   which;
   texture;
-  constructor(gl, logMessage) {
+  constructor(gl) {
     this.gl = gl;
     this.initializeTexture();
     this.initializeDBO();
     this.initializeFBO();
     this.projectionMatrix = Mat4.create();
-    this.cube = new CubeProgram(gl, logMessage);
-    this.earth = new EarthProgram(gl, logMessage);
-    this.skybox = new SkyboxProgram(gl, logMessage);
+    this.cube = new CubeProgram(gl);
+    this.earth = new EarthProgram(gl);
+    this.skybox = new SkyboxProgram(gl);
     this.programs = [this.cube, this.earth, this.skybox];
     this.which = "";
   }
-  async init() {
+  init() {
     for (const program of this.programs) {
-      await program.init();
+      program.init();
     }
   }
   initializeTexture() {
@@ -2236,6 +2275,8 @@ class ProgramManager {
     this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.dbo);
   }
   resize(width, height) {
+    width = isFinite(width) ? Math.max(1, width) : 1;
+    height = isFinite(height) ? Math.max(1, height) : 1;
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, width, height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
     this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
@@ -2263,10 +2304,9 @@ class ProgramManager {
         break;
       case "earth":
         const viewX = 5 * Math.cos(2 * Math.PI * (Date.now() % 77777) / 77777);
-        const viewY = 1 * Math.cos(2 * Math.PI * (Date.now() % 75000) / 75000);
         const viewZ = 5 * Math.sin(2 * Math.PI * (Date.now() % 77777) / 77777);
         const viewMatrix = Mat4.create();
-        Mat4.lookAt(viewMatrix, [viewX, viewY, viewZ], [0, 0, 0], [0, -1, 0]);
+        Mat4.lookAt(viewMatrix, [viewX, 0.5, viewZ], [0, 0, 0], [0, -1, 0]);
         this.skybox.draw(this.projectionMatrix, viewMatrix);
         this.earth.draw(this.projectionMatrix, viewMatrix);
         break;
@@ -2288,7 +2328,6 @@ class Renderer {
   program;
   vbo;
   count;
-  glyphAtlasTexture;
   palette;
   canvasWidth;
   canvasHeight;
@@ -2319,7 +2358,8 @@ class Renderer {
     this.initializeProgram();
     this.initializeLocations();
     this.initializeVBO();
-    await this.initializeGlyphAtlasTexture();
+    await loadTextures(this.gl, this.logMessage);
+    this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
     this.gl.uniform1i(this.uniforms.rows, this.rows);
     this.gl.uniform1i(this.uniforms.cols, this.cols);
     this.gl.uniform1i(this.uniforms.programRow, this.programRow);
@@ -2327,7 +2367,7 @@ class Renderer {
     this.gl.uniform1i(this.uniforms.programRows, this.programRows);
     this.gl.uniform1i(this.uniforms.programCols, this.programCols);
     this.program = new ProgramManager(this.gl, this.logMessage);
-    await this.program.init();
+    this.program.init();
     this.program.which = "earth";
   }
   initializeProgram() {
@@ -2403,28 +2443,7 @@ class Renderer {
     }
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
   }
-  async initializeGlyphAtlasTexture() {
-    await new Promise((resolve, reject) => {
-      const image = new Image;
-      image.src = GLYPH_ATLAS_TEXTURE_PATH;
-      image.onload = () => {
-        const texture = this.gl.createTexture();
-        if (!texture) {
-          reject(new Error("When creating GL texture"));
-          return;
-        }
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
-        this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-        this.glyphAtlasTexture = texture;
-        resolve();
-      };
-    });
-    this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
-  }
+  async initializeTextures() {}
   enableAttributes() {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
     this.gl.vertexAttribIPointer(this.attributes.bgColour, 1, this.gl.UNSIGNED_BYTE, Renderer.STRIDE, 0);
@@ -2470,19 +2489,26 @@ class Renderer {
     this.palette = palette;
   }
   draw() {
-    this.program.draw();
+    if (this.canvas.width === 0 || this.canvas.height === 0) {
+      return;
+    }
+    if (this.programRows > 0 && this.programCols > 0) {
+      this.program.draw();
+    }
     this.gl.useProgram(this.glProgram);
     this.enableAttributes();
     const bg = 16 * 3;
     this.gl.clearColor(this.palette[bg], this.palette[bg + 1], this.palette[bg + 2], 1);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     this.gl.activeTexture(this.gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[GLYPH_ATLAS_TEXTURE]);
     this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.program.texture);
     this.gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.count);
+    this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
   }
 }
 
@@ -2606,8 +2632,8 @@ class Terminal {
     const dpr = window.devicePixelRatio || 1;
     this.cellWidth = Terminal.CELL_SIZE * dpr;
     this.cellHeight = Glyph.WTOH_RATIO * this.cellWidth;
-    const canvasWidth = this.renderer.canvas.clientWidth * dpr;
-    const canvasHeight = this.renderer.canvas.clientHeight * dpr;
+    const canvasWidth = Math.max(1, this.renderer.canvas.clientWidth * dpr);
+    const canvasHeight = Math.max(1, this.renderer.canvas.clientHeight * dpr);
     const _cols = Math.floor(canvasWidth / this.cellWidth);
     const _rows = Math.floor(canvasHeight / this.cellHeight);
     if (this.cols !== _cols || this.rows !== _rows) {
@@ -7996,7 +8022,7 @@ function defaultOnError(left, right) {
 }
 // src/components/link.ts
 class Link {
-  static draw(terminal, text3, url, row, col, backColour = 0, fgColour = 13, hoverBackColour = 15, hoverFgColour = 16) {
+  static draw(terminal, text3, url, row, col, backColour = 16, fgColour = 13, hoverBackColour = 13, hoverFgColour = 16) {
     const isHovered = terminal.mouseAt(row, col, 1, text3.length);
     const wasHovered = terminal.mouseDownAt(row, col, 1, text3.length);
     if (isHovered && wasHovered && terminal.mouseClick) {
@@ -8005,7 +8031,7 @@ class Link {
         a.href = url;
         a.click();
       } else if (url.startsWith("#")) {
-        history.pushState(null, null, url);
+        window.location.hash = url;
       } else {
         window.open(url, "_blank");
       }
@@ -8014,14 +8040,13 @@ class Link {
     }
     const bg = isHovered ? hoverBackColour : backColour;
     const fg = isHovered ? hoverFgColour : fgColour;
-    terminal.drawText(text3, row, col, bg, fg, 0, 0, false, Glyph.ITALIC_FONT);
+    terminal.drawText(text3, row, col, bg, fg, 0, 0, false, Glyph.ITALIC_BOLD_FONT);
   }
 }
 
 // src/components/markdown.ts
 class Markdown {
   static SECTION_TYPES = [
-    "break",
     "code",
     "heading",
     "list",
@@ -8034,6 +8059,7 @@ class Markdown {
   constructor(terminal, markdown) {
     this.terminal = terminal;
     this.root = fromMarkdown(markdown);
+    console.log(this.root);
   }
   draw(row, col, rows, cols) {
     if (rows <= 0 || cols <= 0) {
@@ -8111,6 +8137,13 @@ class Markdown {
         fonts.push(font);
         depth++;
         continue;
+      } else if (node2.type === "thematicBreak") {
+        c = col;
+        r += 2;
+        if (r >= row && r < row + rows) {
+          this.terminal.drawText("----", r, c, 16, 7);
+        }
+        continue;
       }
       if (node2.type !== "text") {
         continue;
@@ -8118,6 +8151,10 @@ class Markdown {
       let text3 = node2.value;
       text3 = text3.replace(/\s+/g, " ");
       if (is_link) {
+        if (c + text3.length > col + cols) {
+          r++;
+          c = col;
+        }
         if (r >= row && r < row + rows) {
           Link.draw(this.terminal, text3, link_url, r, c);
         }
@@ -8168,6 +8205,91 @@ class Markdown {
       }
     }
     this.rows = r - row + 1;
+  }
+}
+
+// src/content/index.md
+var content_default = `&7;README&17; |
+[Education](#/education.md) |
+[Experience](#/experience.md) |
+[Projects](#/projects.md) |
+[Blog](#/blog.md)
+
+# **micahdb.com**
+
+Welcome to my website.
+I'm Micah Baker, a Software Developer from Vancouver, BC, Canada.
+
+I am currently finishing a Bachelor of Science in Computing Science at
+[Simon Fraser University^](https://sfu.ca).
+Previously, I've worked at
+[Open WebUI^](https://openwebui.com),
+[Improving^](https://improving.com), and
+[Brave Technology Coop^](https://brave.coop).
+
+You can learn about my **Education**, **Experience**, and
+**Projects** by clicking through the aptly titled links above.
+`;
+
+// src/content/education.md
+var education_default = `[README](#) |
+&7;Education&17; |
+[Experience](#/experience.md) |
+[Projects](#/projects.md) |
+[Blog](#/blog.md)
+
+# Education
+`;
+
+// src/content/experience.md
+var experience_default = `[README](#) |
+[Education](#/education.md) |
+&7;Experience&17; |
+[Projects](#/projects.md) |
+[Blog](#/blog.md)
+
+# Experience
+`;
+
+// src/content/projects.md
+var projects_default = `[README](#) |
+[Education](#/education.md) |
+[Experience](#/experience.md) |
+&7;Projects&17; |
+[Blog](#/blog.md)
+
+# Projects
+`;
+
+// src/content/blog.md
+var blog_default = `[README](#) |
+[Education](#/education.md) |
+[Experience](#/experience.md) |
+[Projects](#/projects.md) |
+&7;Blog&17;
+
+# Blog
+`;
+
+// src/content.ts
+var INDEX_URL = "#";
+var EDUCATION_URL = "#/education.md";
+var EXPERIENCE_URL = "#/experience.md";
+var PROJECTS_URL = "#/projects.md";
+var BLOG_URL = "#/blog.md";
+var _files = [
+  [INDEX_URL, content_default],
+  [EDUCATION_URL, education_default],
+  [EXPERIENCE_URL, experience_default],
+  [PROJECTS_URL, projects_default],
+  [BLOG_URL, blog_default]
+];
+var CONTENT = {};
+function loadContent() {
+  for (let i = 0;i < _files.length; i++) {
+    const url = _files[i][0];
+    const md = _files[i][1];
+    CONTENT[url] = md;
   }
 }
 
@@ -8232,82 +8354,120 @@ var PANE_RATIO = 1 - 1 / 1.618;
 var PANE_COLS = 48;
 var PANE_ROW_PADDING = 1;
 var PANE_COL_PADDING = 2;
-var NAME = `&15;█▐▌▀ @ ▄▖▐@ ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
+var SESSION_DATE = Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false
+}).format(Date.now()).replace(/,/g, "");
+var BANNER = `********************************************************************
+Session: ${SESSION_DATE} on tty1
+Welcome to micahdb.com!
+********************************************************************`;
+var CARD = `&15;█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
 ▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;`.replaceAll("@", "&17; &15;");
-var CARD = `${NAME}&n;
-&7;-------------------------&17;&n;
-&11;**I am a**&17;: Software Engineer&n;
-&11;**Based in**&17;: Vancouver, BC, Canada&n;
-&11;**Currently**&17;: Studying&n;
-&11;**Previously**&17;: Open WebUI, Improving, Brave&n;
-&11;**Education**&17;: BSc Computing Science at [SFU](https://sfu.ca)&n;
-&11;**E-mail**&17;: [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
-&11;**GitHub**&17;: [@micahdbak](https://github.com/micahdbak)&n;
-&11;**LinkedIn**&17;: [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
-&11;**Resume/CV**&17;: [/resume.pdf](https://micahdb.com/resume.pdf)
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;&n;
+&n;
+&12;**I am a**&17;: % % Software Developer&n;
+&12;**Based in**&17;: % Vancouver, BC, Canada&n;
+&12;**Currently**&17;: %Studying&n;
+&12;**Previously**&17;: Open WebUI, Improving, Brave&n;
+&12;**Education**&17;: %BSc Computing Science at SFU&n;
+&n;
+&12;**E-mail**&17;: % % [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
+&12;**GitHub**&17;: % % [@micahdbak](https://github.com/micahdbak)&n;
+&12;**LinkedIn**&17;: % [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
+&12;**Resume/CV**&17;: %[/resume.pdf](https://micahdb.com/resume.pdf)
 
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
-&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███&n;`;
-var BODY = `&7;\\*&17; &7;*About*&17;&n;
-&7;\\*&17; [Education](#)&n;
-&7;\\*&17; [Experience](#)&n;
-&7;\\*&17; [Research](#)&n;
-&7;\\*&17; [Projects](#)&n;
-&7;\\*&17; [Blog](#) &7;- Updated *2026, June 9th*&17;
+&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
 
-\\&7;----&17;
-
-# About
-
-Welcome to my website.`;
+----`.replaceAll("%", "&17; &15;");
 var main = async () => {
   const log = document.getElementById("log");
   const canvas = document.getElementById("webgl");
+  loadContent();
   try {
     const startTime = Date.now();
+    let stillLoading = true;
+    setTimeout(() => {
+      if (stillLoading) {
+        log.className = "";
+      }
+    }, 500);
     const logMessage = (source, message) => {
       let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
       const leadingSpaces = " ".repeat(12 - timestamp.length);
       timestamp = `[${leadingSpaces}${timestamp}]`;
-      const pre2 = document.createElement("pre");
-      pre2.textContent = `${timestamp} ${source}: ${message}`;
-      log.appendChild(pre2);
+      const pre = document.createElement("pre");
+      pre.textContent = `${timestamp} ${source}: ${message}`;
+      log.appendChild(pre);
     };
-    logMessage("micahdb.com", "init");
+    const banner = document.createElement("pre");
+    banner.textContent = BANNER;
+    log.appendChild(banner);
     const terminal = new Terminal(canvas, logMessage);
     await terminal.init();
-    logMessage("micahdb.com", "done loading");
-    const prompt = "[micah@micahdb.com ~]$ ";
-    const pre = document.createElement("pre");
-    pre.textContent = prompt;
-    log.appendChild(pre);
-    for (let i = 0;i < 3; i++) {
+    if (Date.now() - startTime > 500) {
+      logMessage("micahdb.com", "done loading");
+      const prompt = "[micah@micahdb.com ~]$ ";
+      const pre = document.createElement("pre");
+      pre.textContent = prompt;
+      log.appendChild(pre);
+      for (let i = 0;i < 3; i++) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 500);
+        });
+        const block = i % 2 === 0 ? "█" : "";
+        pre.textContent = prompt + block;
+      }
+      const cmd = "./dashboard.sh";
+      for (let i = 0;i <= cmd.length; i++) {
+        pre.textContent = prompt + cmd.substr(0, i) + "█";
+        await new Promise((resolve) => {
+          setTimeout(resolve, 50);
+        });
+      }
+      pre.textContent = prompt + cmd + `
+█`;
       await new Promise((resolve) => {
         setTimeout(resolve, 500);
       });
-      const block = i % 2 === 0 ? "█" : "";
-      pre.textContent = prompt + block;
     }
-    const cmd = "./dashboard.sh";
-    for (let i = 0;i <= cmd.length; i++) {
-      pre.textContent = prompt + cmd.substr(0, i) + "█";
-      await new Promise((resolve) => {
-        setTimeout(resolve, 50);
-      });
-    }
-    pre.textContent = prompt + cmd + `
-█`;
-    await new Promise((resolve) => {
-      setTimeout(resolve, 500);
-    });
+    stillLoading = false;
     log.className = "hidden";
     canvas.className = "";
     terminal.setPalette(new Float32Array(PALETTE.map((e) => e / 255)));
     const divider = new Divider(terminal, PANE_RATIO, false);
     const scrollable = new Scrollable(terminal);
     const mdcard = new Markdown(terminal, CARD);
-    const mdbody = new Markdown(terminal, BODY);
+    const mdcache = {};
+    let url = window.location.hash;
+    if (!CONTENT[url]) {
+      url = INDEX_URL;
+    }
+    let mdbody = new Markdown(terminal, CONTENT[url]);
+    mdcache[url] = mdbody;
+    window.addEventListener("hashchange", () => {
+      let new_url = window.location.hash;
+      if (new_url.length === 0) {
+        new_url = INDEX_URL;
+      }
+      if (!CONTENT[new_url]) {
+        window.location.hash = INDEX_URL;
+        return;
+      }
+      url = new_url;
+      if (!mdcache[url]) {
+        mdbody = new Markdown(terminal, CONTENT[url]);
+        mdcache[url] = mdbody;
+      } else {
+        mdbody = mdcache[url];
+      }
+    });
     let row_offset = 0;
     const draw = () => {
       terminal.clear();
@@ -8329,9 +8489,9 @@ var main = async () => {
       }
       const card_row = PANE_ROW_PADDING - row_offset;
       mdcard.draw(card_row, pane1[1] + PANE_COL_PADDING, pane1[2] - card_row, pane1[3] - 2 * PANE_COL_PADDING);
-      const body_row = card_row + mdcard.rows;
+      const body_row = card_row + mdcard.rows + 1;
       mdbody.draw(body_row, pane1[1] + PANE_COL_PADDING, pane1[2] - body_row, pane1[3] - 2 * PANE_COL_PADDING);
-      const inner_rows = mdcard.rows + mdbody.rows + 2 * PANE_ROW_PADDING;
+      const inner_rows = mdcard.rows + 1 + mdbody.rows + 2 * PANE_ROW_PADDING;
       scrollable.draw(pane1[0], pane1[1], pane1[2], pane1[3], inner_rows);
       row_offset = scrollable.row_offset;
       terminal.draw();
