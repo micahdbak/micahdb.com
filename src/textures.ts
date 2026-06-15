@@ -1,21 +1,25 @@
+// textures
+
+export const TEXTURES: Record<string, WebGLTexture> = {};
+
 // renderer
 
 export const GLYPH_ATLAS_TEXTURE_INDEX = 0;
-export const GLYPH_ATLAS_TEXTURE_PATH = "/glyphatlas.png";
+export const GLYPH_ATLAS_TEXTURE = "/glyphatlas.png";
 
 export const PROGRAM_TEXTURE_INDEX = 1;
 
 // misc textures
 
-export const WHITE_TEXTURE_PATH = "/white.png";
-export const SMOOTH_NORMAL_PATH = "/smooth.png";
+export const WHITE_TEXTURE = "/white.png";
+export const SMOOTH_NORMAL = "/smooth.png";
 
 // cube program
 
 export const CUBE_TEXTURE_INDEX = 2;
 export const CUBE_NORMAL_INDEX = 3;
-export const CUBE_TEXTURE_PATH = "/cube/texture.jpg";
-export const CUBE_NORMAL_PATH = "/cube/normal.jpg";
+export const CUBE_TEXTURE = "/cube/texture.jpg";
+export const CUBE_NORMAL = "/cube/normal.jpg";
 
 // skybox program
 
@@ -28,20 +32,145 @@ export const EARTH_SKYBOX_FACES = [
 	"/earth/front.png",
 	"/earth/back.png"
 ];
+export const EARTH_CUBEMAP = "earth_cubemap";
 
 // earth program
 
 export const SPHERE_TEXTURE_INDEX = 2;
 export const SPHERE_NORMAL_INDEX = 3;
-export const EARTH_TEXTURE_PATH = "/earth/texture.jpg";
-export const EARTH_NORMAL_PATH = "/earth/normal.jpg";
-export const MOON_TEXTURE_PATH = "/earth/moon_texture.jpg";
-export const MOON_NORMAL_PATH = "/earth/moon_normal.jpg";
-export const EARTH_SKYBOX_PATH = "/earth/skybox.png";
+export const EARTH_TEXTURE = "/earth/texture.jpg";
+export const EARTH_NORMAL = "/earth/normal.jpg";
+export const MOON_TEXTURE = "/earth/moon_texture.jpg";
+export const MOON_NORMAL = "/earth/moon_normal.jpg";
 
-// misc functions
+// functions
 
-export async function loadCubeMap(
+export async function loadTextures(
+	gl: WebGL2RenderingContext,
+	logMessage: (source: string, message: string) => void
+) {
+	// prettier-ignore
+	const textures = [
+		WHITE_TEXTURE, SMOOTH_NORMAL,
+		CUBE_TEXTURE, CUBE_NORMAL,
+		EARTH_TEXTURE, EARTH_NORMAL,
+		MOON_TEXTURE, MOON_NORMAL
+	];
+
+	const promises: Promise[] = [];
+
+	promises.push(
+		(async () => {
+			TEXTURES[GLYPH_ATLAS_TEXTURE] = await loadGlyphAtlas(gl);
+			logMessage("font_loader", `loaded ${GLYPH_ATLAS_TEXTURE}`);
+		})()
+	);
+
+	for (let i = 0; i < textures.length; i++) {
+		promises.push(
+			(async () => {
+				const texture = await loadTexture(gl, textures[i]);
+				TEXTURES[textures[i]] = texture;
+				logMessage("texture_loader", `loaded ${textures[i]}`);
+			})()
+		);
+	}
+
+	promises.push(
+		(async () => {
+			const texture = await loadCubeMap(gl, EARTH_SKYBOX_FACES);
+			TEXTURES[EARTH_CUBEMAP] = texture;
+			logMessage("cubemap_loader", `loaded ${EARTH_CUBEMAP}`);
+		})()
+	);
+
+	await Promise.all(promises);
+}
+
+function loadGlyphAtlas(gl: WebGL2RenderingContext): Promise<WebGLTexture> {
+	return new Promise((resolve, reject) => {
+		const image = new Image();
+		image.src = GLYPH_ATLAS_TEXTURE;
+		image.onload = () => {
+			const texture = gl.createTexture();
+			if (!texture) {
+				reject(new Error("When creating GL texture"));
+				return;
+			}
+
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+
+			// prevent texture halos/outlines from filtering
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+			gl.texImage2D(
+				gl.TEXTURE_2D,
+				0,
+				gl.RGBA,
+				gl.RGBA,
+				gl.UNSIGNED_BYTE,
+				image
+			);
+
+			gl.generateMipmap(gl.TEXTURE_2D);
+
+			gl.texParameteri(
+				gl.TEXTURE_2D,
+				gl.TEXTURE_MIN_FILTER,
+				gl.LINEAR_MIPMAP_LINEAR
+			);
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+			resolve(texture);
+		};
+	});
+}
+
+function loadTexture(
+	gl: WebGL2RenderingContext,
+	path: string
+): Promise<WebGLTexture> {
+	return new Promise((resolve, reject) => {
+		const image = new Image();
+		image.src = path;
+		image.onload = () => {
+			const tex = gl.createTexture();
+			if (!tex) {
+				reject(new Error("When creating GL texture"));
+				return;
+			}
+
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+
+			// prevent texture halos/outlines from filtering
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+			gl.texImage2D(
+				gl.TEXTURE_2D,
+				0,
+				gl.RGBA,
+				gl.RGBA,
+				gl.UNSIGNED_BYTE,
+				image
+			);
+
+			gl.generateMipmap(gl.TEXTURE_2D);
+
+			gl.texParameteri(
+				gl.TEXTURE_2D,
+				gl.TEXTURE_MIN_FILTER,
+				gl.LINEAR_MIPMAP_LINEAR
+			);
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+			resolve(tex);
+		};
+	});
+}
+
+async function loadCubeMap(
 	gl: WebGL2RenderingContext,
 	faces: string[]
 ): Promise<WebGLTexture> {
@@ -91,47 +220,4 @@ export async function loadCubeMap(
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
 	return texture;
-}
-
-export function loadTexture(
-	gl: WebGL2RenderingContext,
-	path: string
-): Promise<WebGLTexture> {
-	return new Promise((resolve, reject) => {
-		const image = new Image();
-		image.src = path;
-		image.onload = () => {
-			const tex = gl.createTexture();
-			if (!tex) {
-				reject(new Error("When creating GL texture"));
-				return;
-			}
-
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-
-			// prevent texture halos/outlines from filtering
-			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-
-			gl.texImage2D(
-				gl.TEXTURE_2D,
-				0,
-				gl.RGBA,
-				gl.RGBA,
-				gl.UNSIGNED_BYTE,
-				image
-			);
-
-			gl.generateMipmap(gl.TEXTURE_2D);
-
-			gl.texParameteri(
-				gl.TEXTURE_2D,
-				gl.TEXTURE_MIN_FILTER,
-				gl.LINEAR_MIPMAP_LINEAR
-			);
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-			resolve(tex);
-		};
-	});
 }

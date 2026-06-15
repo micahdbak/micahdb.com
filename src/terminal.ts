@@ -169,8 +169,8 @@ class Terminal {
 		this.cellWidth = Terminal.CELL_SIZE * dpr;
 		this.cellHeight = Glyph.WTOH_RATIO * this.cellWidth;
 
-		const canvasWidth = this.renderer.canvas.clientWidth * dpr;
-		const canvasHeight = this.renderer.canvas.clientHeight * dpr;
+		const canvasWidth = Math.max(1, this.renderer.canvas.clientWidth * dpr);
+		const canvasHeight = Math.max(1, this.renderer.canvas.clientHeight * dpr);
 
 		const _cols = Math.floor(canvasWidth / this.cellWidth);
 		const _rows = Math.floor(canvasHeight / this.cellHeight);

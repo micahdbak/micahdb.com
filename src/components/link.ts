@@ -7,9 +7,9 @@ class Link {
 		url: string,
 		row: number,
 		col: number,
-		backColour: number = 0,
+		backColour: number = 16,
 		fgColour: number = 13,
-		hoverBackColour: number = 15,
+		hoverBackColour: number = 13,
 		hoverFgColour: number = 16
 	) {
 		const isHovered = terminal.mouseAt(row, col, 1, text.length);
@@ -21,7 +21,7 @@ class Link {
 				a.href = url;
 				a.click();
 			} else if (url.startsWith("#")) {
-				history.pushState(null, null, url);
+				window.location.hash = url;
 			} else {
 				// opens in new tab
 				window.open(url, "_blank");
@@ -33,7 +33,17 @@ class Link {
 		const bg = isHovered ? hoverBackColour : backColour;
 		const fg = isHovered ? hoverFgColour : fgColour;
 
-		terminal.drawText(text, row, col, bg, fg, 0, 0, false, Glyph.ITALIC_FONT);
+		terminal.drawText(
+			text,
+			row,
+			col,
+			bg,
+			fg,
+			0,
+			0,
+			false,
+			Glyph.ITALIC_BOLD_FONT
+		);
 	}
 }
 

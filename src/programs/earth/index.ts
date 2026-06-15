@@ -2,13 +2,13 @@ import VERTEX_SHADER from "./sphere.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./sphere.frag" with { type: "text" };
 
 import {
+	TEXTURES,
 	SPHERE_TEXTURE_INDEX,
 	SPHERE_NORMAL_INDEX,
-	EARTH_TEXTURE_PATH,
-	EARTH_NORMAL_PATH,
-	MOON_TEXTURE_PATH,
-	MOON_NORMAL_PATH,
-	loadTexture
+	EARTH_TEXTURE,
+	EARTH_NORMAL,
+	MOON_TEXTURE,
+	MOON_NORMAL
 } from "../../textures.ts";
 import { Program } from "../../program.ts";
 import { Mat4 } from "../math.ts";
@@ -35,14 +35,9 @@ export class EarthProgram extends Program {
 	private vbo: WebGLBuffer;
 	private ibo: WebGLBuffer;
 
-	private earthTexture: WebGLTexture;
-	private earthNormal: WebGLTexture;
-	private moonTexture: WebGLTexture;
-	private moonNormal: WebGLTexture;
-
 	private sphere: SphereMesh;
 
-	async init() {
+	init() {
 		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
 
@@ -56,7 +51,9 @@ export class EarthProgram extends Program {
 			throw new Error("When creating index buffer");
 		}
 
-		await this.initializeTexture();
+		this.gl.useProgram(this.glProgram);
+		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
 
 		this.sphere = new SphereMesh(7, 15);
 
@@ -147,19 +144,6 @@ export class EarthProgram extends Program {
 		};
 	}
 
-	async initializeTexture() {
-		this.logMessage("earth", "loading textures");
-		this.earthTexture = await loadTexture(this.gl, EARTH_TEXTURE_PATH);
-		this.earthNormal = await loadTexture(this.gl, EARTH_NORMAL_PATH);
-		this.moonTexture = await loadTexture(this.gl, MOON_TEXTURE_PATH);
-		this.moonNormal = await loadTexture(this.gl, MOON_NORMAL_PATH);
-		this.logMessage("earth", "done loading textures");
-
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
-	}
-
 	draw(projectionMatrix: Float32Array, viewMatrix: Float32Array) {
 		this.gl.useProgram(this.glProgram);
 
@@ -201,9 +185,9 @@ export class EarthProgram extends Program {
 		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_TEXTURE]);
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.earthNormal);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_NORMAL]);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
 		this.gl.drawElements(
@@ -231,9 +215,9 @@ export class EarthProgram extends Program {
 		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_TEXTURE]);
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_NORMAL_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.moonNormal);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_NORMAL]);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
 		this.gl.drawElements(

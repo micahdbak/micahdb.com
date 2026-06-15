@@ -6,7 +6,6 @@ import { Glyph, Terminal } from "../terminal.ts";
 
 class Markdown {
 	private static readonly SECTION_TYPES = [
-		"break",
 		"code",
 		"heading",
 		"list",
@@ -22,7 +21,7 @@ class Markdown {
 	constructor(terminal: Terminal, markdown: string) {
 		this.terminal = terminal;
 		this.root = fromMarkdown(markdown);
-		// console.log(this.root);
+		console.log(this.root);
 	}
 
 	draw(row: number, col: number, rows: number, cols: number) {
@@ -130,6 +129,15 @@ class Markdown {
 				depth++;
 
 				continue;
+			} else if (node.type === "thematicBreak") {
+				c = col;
+				r += 2;
+
+				if (r >= row && r < row + rows) {
+					this.terminal.drawText("----", r, c, 16, 7);
+				}
+
+				continue;
 			}
 
 			if (node.type !== "text") {
@@ -141,6 +149,11 @@ class Markdown {
 			text = text.replace(/\s+/g, " ");
 
 			if (is_link) {
+				if (c + text.length > col + cols) {
+					r++;
+					c = col;
+				}
+
 				if (r >= row && r < row + rows) {
 					Link.draw(this.terminal, text, link_url, r, c);
 				}

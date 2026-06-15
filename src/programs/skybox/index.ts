@@ -2,9 +2,9 @@ import VERTEX_SHADER from "./skybox.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./skybox.frag" with { type: "text" };
 
 import {
-	EARTH_SKYBOX_FACES,
-	SKYBOX_TEXTURE_INDEX,
-	loadCubeMap
+	TEXTURES,
+	EARTH_CUBEMAP,
+	SKYBOX_TEXTURE_INDEX
 } from "../../textures.ts";
 import { Program } from "../../program.ts";
 import { CubeMesh } from "../meshes/cube.ts";
@@ -21,10 +21,9 @@ export class SkyboxProgram extends Program {
 	};
 
 	private vbo: WebGLBuffer;
-	private skyboxTexture: WebGLTexture;
 	private cube: CubeMesh;
 
-	async init() {
+	init() {
 		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
 
@@ -33,7 +32,8 @@ export class SkyboxProgram extends Program {
 			throw new Error("When creating vertex buffer");
 		}
 
-		await this.initializeTexture();
+		this.gl.useProgram(this.glProgram);
+		this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
 
 		this.cube = new CubeMesh();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -81,15 +81,6 @@ export class SkyboxProgram extends Program {
 		};
 	}
 
-	async initializeTexture() {
-		this.logMessage("skybox", "loading textures");
-		this.skyboxTexture = await loadCubeMap(this.gl, EARTH_SKYBOX_FACES);
-		this.logMessage("skybox", "done loading textures");
-
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
-	}
-
 	enablePositionAttribute(
 		gl: WebGL2RenderingContext,
 		vbo: WebGLBuffer,
@@ -113,7 +104,7 @@ export class SkyboxProgram extends Program {
 		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + SKYBOX_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.skyboxTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, TEXTURES[EARTH_CUBEMAP]);
 		this.gl.uniform1i(this.uniforms.skyboxTexture, SKYBOX_TEXTURE_INDEX);
 
 		this.enablePositionAttribute(this.gl, this.vbo, this.attributes.position);

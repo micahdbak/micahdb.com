@@ -22,21 +22,34 @@ const vec3 dimensions[NUM_DIMENSIONS] = vec3[NUM_DIMENSIONS](
 	vec3(1.0, 1.0, 1.0)	// white
 );
 
-uint getDim(vec3 col) {
-	col = normalize(col);
-	float dist = 1000.0;
-	uint dim = 0U;
+struct Dims {
+	uint dim1;
+	uint dim2;
+	float ratio;
+};
+
+Dims getDims(vec3 col) {
+	vec3 ncol = normalize(col);
+	float d1 = 1000.0;
+	float d2 = 1000.0;
+	uint dim1 = 0U;
+	uint dim2 = 0U;
 
 	for (uint i = 1U; i < NUM_DIMENSIONS; i++) {
-		float d = distance(col, normalize(dimensions[i]));
+		float d = distance(ncol, normalize(dimensions[i]));
 
-		if (d < dist) {
-			dist = d;
-			dim = i;
+		if (d < d1) {
+			d2 = d1;
+			dim2 = dim1;
+			d1 = d;
+			dim1 = i;
+		} else if (d < d2) {
+			d2 = d;
+			dim2 = i;
 		}
 	}
 
-	return dim;
+	return Dims(dim1, dim2, d1 / (d1 + d2));
 }
 
 float getLum(vec3 col, uint dim) {
@@ -47,9 +60,6 @@ float getLum(vec3 col, uint dim) {
 void main() {
 	vec3 col = texture(u_skyboxTexture, v_position).rgb;
 
-	uint dim = getDim(col);
-	float lum = getLum(col, dim);
-
 	// dithering
 	float bayer[16] = float[](
 		0.0, 0.5, 0.125, 0.625,
@@ -57,7 +67,13 @@ void main() {
 		0.1875, 0.6875, 0.0625, 0.5625,
 		0.9375, 0.4375, 0.8125, 0.3125
 	);
-	float dither = (bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4] - 0.5) / 12.0;
+	float bayerVal = bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4];
+
+	Dims dims = getDims(col);
+	uint dim = (bayerVal < dims.ratio) ? dims.dim2 : dims.dim1;
+	float lum = getLum(col, dim);
+
+	float dither = (bayerVal - 0.5) / 12.0;
 	lum = clamp(lum + dither, 0.0, 1.0);
 	int layer = clamp(int(lum * 3.0), 0, 2);
 

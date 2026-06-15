@@ -2,11 +2,11 @@ import VERTEX_SHADER from "./cube.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./cube.frag" with { type: "text" };
 
 import {
+	TEXTURES,
 	CUBE_TEXTURE_INDEX,
-	CUBE_TEXTURE_PATH,
+	CUBE_TEXTURE,
 	CUBE_NORMAL_INDEX,
-	CUBE_NORMAL_PATH,
-	loadTexture
+	CUBE_NORMAL
 } from "../../textures.ts";
 import { Program } from "../../program.ts";
 import { Mat4 } from "../math.ts";
@@ -31,12 +31,9 @@ class CubeProgram extends Program {
 
 	private vbo: WebGLBuffer;
 
-	private cubeTexture: WebGLTexture;
-	private cubeNormal: WebGLTexture;
-
 	private cube: CubeMesh;
 
-	async init() {
+	init() {
 		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
 		this.initializeLocations();
 
@@ -45,7 +42,9 @@ class CubeProgram extends Program {
 			throw new Error("When creating vertex buffer");
 		}
 
-		await this.initializeTexture();
+		this.gl.useProgram(this.glProgram);
+		this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
 
 		this.cube = new CubeMesh();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -121,17 +120,6 @@ class CubeProgram extends Program {
 		};
 	}
 
-	async initializeTexture() {
-		this.logMessage("cube", "loading textures");
-		this.cubeTexture = await loadTexture(this.gl, CUBE_TEXTURE_PATH);
-		this.cubeNormal = await loadTexture(this.gl, CUBE_NORMAL_PATH);
-		this.logMessage("cube", "done loading textures");
-
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform1i(this.uniforms.cubeTexture, CUBE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.cubeNormal, CUBE_NORMAL_INDEX);
-	}
-
 	draw(projectionMatrix: Float32Array) {
 		this.gl.useProgram(this.glProgram);
 
@@ -171,10 +159,10 @@ class CubeProgram extends Program {
 		this.cube.enableAttributes(this.gl, this.vbo, this.attributes);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[CUBE_TEXTURE]);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + CUBE_NORMAL_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeNormal);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[CUBE_NORMAL]);
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, CubeMesh.NUM_VERTICES);

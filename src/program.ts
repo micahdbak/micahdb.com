@@ -1,14 +1,9 @@
 export abstract class Program {
 	protected gl: WebGL2RenderingContext;
 	protected glProgram: WebGLProgram;
-	protected logMessage: (source: string, message: string) => void;
 
-	constructor(
-		gl: WebGL2RenderingContext,
-		logMessage: (source: string, message: string) => void
-	) {
+	constructor(gl: WebGL2RenderingContext) {
 		this.gl = gl;
-		this.logMessage = logMessage;
 	}
 
 	loadProgram(vertex_shader: string, fragment_shader: string) {
@@ -57,7 +52,7 @@ export abstract class Program {
 		this.gl.useProgram(this.glProgram);
 	}
 
-	abstract async init(): Promise;
+	abstract init(): void;
 	abstract draw(): void;
 
 	// optional to implement:

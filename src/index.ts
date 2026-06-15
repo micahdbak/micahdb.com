@@ -5,6 +5,17 @@ import { Divider } from "./components/divider.ts";
 import { Scrollable } from "./components/scrollable.ts";
 import { Markdown } from "./components/markdown.ts";
 
+// content
+import { INDEX_URL, CONTENT, loadContent } from "./content";
+
+//
+//  █ ▓ ▒ ░
+//
+//  ▄ ▀ ▐ ▌ ▝ ▗ ▖ ▘ ▙ ▛ ▜ ▟ ▞ ▚
+//
+//  ┐ ┌ ┘ └ ├ ┤ ┴ ┬ │ ─
+//
+
 // prettier-ignore
 const PALETTE = [
 	// dark colours
@@ -37,73 +48,61 @@ const PANE_COLS = 48;
 const PANE_ROW_PADDING = 1;
 const PANE_COL_PADDING = 2;
 
-/*
-Useful Chars:
-█ ▓ ▒ ░
+const SESSION_DATE = Intl.DateTimeFormat("en-US", {
+	weekday: "short",
+	month: "short",
+	day: "2-digit",
+	hour: "2-digit",
+	minute: "2-digit",
+	second: "2-digit",
+	hour12: false
+})
+	.format(Date.now())
+	.replace(/,/g, "");
 
-▄ ▀ ▐ ▌
-
-▝ ▗ ▖ ▘
-
-▙ ▛ ▜ ▟
-
-▞ ▚
-
-┐ ┌ ┘ └
-
-├ ┤ ┴ ┬
-
-│ ─
-*/
-
-/*
-const EMAIL = "mailto:<micah_baker@sfu.ca>";
-const GITHUB = "https://github.com/micahdbak";
-const LINKEDIN = "https://linkedin.com/in/micahdbak";
-const RESUME = "/resume.pdf";
-*/
-
-const NAME = `&15;\
-█▐▌▀ @ ▄▖▐@ ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
-▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;`.replaceAll("@", "&17; &15;");
+const BANNER = `\
+********************************************************************
+Session: ${SESSION_DATE} on tty1
+Welcome to micahdb.com!
+********************************************************************`;
 
 const CARD = `\
-${NAME}&n;
-&7;-------------------------&17;&n;
-&11;**I am a**&17;: Software Engineer&n;
-&11;**Based in**&17;: Vancouver, BC, Canada&n;
-&11;**Currently**&17;: Studying&n;
-&11;**Previously**&17;: Open WebUI, Improving, Brave&n;
-&11;**Education**&17;: BSc Computing Science at [SFU](https://sfu.ca)&n;
-&11;**E-mail**&17;: [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
-&11;**GitHub**&17;: [@micahdbak](https://github.com/micahdbak)&n;
-&11;**LinkedIn**&17;: [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
-&11;**Resume/CV**&17;: [/resume.pdf](https://micahdb.com/resume.pdf)
+&15;\
+█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
+▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;&n;
+&n;
+&12;**I am a**&17;: % % Software Developer&n;
+&12;**Based in**&17;: % Vancouver, BC, Canada&n;
+&12;**Currently**&17;: %Studying&n;
+&12;**Previously**&17;: Open WebUI, Improving, Brave&n;
+&12;**Education**&17;: %BSc Computing Science at SFU&n;
+&n;
+&12;**E-mail**&17;: % % [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
+&12;**GitHub**&17;: % % [@micahdbak](https://github.com/micahdbak)&n;
+&12;**LinkedIn**&17;: % [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
+&12;**Resume/CV**&17;: %[/resume.pdf](https://micahdb.com/resume.pdf)
 
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
-&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███&n;`;
+&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
 
-const BODY = `\
-&7;\\*&17; &7;*About*&17;&n;
-&7;\\*&17; [Education](#)&n;
-&7;\\*&17; [Experience](#)&n;
-&7;\\*&17; [Research](#)&n;
-&7;\\*&17; [Projects](#)&n;
-&7;\\*&17; [Blog](#) &7;- Updated *2026, June 9th*&17;
-
-\\&7;----&17;
-
-# About
-
-Welcome to my website.`;
+----`.replaceAll("%", "&17; &15;");
 
 const main = async () => {
 	const log = document.getElementById("log");
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 
+	loadContent();
+
 	try {
 		const startTime = Date.now();
+		let stillLoading = true;
+		// only display the log if loading takes >500ms
+		setTimeout(() => {
+			if (stillLoading) {
+				log.className = "";
+			}
+		}, 500);
 
 		const logMessage = (source: string, message: string) => {
 			let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
@@ -115,44 +114,50 @@ const main = async () => {
 			log.appendChild(pre);
 		};
 
-		logMessage("micahdb.com", "init");
+		const banner = document.createElement("pre");
+		banner.textContent = BANNER;
+		log.appendChild(banner);
 
 		const terminal = new Terminal(canvas, logMessage);
 		await terminal.init();
 
-		logMessage("micahdb.com", "done loading");
+		// only display fake prompt if loading took >500ms
+		if (Date.now() - startTime > 500) {
+			logMessage("micahdb.com", "done loading");
 
-		const prompt = "[micah@micahdb.com ~]$ ";
-		const pre = document.createElement("pre");
-		pre.textContent = prompt;
-		log.appendChild(pre);
+			const prompt = "[micah@micahdb.com ~]$ ";
+			const pre = document.createElement("pre");
+			pre.textContent = prompt;
+			log.appendChild(pre);
 
-		for (let i = 0; i < 3; i++) {
+			for (let i = 0; i < 3; i++) {
+				await new Promise((resolve) => {
+					setTimeout(resolve, 500);
+				});
+
+				// blinking block
+				const block = i % 2 === 0 ? "█" : "";
+				pre.textContent = prompt + block;
+			}
+
+			const cmd = "./dashboard.sh";
+			for (let i = 0; i <= cmd.length; i++) {
+				pre.textContent = prompt + cmd.substr(0, i) + "█";
+
+				await new Promise((resolve) => {
+					setTimeout(resolve, 50);
+				});
+			}
+
+			pre.textContent = prompt + cmd + "\n█";
+
+			// spare a moment before displaying the canvas
 			await new Promise((resolve) => {
 				setTimeout(resolve, 500);
 			});
-
-			// blinking block
-			const block = i % 2 === 0 ? "█" : "";
-			pre.textContent = prompt + block;
 		}
 
-		const cmd = "./dashboard.sh";
-		for (let i = 0; i <= cmd.length; i++) {
-			pre.textContent = prompt + cmd.substr(0, i) + "█";
-
-			await new Promise((resolve) => {
-				setTimeout(resolve, 50);
-			});
-		}
-
-		pre.textContent = prompt + cmd + "\n█";
-
-		// spare a moment before displaying the canvas
-		await new Promise((resolve) => {
-			setTimeout(resolve, 500);
-		});
-
+		stillLoading = false;
 		log.className = "hidden";
 		canvas.className = "";
 
@@ -163,7 +168,40 @@ const main = async () => {
 		const divider = new Divider(terminal, PANE_RATIO, false);
 		const scrollable = new Scrollable(terminal);
 		const mdcard = new Markdown(terminal, CARD);
-		const mdbody = new Markdown(terminal, BODY);
+
+		const mdcache: Record<string, Markdown> = {};
+
+		// anchor change -> content change
+
+		let url = window.location.hash;
+		if (!CONTENT[url]) {
+			url = INDEX_URL;
+		}
+
+		let mdbody = new Markdown(terminal, CONTENT[url]);
+		mdcache[url] = mdbody;
+
+		window.addEventListener("hashchange", () => {
+			let new_url = window.location.hash;
+
+			if (new_url.length === 0) {
+				new_url = INDEX_URL;
+			}
+
+			if (!CONTENT[new_url]) {
+				window.location.hash = INDEX_URL;
+				return;
+			}
+
+			url = new_url;
+
+			if (!mdcache[url]) {
+				mdbody = new Markdown(terminal, CONTENT[url]);
+				mdcache[url] = mdbody;
+			} else {
+				mdbody = mdcache[url];
+			}
+		});
 
 		// draw loop
 
@@ -222,7 +260,7 @@ const main = async () => {
 				pane1[3] - 2 * PANE_COL_PADDING
 			);
 
-			const body_row = card_row + mdcard.rows;
+			const body_row = card_row + mdcard.rows + 1;
 			mdbody.draw(
 				body_row,
 				pane1[1] + PANE_COL_PADDING,
@@ -230,7 +268,7 @@ const main = async () => {
 				pane1[3] - 2 * PANE_COL_PADDING
 			);
 
-			const inner_rows = mdcard.rows + mdbody.rows + 2 * PANE_ROW_PADDING;
+			const inner_rows = mdcard.rows + 1 + mdbody.rows + 2 * PANE_ROW_PADDING;
 			scrollable.draw(pane1[0], pane1[1], pane1[2], pane1[3], inner_rows);
 			row_offset = scrollable.row_offset;
 			terminal.draw();

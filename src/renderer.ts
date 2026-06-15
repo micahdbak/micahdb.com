@@ -2,9 +2,11 @@ import VERTEX_SHADER from "./renderer.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
 
 import {
+	TEXTURES,
 	GLYPH_ATLAS_TEXTURE_INDEX,
-	GLYPH_ATLAS_TEXTURE_PATH,
-	PROGRAM_TEXTURE_INDEX
+	GLYPH_ATLAS_TEXTURE,
+	PROGRAM_TEXTURE_INDEX,
+	loadTextures
 } from "./textures.ts";
 import { ProgramManager } from "./program_manager.ts";
 
@@ -43,8 +45,6 @@ class Renderer {
 
 	private vbo: WebGLBuffer;
 	private count: number;
-
-	private glyphAtlasTexture: WebGLTexture;
 
 	private palette: Float32Array;
 
@@ -88,7 +88,10 @@ class Renderer {
 		this.initializeProgram();
 		this.initializeLocations();
 		this.initializeVBO();
-		await this.initializeGlyphAtlasTexture();
+
+		await loadTextures(this.gl, this.logMessage);
+
+		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
 
 		this.gl.uniform1i(this.uniforms.rows, this.rows);
 		this.gl.uniform1i(this.uniforms.cols, this.cols);
@@ -99,7 +102,7 @@ class Renderer {
 		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
 
 		this.program = new ProgramManager(this.gl, this.logMessage);
-		await this.program.init();
+		this.program.init();
 		this.program.which = "earth";
 	}
 
@@ -231,53 +234,7 @@ class Renderer {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 	}
 
-	async initializeGlyphAtlasTexture() {
-		await new Promise((resolve, reject) => {
-			const image = new Image();
-			image.src = GLYPH_ATLAS_TEXTURE_PATH;
-			image.onload = () => {
-				const texture = this.gl.createTexture();
-				if (!texture) {
-					reject(new Error("When creating GL texture"));
-					return;
-				}
-
-				this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-
-				// prevent texture halos/outlines from filtering
-				this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-
-				this.gl.texImage2D(
-					this.gl.TEXTURE_2D,
-					0,
-					this.gl.RGBA,
-					this.gl.RGBA,
-					this.gl.UNSIGNED_BYTE,
-					image
-				);
-
-				this.gl.generateMipmap(this.gl.TEXTURE_2D);
-
-				this.gl.texParameteri(
-					this.gl.TEXTURE_2D,
-					this.gl.TEXTURE_MIN_FILTER,
-					this.gl.LINEAR_MIPMAP_LINEAR
-				);
-
-				this.gl.texParameteri(
-					this.gl.TEXTURE_2D,
-					this.gl.TEXTURE_MAG_FILTER,
-					this.gl.LINEAR
-				);
-
-				this.glyphAtlasTexture = texture;
-
-				resolve();
-			};
-		});
-
-		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
-	}
+	async initializeTextures() {}
 
 	enableAttributes() {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -385,8 +342,14 @@ class Renderer {
 	}
 
 	draw() {
-		// render the internal program first
-		this.program.draw();
+		if (this.canvas.width === 0 || this.canvas.height === 0) {
+			return;
+		}
+
+		if (this.programRows > 0 && this.programCols > 0) {
+			// render the internal program first
+			this.program.draw();
+		}
 
 		// use renderer program
 		this.gl.useProgram(this.glProgram);
@@ -404,7 +367,7 @@ class Renderer {
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.glyphAtlasTexture);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[GLYPH_ATLAS_TEXTURE]);
 		this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.program.texture);
 
@@ -413,7 +376,9 @@ class Renderer {
 		this.gl.drawArrays(this.gl.TRIANGLES, 0, this.count);
 
 		// Unbind the program texture to prevent feedback loops in the next frame
+		this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 	}
 }
 
