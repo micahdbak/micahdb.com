@@ -2572,6 +2572,7 @@ class Terminal {
   mouseClick;
   mouseDown;
   mouseOwner = "";
+  detailText = "";
   constructor(canvas, logMessage) {
     this.renderer = new Renderer(canvas, logMessage);
   }
@@ -2791,6 +2792,10 @@ class Terminal {
       this.data.set(glyph.data(), uint32Index);
     }
     this.mouseClick = false;
+    if (this.detailText.length > 0) {
+      this.drawText(this.detailText, this.rows - 1, 0, 0, 15);
+      this.detailText = "";
+    }
     this.renderer.setData(this.data);
     this.renderer.draw();
   }
@@ -8037,6 +8042,8 @@ class Link {
       }
     } else if (isHovered) {
       document.body.className = "pointer";
+      const detail = url.startsWith("#") ? window.location.origin + url : url;
+      terminal.detailText = " " + detail + " ";
     }
     const bg = isHovered ? hoverBackColour : backColour;
     const fg = isHovered ? hoverFgColour : fgColour;
@@ -8118,7 +8125,7 @@ class Markdown {
             list_idx = 1;
             break;
           case "listItem":
-            const text4 = `${list_idx < 10 ? " " : ""}${list_idx++}. `;
+            const text4 = " -  ";
             if (r >= row && r < row + rows) {
               this.terminal.drawText(text4, r, c, 16, 7);
             }
@@ -8210,10 +8217,10 @@ class Markdown {
 
 // src/content/index.md
 var content_default = `&7;README&17; |
-[Education](#/education.md) |
-[Experience](#/experience.md) |
-[Projects](#/projects.md) |
-[Blog](#/blog.md)
+[Education](#education) |
+[Experience](#experience) |
+[Projects](#projects) |
+[Blog](#blog)
 
 # **micahdb.com**
 
@@ -8221,62 +8228,194 @@ Welcome to my website.
 I'm Micah Baker, a Software Developer from Vancouver, BC, Canada.
 
 I am currently finishing a Bachelor of Science in Computing Science at
-[Simon Fraser University^](https://sfu.ca).
+[Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
 Previously, I've worked at
 [Open WebUI^](https://openwebui.com),
 [Improving^](https://improving.com), and
 [Brave Technology Coop^](https://brave.coop).
 
 You can learn about my **Education**, **Experience**, and
-**Projects** by clicking through the aptly titled links above.
+**Projects** by clicking on the corresponding section tab above.
 `;
 
 // src/content/education.md
 var education_default = `[README](#) |
 &7;Education&17; |
-[Experience](#/experience.md) |
-[Projects](#/projects.md) |
-[Blog](#/blog.md)
+[Experience](#experience) |
+[Projects](#projects) |
+[Blog](#blog)
 
-# Education
+# **Education**
+
+## BSc Computing Science
+
+I'm working towards a Bachelor of Science in Computing Science at [Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
+
+I've completed coursework in:
+
+- Systems programming (CMPT 201, 454)
+- Databases & DBMS implementation (CMPT 354, 454, 496)
+- Machine learning (CMPT 310, 410)
+- Computer vision (CMPT 361, 415, 416)
+- Computer graphics (CMPT 361)
+
+## Research
+
+I've also been involved with research labs at SFU.
+For more details regarding the following projects, see the **Projects** page.
+
+### [Data-Intensive Systems (DIS) Lab^](https://github.com/sfu-dis)
+
+(TBD): working on a project for optimizing DBMS data structures on high-performance modern hardware.
+
+### [Tangent Lab^](https://tangent.cs.sfu.ca)
+
+[Isaac ROS Gestures^](https://github.com/micahdbak/isaac_ros_gestures):
+built a computer vision system for recognizing motion gestures, for use in a robotic guide dog.
+
 `;
 
 // src/content/experience.md
 var experience_default = `[README](#) |
-[Education](#/education.md) |
+[Education](#education) |
 &7;Experience&17; |
-[Projects](#/projects.md) |
-[Blog](#/blog.md)
+[Projects](#projects) |
+[Blog](#blog)
 
 # Experience
+
+## [Open WebUI^](https://openwebui.com)
+
+**Software Developer**&n;
+Contract, Part-time&n;
+Jan 2026 - Apr 2026&n;
+Austin, TX, USA
+
+## [Improving^](https://improving.com)
+
+**Software Developer 1**&n;
+Co-op, Full-time&n;
+Sep 2024 - Aug 2025&n;
+Vancouver, BC, Canada
+
+## [Brave Technology Coop^](https://brave.coop)
+
+**Firmware and Software Developer**&n;
+Co-op, Full-time&n;
+Sep 2023 - Apr 2024&n;
+Vancouver, BC, Canada
 `;
 
 // src/content/projects.md
 var projects_default = `[README](#) |
-[Education](#/education.md) |
-[Experience](#/experience.md) |
+[Education](#education) |
+[Experience](#experience) |
 &7;Projects&17; |
-[Blog](#/blog.md)
+[Blog](#blog)
 
 # Projects
+
+## Gestures for Robotic Guide Dog
+
+- [GitHub Repository^](https://github.com/micahdbak/isaac_ros_gestures)
+- 2025 Sep - 2026 Apr
+
+Computer vision system for recognizing motion gestures.
+
+Used online learning model for personalized interaction.
+
+----
+
+## Cheddar and Feta
+
+- [Steam^](https://store.steampowered.com/app/4266860/Cheddar_and_Feta/)
+- [GitHub Repository^](https://github.com/micahdbak/cheddar-and-feta)
+- 2025 Jan - 2026 Feb
+
+A short two-player cooperative adventure where you must save Cheddar and Feta from the perils of a militarized fire ant colony.
+
+Game and engine built using [SDL3^](https://libsdl.org/) and [libdatachannel^](https://libdatachannel.org/) in C++.
+
+----
+
+## GleebleGlob
+
+- [Archived Website^](https://web.archive.org/web/20250315161759/http://gleebleglob.club/)
+- [GitHub Repository^](https://github.com/Vixlump/GG)
+- 2024 May - 2024 June
+
+Video streaming service on your terminal written in C++.
+
+MP4 videos are decoded by [FFmpeg^](https://www.ffmpeg.org/), and displayed in ASCII.
+
+Video storage and authentication facilitated by remote server.
+
+----
+
+## droppr.net
+
+- [Website^](https://droppr.net)
+- [GitHub Repository^](https://github.com/micahdbak/droppr)
+- 2024 Mar - 2025 Jun
+
+Send files over the internet using the peer-to-peer [WebRTC API^](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).
+
+Large files are chunked into blobs and stored in the [IndexedDB API^](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for fast retrieval and recovery of failed packets.
+
+Signal channel written in Go uses six-letter codes for peer discovery.
+
+----
+
+## PacMacro
+
+- [GitHub Repository^](https://github.com/micahdbak/pacmacro)
+- 2023 Jun - 2023 Sep
+
+PacMan played in real life with a mobile web application.
+
+Uses [Geolocation API^](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API) to track player locations.
+
+Synchronizes players with a WebSocket server written in Go.
+
+----
+
+## Yell P2P Library
+
+- [GitHub Repository^](https://github.com/micahdbak/yell)
+- 2023 Feb - 2023 Apr
+
+C library for P2P applications and example chat program.
+
+Built using BSD sockets for POSIX-compliant systems.
+
+----
+
+## EXEIRUS ARG
+
+- [GitHub Repository^](https://github.com/micahdbak/exeirus)
+- 2022 Dec - 2023 Feb
+
+ARG where players compete by solving cryptographic puzzles.
 `;
 
 // src/content/blog.md
 var blog_default = `[README](#) |
-[Education](#/education.md) |
-[Experience](#/experience.md) |
-[Projects](#/projects.md) |
+[Education](#education) |
+[Experience](#experience) |
+[Projects](#projects) |
 &7;Blog&17;
 
 # Blog
+
+Check back here in the future...
 `;
 
 // src/content.ts
 var INDEX_URL = "#";
-var EDUCATION_URL = "#/education.md";
-var EXPERIENCE_URL = "#/experience.md";
-var PROJECTS_URL = "#/projects.md";
-var BLOG_URL = "#/blog.md";
+var EDUCATION_URL = "#education";
+var EXPERIENCE_URL = "#experience";
+var PROJECTS_URL = "#projects";
+var BLOG_URL = "#blog";
 var _files = [
   [INDEX_URL, content_default],
   [EDUCATION_URL, education_default],
@@ -8351,7 +8490,7 @@ var PALETTE = [
   205
 ];
 var PANE_RATIO = 1 - 1 / 1.618;
-var PANE_COLS = 48;
+var PANE_COLS = 50;
 var PANE_ROW_PADDING = 1;
 var PANE_COL_PADDING = 2;
 var SESSION_DATE = Intl.DateTimeFormat("en-US", {
@@ -8377,9 +8516,9 @@ var CARD = `&15;█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
 &12;**Previously**&17;: Open WebUI, Improving, Brave&n;
 &12;**Education**&17;: %BSc Computing Science at SFU&n;
 &n;
-&12;**E-mail**&17;: % % [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
-&12;**GitHub**&17;: % % [@micahdbak](https://github.com/micahdbak)&n;
-&12;**LinkedIn**&17;: % [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
+&12;**E-mail**&17;: % % [mailto:\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
+&12;**GitHub**&17;: % % [https://github.com/micahdbak](https://github.com/micahdbak)&n;
+&12;**LinkedIn**&17;: % [https://linkedin.com/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
 &12;**Resume/CV**&17;: %[/resume.pdf](https://micahdb.com/resume.pdf)
 
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
