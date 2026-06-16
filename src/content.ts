@@ -5,10 +5,10 @@ import PROJECTS_MD from "./content/projects.md" with { type: "text" };
 import BLOG_MD from "./content/blog.md" with { type: "text" };
 
 export const INDEX_URL = "#";
-export const EDUCATION_URL = "#/education.md";
-export const EXPERIENCE_URL = "#/experience.md";
-export const PROJECTS_URL = "#/projects.md";
-export const BLOG_URL = "#/blog.md";
+export const EDUCATION_URL = "#education";
+export const EXPERIENCE_URL = "#experience";
+export const PROJECTS_URL = "#projects";
+export const BLOG_URL = "#blog";
 
 // prettier-ignore
 const _files: string[][] = [

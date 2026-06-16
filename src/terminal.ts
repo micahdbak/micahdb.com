@@ -79,6 +79,8 @@ class Terminal {
 	public mouseDown: boolean;
 	public mouseOwner: string = "";
 
+	public detailText: string = "";
+
 	constructor(
 		canvas: HTMLCanvasElement,
 		logMessage: (source: string, message: string) => void
@@ -412,6 +414,11 @@ class Terminal {
 		}
 
 		this.mouseClick = false;
+
+		if (this.detailText.length > 0) {
+			this.drawText(this.detailText, this.rows - 1, 0, 0, 15);
+			this.detailText = "";
+		}
 
 		this.renderer.setData(this.data);
 		this.renderer.draw();

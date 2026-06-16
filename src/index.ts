@@ -44,7 +44,7 @@ const PALETTE = [
 ];
 
 const PANE_RATIO = 1.0 - 1.0 / 1.618;
-const PANE_COLS = 48;
+const PANE_COLS = 50;
 const PANE_ROW_PADDING = 1;
 const PANE_COL_PADDING = 2;
 
@@ -78,9 +78,9 @@ const CARD = `\
 &12;**Previously**&17;: Open WebUI, Improving, Brave&n;
 &12;**Education**&17;: %BSc Computing Science at SFU&n;
 &n;
-&12;**E-mail**&17;: % % [\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
-&12;**GitHub**&17;: % % [@micahdbak](https://github.com/micahdbak)&n;
-&12;**LinkedIn**&17;: % [/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
+&12;**E-mail**&17;: % % [mailto:\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
+&12;**GitHub**&17;: % % [https://github.com/micahdbak](https://github.com/micahdbak)&n;
+&12;**LinkedIn**&17;: % [https://linkedin.com/in/micahdbak](https://linkedin.com/in/micahdbak)&n;
 &12;**Resume/CV**&17;: %[/resume.pdf](https://micahdb.com/resume.pdf)
 
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;

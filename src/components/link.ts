@@ -28,6 +28,9 @@ class Link {
 			}
 		} else if (isHovered) {
 			document.body.className = "pointer";
+
+			const detail = url.startsWith("#") ? window.location.origin + url : url;
+			terminal.detailText = " " + detail + " ";
 		}
 
 		const bg = isHovered ? hoverBackColour : backColour;

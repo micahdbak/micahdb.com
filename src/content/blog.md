@@ -1,7 +1,9 @@
 [README](#) |
-[Education](#/education.md) |
-[Experience](#/experience.md) |
-[Projects](#/projects.md) |
+[Education](#education) |
+[Experience](#experience) |
+[Projects](#projects) |
 &7;Blog&17;
 
 # Blog
+
+Check back here in the future...

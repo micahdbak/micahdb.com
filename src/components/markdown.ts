@@ -104,7 +104,7 @@ class Markdown {
 						break;
 
 					case "listItem":
-						const text = `${list_idx < 10 ? " " : ""}${list_idx++}. `;
+						const text = " -  "; // `${list_idx < 10 ? " " : ""}${list_idx++}. `;
 
 						if (r >= row && r < row + rows) {
 							this.terminal.drawText(text, r, c, 16, 7);
