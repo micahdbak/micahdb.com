@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 export async function loadContent(): Promise<Record<string, string>> {
 	const glob = new Glob("**/*.md"); // all markdown files
-	const scan_path = "./src/content";
+	const scan_path = "./markdown";
 	const paths = await Array.fromAsync(
 		glob.scan({ cwd: scan_path, onlyFiles: true })
 	);
