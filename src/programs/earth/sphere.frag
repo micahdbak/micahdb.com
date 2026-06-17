@@ -84,7 +84,7 @@ void main() {
 		}
 
 		bgs = uint[](16U, 7U, 17U);
-		fgs = uint[](7U, 16U, 8U);
+		fgs = uint[](7U, 0U, 8U);
 	}
 
 	int glyphi = clamp(int(12.0 * (3.0 * lum - float(layer))), 0, 11);

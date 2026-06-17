@@ -74,9 +74,18 @@ void main() {
 		vec2 texCell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
 		vec4 texSample = texture(u_program, texCell);
 
-		v_charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
-		v_bgColour = u_palette[int(round(texSample.b * 256.0))];
-		v_fgColour = u_palette[int(round(texSample.a * 256.0))];
+		uint charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
+		uint bg = uint(round(texSample.b * 256.0));
+		uint fg = uint(round(texSample.a * 256.0));
+
+		if (bg == 0U && charCode < 32U) {
+			fg = 0U;
+			charCode = 0x2588U; // █
+		}
+
+		v_charCode = charCode;
+		v_bgColour = u_palette[bg];
+		v_fgColour = u_palette[fg];
 
 		tl = glyphTopLeft(v_charCode);
 	} else {

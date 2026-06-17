@@ -21,7 +21,7 @@ class Markdown {
 	constructor(terminal: Terminal, markdown: string) {
 		this.terminal = terminal;
 		this.root = fromMarkdown(markdown);
-		console.log(this.root);
+		// console.log(this.root);
 	}
 
 	draw(row: number, col: number, rows: number, cols: number) {

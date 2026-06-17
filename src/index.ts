@@ -6,7 +6,8 @@ import { Scrollable } from "./components/scrollable.ts";
 import { Markdown } from "./components/markdown.ts";
 
 // content
-import { INDEX_URL, CONTENT, loadContent } from "./content";
+import { loadContent } from "./content.macro.ts" with { type: "macro" };
+const INDEX_URL = "#";
 
 //
 //  █ ▓ ▒ ░
@@ -39,8 +40,8 @@ const PALETTE = [
 	0xd5, 0xd8, 0xd6, // 15: white
 
 	// extra colours
-	0x11, 0x11, 0x12, // 16: bg
-	0xcd, 0xcd, 0xcd  // 17: fg
+	0x16, 0x17, 0x18, // 16: bg
+	0xcd, 0xcd, 0xcd, // 17: fg
 ];
 
 const PANE_RATIO = 1.0 - 1.0 / 1.618;
@@ -67,10 +68,9 @@ Welcome to micahdb.com!
 ********************************************************************`;
 
 const CARD = `\
-&15;\
 █▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
 ▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;&n;
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&n;
 &n;
 &12;**I am a**&17;: % % Software Developer&n;
 &12;**Based in**&17;: % Vancouver, BC, Canada&n;
@@ -86,13 +86,11 @@ const CARD = `\
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
 &8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
 
-----`.replaceAll("%", "&17; &15;");
+----`.replaceAll("%", "&17; &17;");
 
 const main = async () => {
 	const log = document.getElementById("log");
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
-
-	loadContent();
 
 	try {
 		const startTime = Date.now();
@@ -103,6 +101,8 @@ const main = async () => {
 				log.className = "";
 			}
 		}, 500);
+
+		const content = await loadContent();
 
 		const logMessage = (source: string, message: string) => {
 			let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
@@ -174,11 +174,11 @@ const main = async () => {
 		// anchor change -> content change
 
 		let url = window.location.hash;
-		if (!CONTENT[url]) {
+		if (!content[url]) {
 			url = INDEX_URL;
 		}
 
-		let mdbody = new Markdown(terminal, CONTENT[url]);
+		let mdbody = new Markdown(terminal, content[url]);
 		mdcache[url] = mdbody;
 
 		window.addEventListener("hashchange", () => {
@@ -188,7 +188,7 @@ const main = async () => {
 				new_url = INDEX_URL;
 			}
 
-			if (!CONTENT[new_url]) {
+			if (!content[new_url]) {
 				window.location.hash = INDEX_URL;
 				return;
 			}
@@ -196,7 +196,7 @@ const main = async () => {
 			url = new_url;
 
 			if (!mdcache[url]) {
-				mdbody = new Markdown(terminal, CONTENT[url]);
+				mdbody = new Markdown(terminal, content[url]);
 				mdcache[url] = mdbody;
 			} else {
 				mdbody = mdcache[url];
