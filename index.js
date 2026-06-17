@@ -565,9 +565,18 @@ void main() {
 		vec2 texCell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
 		vec4 texSample = texture(u_program, texCell);
 
-		v_charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
-		v_bgColour = u_palette[int(round(texSample.b * 256.0))];
-		v_fgColour = u_palette[int(round(texSample.a * 256.0))];
+		uint charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
+		uint bg = uint(round(texSample.b * 256.0));
+		uint fg = uint(round(texSample.a * 256.0));
+
+		if (bg == 0U && charCode < 32U) {
+			fg = 0U;
+			charCode = 0x2588U; // █
+		}
+
+		v_charCode = charCode;
+		v_bgColour = u_palette[bg];
+		v_fgColour = u_palette[fg];
 
 		tl = glyphTopLeft(v_charCode);
 	} else {
@@ -1868,7 +1877,7 @@ void main() {
 		}
 
 		bgs = uint[](16U, 7U, 17U);
-		fgs = uint[](7U, 16U, 8U);
+		fgs = uint[](7U, 0U, 8U);
 	}
 
 	int glyphi = clamp(int(12.0 * (3.0 * lum - float(layer))), 0, 11);
@@ -2139,7 +2148,7 @@ void main() {
 		}
 
 		bgs = uint[](16U, 7U, 17U);
-		fgs = uint[](7U, 16U, 8U);
+		fgs = uint[](7U, 0U, 8U);
 	}
 
 	int glyphi = clamp(int(12.0 * (3.0 * lum - float(layer))), 0, 11);
@@ -8066,7 +8075,6 @@ class Markdown {
   constructor(terminal, markdown) {
     this.terminal = terminal;
     this.root = fromMarkdown(markdown);
-    console.log(this.root);
   }
   draw(row, col, rows, cols) {
     if (rows <= 0 || cols <= 0) {
@@ -8215,224 +8223,8 @@ class Markdown {
   }
 }
 
-// src/content/index.md
-var content_default = `&7;README&17; |
-[Education](#education) |
-[Experience](#experience) |
-[Projects](#projects) |
-[Blog](#blog)
-
-# **micahdb.com**
-
-Welcome to my website.
-I'm Micah Baker, a Software Developer from Vancouver, BC, Canada.
-
-I am currently finishing a Bachelor of Science in Computing Science at
-[Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
-Previously, I've worked at
-[Open WebUI^](https://openwebui.com),
-[Improving^](https://improving.com), and
-[Brave Technology Coop^](https://brave.coop).
-
-You can learn about my **Education**, **Experience**, and
-**Projects** by clicking on the corresponding section tab above.
-`;
-
-// src/content/education.md
-var education_default = `[README](#) |
-&7;Education&17; |
-[Experience](#experience) |
-[Projects](#projects) |
-[Blog](#blog)
-
-# **Education**
-
-## BSc Computing Science
-
-I'm working towards a Bachelor of Science in Computing Science at [Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
-
-I've completed coursework in:
-
-- Systems programming (CMPT 201, 454)
-- Databases & DBMS implementation (CMPT 354, 454, 496)
-- Machine learning (CMPT 310, 410)
-- Computer vision (CMPT 361, 415, 416)
-- Computer graphics (CMPT 361)
-
-## Research
-
-I've also been involved with research labs at SFU.
-For more details regarding the following projects, see the **Projects** page.
-
-### [Data-Intensive Systems (DIS) Lab^](https://github.com/sfu-dis)
-
-(TBD): working on a project for optimizing DBMS data structures on high-performance modern hardware.
-
-### [Tangent Lab^](https://tangent.cs.sfu.ca)
-
-[Isaac ROS Gestures^](https://github.com/micahdbak/isaac_ros_gestures):
-built a computer vision system for recognizing motion gestures, for use in a robotic guide dog.
-
-`;
-
-// src/content/experience.md
-var experience_default = `[README](#) |
-[Education](#education) |
-&7;Experience&17; |
-[Projects](#projects) |
-[Blog](#blog)
-
-# Experience
-
-## [Open WebUI^](https://openwebui.com)
-
-**Software Developer**&n;
-Contract, Part-time&n;
-Jan 2026 - Apr 2026&n;
-Austin, TX, USA
-
-## [Improving^](https://improving.com)
-
-**Software Developer 1**&n;
-Co-op, Full-time&n;
-Sep 2024 - Aug 2025&n;
-Vancouver, BC, Canada
-
-## [Brave Technology Coop^](https://brave.coop)
-
-**Firmware and Software Developer**&n;
-Co-op, Full-time&n;
-Sep 2023 - Apr 2024&n;
-Vancouver, BC, Canada
-`;
-
-// src/content/projects.md
-var projects_default = `[README](#) |
-[Education](#education) |
-[Experience](#experience) |
-&7;Projects&17; |
-[Blog](#blog)
-
-# Projects
-
-## Gestures for Robotic Guide Dog
-
-- [GitHub Repository^](https://github.com/micahdbak/isaac_ros_gestures)
-- 2025 Sep - 2026 Apr
-
-Computer vision system for recognizing motion gestures.
-
-Used online learning model for personalized interaction.
-
-----
-
-## Cheddar and Feta
-
-- [Steam^](https://store.steampowered.com/app/4266860/Cheddar_and_Feta/)
-- [GitHub Repository^](https://github.com/micahdbak/cheddar-and-feta)
-- 2025 Jan - 2026 Feb
-
-A short two-player cooperative adventure where you must save Cheddar and Feta from the perils of a militarized fire ant colony.
-
-Game and engine built using [SDL3^](https://libsdl.org/) and [libdatachannel^](https://libdatachannel.org/) in C++.
-
-----
-
-## GleebleGlob
-
-- [Archived Website^](https://web.archive.org/web/20250315161759/http://gleebleglob.club/)
-- [GitHub Repository^](https://github.com/Vixlump/GG)
-- 2024 May - 2024 June
-
-Video streaming service on your terminal written in C++.
-
-MP4 videos are decoded by [FFmpeg^](https://www.ffmpeg.org/), and displayed in ASCII.
-
-Video storage and authentication facilitated by remote server.
-
-----
-
-## droppr.net
-
-- [Website^](https://droppr.net)
-- [GitHub Repository^](https://github.com/micahdbak/droppr)
-- 2024 Mar - 2025 Jun
-
-Send files over the internet using the peer-to-peer [WebRTC API^](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).
-
-Large files are chunked into blobs and stored in the [IndexedDB API^](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for fast retrieval and recovery of failed packets.
-
-Signal channel written in Go uses six-letter codes for peer discovery.
-
-----
-
-## PacMacro
-
-- [GitHub Repository^](https://github.com/micahdbak/pacmacro)
-- 2023 Jun - 2023 Sep
-
-PacMan played in real life with a mobile web application.
-
-Uses [Geolocation API^](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API) to track player locations.
-
-Synchronizes players with a WebSocket server written in Go.
-
-----
-
-## Yell P2P Library
-
-- [GitHub Repository^](https://github.com/micahdbak/yell)
-- 2023 Feb - 2023 Apr
-
-C library for P2P applications and example chat program.
-
-Built using BSD sockets for POSIX-compliant systems.
-
-----
-
-## EXEIRUS ARG
-
-- [GitHub Repository^](https://github.com/micahdbak/exeirus)
-- 2022 Dec - 2023 Feb
-
-ARG where players compete by solving cryptographic puzzles.
-`;
-
-// src/content/blog.md
-var blog_default = `[README](#) |
-[Education](#education) |
-[Experience](#experience) |
-[Projects](#projects) |
-&7;Blog&17;
-
-# Blog
-
-Check back here in the future...
-`;
-
-// src/content.ts
-var INDEX_URL = "#";
-var EDUCATION_URL = "#education";
-var EXPERIENCE_URL = "#experience";
-var PROJECTS_URL = "#projects";
-var BLOG_URL = "#blog";
-var _files = [
-  [INDEX_URL, content_default],
-  [EDUCATION_URL, education_default],
-  [EXPERIENCE_URL, experience_default],
-  [PROJECTS_URL, projects_default],
-  [BLOG_URL, blog_default]
-];
-var CONTENT = {};
-function loadContent() {
-  for (let i = 0;i < _files.length; i++) {
-    const url = _files[i][0];
-    const md = _files[i][1];
-    CONTENT[url] = md;
-  }
-}
-
 // src/index.ts
+var INDEX_URL = "#";
 var PALETTE = [
   40,
   42,
@@ -8482,9 +8274,9 @@ var PALETTE = [
   213,
   216,
   214,
-  17,
-  17,
-  18,
+  22,
+  23,
+  24,
   205,
   205,
   205
@@ -8506,9 +8298,9 @@ var BANNER = `******************************************************************
 Session: ${SESSION_DATE} on tty1
 Welcome to micahdb.com!
 ********************************************************************`;
-var CARD = `&15;█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
+var CARD = `█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
 ▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&17;&n;
+▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&n;
 &n;
 &12;**I am a**&17;: % % Software Developer&n;
 &12;**Based in**&17;: % Vancouver, BC, Canada&n;
@@ -8524,11 +8316,10 @@ var CARD = `&15;█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
 &0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
 &8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
 
-----`.replaceAll("%", "&17; &15;");
+----`.replaceAll("%", "&17; &17;");
 var main = async () => {
   const log = document.getElementById("log");
   const canvas = document.getElementById("webgl");
-  loadContent();
   try {
     const startTime = Date.now();
     let stillLoading = true;
@@ -8537,6 +8328,213 @@ var main = async () => {
         log.className = "";
       }
     }, 500);
+    const content3 = await {
+      "#projects": `[README](#) |
+[Education](#education) |
+[Experience](#experience) |
+&7;Projects&17; |
+[Blog](#blog)
+
+# Projects
+
+- [Gestures for Robotic Guide Dog](#isaac_ros_gestures): CV system for motion gestures
+- [Cheddar and Feta](#cheddar_and_feta): 2D game engine & RPG published to Steam
+- [GleebleGlob](#gleebleglob): ASCII video streaming service
+- [Droppr](#droppr): Peer-to-peer file transfer service
+- [PacMacro](#pacmacro): IRL PacMan mobile web application
+- [Yell P2P Library](#yell): C library for P2P applications
+- [EXEIRUS ARG](#exeirus): Cryptographic puzzle ARG
+`,
+      "#pacmacro": `[<- Back to Projects](#projects)
+
+# PacMacro
+
+- [GitHub Repository^](https://github.com/micahdbak/pacmacro)
+- 2023 Jun - 2023 Sep
+
+PacMan played in real life with a mobile web application.
+
+Uses [Geolocation API^](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API) to track player locations.
+
+Synchronizes players with a WebSocket server written in Go.
+`,
+      "#gleebleglob": `[<- Back to Projects](#projects)
+
+# GleebleGlob
+
+- [Archived Website^](https://web.archive.org/web/20250315161759/http://gleebleglob.club/)
+- [GitHub Repository^](https://github.com/Vixlump/GG)
+- 2024 May - 2024 June
+
+Video streaming service on your terminal written in C++.
+
+MP4 videos are decoded by [FFmpeg^](https://www.ffmpeg.org/), and displayed in ASCII.
+
+Video storage and authentication facilitated by remote server.
+`,
+      "#cheddar_and_feta": `[<- Back to Projects](#projects)
+
+# Cheddar and Feta
+
+- [Steam^](https://store.steampowered.com/app/4266860/Cheddar_and_Feta/)
+- [GitHub Repository^](https://github.com/micahdbak/cheddar-and-feta)
+- 2025 Jan - 2026 Feb
+
+A short two-player cooperative adventure where you must save Cheddar and Feta from the perils of a militarized fire ant colony.
+
+Game and engine built using [SDL3^](https://libsdl.org/) and [libdatachannel^](https://libdatachannel.org/) in C++.
+`,
+      "#droppr": `[<- Back to Projects](#projects)
+
+# droppr.net
+
+- [Website^](https://droppr.net)
+- [GitHub Repository^](https://github.com/micahdbak/droppr)
+- 2024 Mar - 2025 Jun
+
+Send files over the internet using the peer-to-peer [WebRTC API^](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API).
+
+Large files are chunked into blobs and stored in the [IndexedDB API^](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for fast retrieval and recovery of failed packets.
+
+Signal channel written in Go uses six-letter codes for peer discovery.
+`,
+      "#isaac_ros_gestures": `[<- Back to Projects](#projects)
+
+# Gestures for Robotic Guide Dog
+
+- [GitHub Repository^](https://github.com/micahdbak/isaac_ros_gestures)
+- 2025 Sep - 2026 Apr
+
+Computer vision system for recognizing motion gestures.
+
+Used online learning model for personalized interaction.
+`,
+      "#yell": `[<- Back to Projects](#projects)
+
+# Yell P2P Library
+
+- [GitHub Repository^](https://github.com/micahdbak/yell)
+- 2023 Feb - 2023 Apr
+
+C library for P2P applications and example chat program.
+
+Built using BSD sockets for POSIX-compliant systems.
+`,
+      "#open_webui": `[<- Back to Experience](#experience)
+
+# [Open WebUI^](https://openwebui.com)
+
+&12;**Position**&17;: **Software Developer**&n;
+&12;**Contract**&17;: Part-time&n;
+&12;**Location**&17;: Austin, TX, USA (Remote)&n;
+&12;**Duration**&17;: Jan 2026 - Apr 2026 (4 months)&n;
+`,
+      "#brave_coop": `[<- Back to Experience](#experience)
+
+# [Brave Technology Coop^](https://brave.coop)
+
+&12;**Position**&17;: **Firmware and Software Developer**&n;
+&12;**Contract**&17;: Internship, Full-time&n;
+&12;**Location**&17;: Vancouver, BC, Canada (On-site)&n;
+&12;**Duration**&17;: Sep 2023 - Apr 2024 (8 months)
+`,
+      "#blog": `[README](#) |
+[Education](#education) |
+[Experience](#experience) |
+[Projects](#projects) |
+&7;Blog&17;
+
+# Blog
+
+Check back here in the future...
+`,
+      "#experience": `[README](#) |
+[Education](#education) |
+&7;Experience&17; |
+[Projects](#projects) |
+[Blog](#blog)
+
+# Experience
+
+- [Open WebUI](#open_webui)
+- [Improving](#improving)
+- [Brave Technology Coop](#brave_coop)
+`,
+      "#improving": `[<- Back to Experience](#experience)
+
+# [Improving^](https://improving.com)
+
+&12;**Position**&17;: **Software Developer 1**&n;
+&12;**Contract**&17;: Internship, Full-time&n;
+&12;**Location**&17;: Vancouver, BC, Canada (Hybrid)&n;
+&12;**Duration**&17;: Sep 2024 - Aug 2025 (1 year)
+`,
+      "#exeirus": `[<- Back to Projects](#projects)
+
+# EXEIRUS ARG
+
+- [GitHub Repository^](https://github.com/micahdbak/exeirus)
+- 2022 Dec - 2023 Feb
+
+ARG where players compete by solving cryptographic puzzles.
+`,
+      "#education": `[README](#) |
+&7;Education&17; |
+[Experience](#experience) |
+[Projects](#projects) |
+[Blog](#blog)
+
+# **Education**
+
+## BSc Computing Science
+
+I'm working towards a Bachelor of Science in Computing Science at [Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
+
+I've completed coursework in:
+
+- Systems programming (CMPT 201, 454)
+- Databases & DBMS implementation (CMPT 354, 454, 496)
+- Machine learning (CMPT 310, 410)
+- Computer vision (CMPT 361, 415, 416)
+- Computer graphics (CMPT 361)
+
+## Research
+
+I've also been involved with research labs at SFU.
+For more details regarding the following projects, see the **Projects** page.
+
+### [Data-Intensive Systems (DIS) Lab^](https://github.com/sfu-dis)
+
+(TBD): working on a project for optimizing DBMS data structures on high-performance modern hardware.
+
+### [Tangent Lab^](https://tangent.cs.sfu.ca)
+
+[Isaac ROS Gestures^](https://github.com/micahdbak/isaac_ros_gestures):
+built a computer vision system for recognizing motion gestures, for use in a robotic guide dog.
+
+`,
+      "#": `&7;README&17; |
+[Education](#education) |
+[Experience](#experience) |
+[Projects](#projects) |
+[Blog](#blog)
+
+# **micahdb.com**
+
+Welcome to my website.
+I'm Micah Baker, a Software Developer from Vancouver, BC, Canada.
+
+I am currently finishing a Bachelor of Science in Computing Science at
+[Simon Fraser University^](https://www.sfu.ca/fas/computing.html).
+Previously, I've worked at
+[Open WebUI^](https://openwebui.com),
+[Improving^](https://improving.com), and
+[Brave Technology Coop^](https://brave.coop).
+
+You can learn about my **Education**, **Experience**, and
+**Projects** by clicking on the corresponding section tab above.
+`
+    };
     const logMessage = (source, message) => {
       let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
       const leadingSpaces = " ".repeat(12 - timestamp.length);
@@ -8585,23 +8583,23 @@ var main = async () => {
     const mdcard = new Markdown(terminal, CARD);
     const mdcache = {};
     let url = window.location.hash;
-    if (!CONTENT[url]) {
+    if (!content3[url]) {
       url = INDEX_URL;
     }
-    let mdbody = new Markdown(terminal, CONTENT[url]);
+    let mdbody = new Markdown(terminal, content3[url]);
     mdcache[url] = mdbody;
     window.addEventListener("hashchange", () => {
       let new_url = window.location.hash;
       if (new_url.length === 0) {
         new_url = INDEX_URL;
       }
-      if (!CONTENT[new_url]) {
+      if (!content3[new_url]) {
         window.location.hash = INDEX_URL;
         return;
       }
       url = new_url;
       if (!mdcache[url]) {
-        mdbody = new Markdown(terminal, CONTENT[url]);
+        mdbody = new Markdown(terminal, content3[url]);
         mdcache[url] = mdbody;
       } else {
         mdbody = mdcache[url];
