@@ -1,5 +1,5 @@
 import { ScrollBar } from "./scroll_bar.ts";
-import { Glyph, Terminal } from "../terminal.ts";
+import { Glyph, Terminal, Colour } from "../terminal.ts";
 
 type FileClickFunction = (file: File) => void;
 
@@ -72,9 +72,9 @@ class FileTree {
 	}
 
 	draw(
-		fg1Colour: number,
-		fg2Colour: number,
-		bgColour: number,
+		fg1Colour: Colour,
+		fg2Colour: Colour,
+		bgColour: Colour,
 		startRow: number,
 		startCol: number,
 		rowCount: number,
@@ -134,7 +134,7 @@ class FileTree {
 			branch += i >= folder.children.length - 1 ? "└── " : "├── ";
 			branch = branch.slice(0, colCount);
 
-			this.terminal.drawText(branch, row, col, bgColour, 8);
+			this.terminal.drawText(branch, row, col, bgColour, Colour.LIGHT_BLACK);
 
 			let fg = isFolder ? fg2Colour : fg1Colour;
 			let bg = bgColour;
@@ -142,8 +142,8 @@ class FileTree {
 			if (
 				this.terminal.mouseAt(row, col + branch.length, 1, file.name.length)
 			) {
-				bg = 11;
-				fg = 8;
+				bg = Colour.LIGHT_GREEN;
+				fg = Colour.LIGHT_BLACK;
 
 				if (this.terminal.mouseClick) {
 					if (isFolder) {
@@ -171,8 +171,8 @@ class FileTree {
 					col + branch.length,
 					bg,
 					fg,
-					0,
-					0,
+					Colour.BLACK,
+					Colour.BLACK,
 					false,
 					isFolder ? Glyph.BOLD_FONT : Glyph.NORMAL_FONT
 				);

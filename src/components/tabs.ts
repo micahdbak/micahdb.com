@@ -1,4 +1,4 @@
-import { Terminal } from "../terminal.ts";
+import { Terminal, Colour } from "../terminal.ts";
 
 class Tabs {
 	private terminal: Terminal;
@@ -18,9 +18,9 @@ class Tabs {
 		row: number,
 		col: number,
 		cols: number,
-		backColour: number,
-		fgColour: number,
-		selBgColour: number
+		backColour: Colour,
+		fgColour: Colour,
+		selBgColour: Colour
 	) {
 		const rows: string[][] = [[]];
 		const widths: number[] = [0];
@@ -74,13 +74,18 @@ class Tabs {
 				}
 
 				const bg =
-					tabi === this.which ? selBgColour : isHovered ? 15 : backColour;
-				const fg = tabi === this.which ? fgColour : isHovered ? 16 : fgColour;
+					tabi === this.which
+						? selBgColour
+						: isHovered
+							? Colour.WHITE
+							: backColour;
+				const fg =
+					tabi === this.which ? fgColour : isHovered ? Colour.BG : fgColour;
 
 				this.terminal.drawText(tab, r, c, bg, fg);
 
 				if (j < _tabs.length - 1) {
-					this.terminal.drawText("|", r, c + tab.length, backColour, 16);
+					this.terminal.drawText("|", r, c + tab.length, backColour, Colour.BG);
 					lcols += tab.length + 1;
 				} // else; will break
 

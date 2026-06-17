@@ -1,4 +1,4 @@
-import { Terminal } from "../terminal.ts";
+import { Terminal, Colour } from "../terminal.ts";
 
 class Scrollable {
 	private terminal: Terminal;
@@ -127,7 +127,7 @@ class Scrollable {
 			const leftCols = Math.ceil((cols - hint.length) / 2);
 			const rightCols = cols - hint.length - leftCols;
 			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
-			this.terminal.drawText(text, row, col, 17, 16);
+			this.terminal.drawText(text, row, col, Colour.FG, Colour.BG);
 		}
 
 		if (inner_rows - this.row_offset > rows) {
@@ -135,7 +135,7 @@ class Scrollable {
 			const leftCols = Math.ceil((cols - hint.length) / 2);
 			const rightCols = cols - hint.length - leftCols;
 			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
-			this.terminal.drawText(text, row + rows - 1, col, 17, 16);
+			this.terminal.drawText(text, row + rows - 1, col, Colour.FG, Colour.BG);
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { Glyph, Terminal } from "../terminal.ts";
+import { Glyph, Terminal, Colour } from "../terminal.ts";
 
 class Link {
 	static draw(
@@ -7,10 +7,10 @@ class Link {
 		url: string,
 		row: number,
 		col: number,
-		backColour: number = 16,
-		fgColour: number = 13,
-		hoverBackColour: number = 13,
-		hoverFgColour: number = 16
+		backColour: Colour = Colour.BG,
+		fgColour: Colour = Colour.LIGHT_BLUE,
+		hoverBackColour: Colour = Colour.LIGHT_BLUE,
+		hoverFgColour: Colour = Colour.BG
 	) {
 		const isHovered = terminal.mouseAt(row, col, 1, text.length);
 		const wasHovered = terminal.mouseDownAt(row, col, 1, text.length);
@@ -42,8 +42,8 @@ class Link {
 			col,
 			bg,
 			fg,
-			0,
-			0,
+			Colour.BLACK,
+			Colour.BLACK,
 			false,
 			Glyph.ITALIC_BOLD_FONT
 		);

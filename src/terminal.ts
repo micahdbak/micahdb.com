@@ -1,5 +1,26 @@
 import { Renderer } from "./renderer.ts";
 
+export enum Colour {
+	BLACK = 0,
+	RED = 1,
+	ORANGE = 2,
+	GREEN = 3,
+	CYAN = 4,
+	BLUE = 5,
+	PURPLE = 6,
+	GREY = 7,
+	LIGHT_BLACK = 8,
+	LIGHT_RED = 9,
+	YELLOW = 10,
+	LIGHT_GREEN = 11,
+	LIGHT_CYAN = 12,
+	LIGHT_BLUE = 13,
+	LIGHT_PURPLE = 14,
+	WHITE = 15,
+	BG = 16,
+	FG = 17
+}
+
 class Glyph {
 	static readonly WIDTH = 96;
 	static readonly HEIGHT = 211;
@@ -15,13 +36,13 @@ class Glyph {
 	static readonly ITALIC_FONT = 2 * Glyph.ASCII_COUNT;
 	static readonly ITALIC_BOLD_FONT = 3 * Glyph.ASCII_COUNT;
 
-	public bgColour: number;
-	public fgColour: number;
+	public bgColour: Colour;
+	public fgColour: Colour;
 	public charCode: number;
 
 	constructor(
-		public bgColour: number,
-		public fgColour: number,
+		public bgColour: Colour,
+		public fgColour: Colour,
 		public charCode: number
 	) {
 		this.bgColour = bgColour;
@@ -215,10 +236,10 @@ class Terminal {
 		text: string,
 		row: number,
 		col: number,
-		backColour: number,
-		fgColour: number,
-		bgColour: number = 0,
-		shadowColour: number = 0,
+		backColour: Colour,
+		fgColour: Colour,
+		bgColour: Colour = Colour.BLACK,
+		shadowColour: Colour = Colour.BLACK,
 		shadow: boolean = false,
 		fontOffset: number = Glyph.NORMAL_FONT
 	) {
@@ -287,10 +308,10 @@ class Terminal {
 		col: number,
 		h: number,
 		w: number,
-		bgColour: number,
-		backColour: number,
-		borderColour: number,
-		shadowColour: number,
+		bgColour: Colour,
+		backColour: Colour,
+		borderColour: Colour,
+		shadowColour: Colour,
 		shadow: boolean
 	) {
 		const rStart = Math.max(0, row);
@@ -394,8 +415,8 @@ class Terminal {
 			const glyph = Glyph.fromData(cellData);
 
 			if (this.mouseDown) {
-				glyph.bgColour = 1; // red
-				glyph.fgColour = 13; // purple
+				glyph.bgColour = Colour.RED;
+				glyph.fgColour = Colour.LIGHT_BLUE;
 			} else {
 				const bgColour = glyph.bgColour;
 				glyph.bgColour = glyph.fgColour;
@@ -403,10 +424,10 @@ class Terminal {
 			}
 
 			if (glyph.bgColour === glyph.fgColour) {
-				if (glyph.bgColour < 15) {
-					glyph.bgColour = 15;
+				if (glyph.bgColour < Colour.WHITE) {
+					glyph.bgColour = Colour.WHITE;
 				} else {
-					glyph.bgColour = 0;
+					glyph.bgColour = Colour.BLACK;
 				}
 			}
 
@@ -416,7 +437,13 @@ class Terminal {
 		this.mouseClick = false;
 
 		if (this.detailText.length > 0) {
-			this.drawText(this.detailText, this.rows - 1, 0, 0, 15);
+			this.drawText(
+				this.detailText,
+				this.rows - 1,
+				0,
+				Colour.BLACK,
+				Colour.WHITE
+			);
 			this.detailText = "";
 		}
 

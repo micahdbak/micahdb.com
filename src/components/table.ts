@@ -1,4 +1,4 @@
-import { Terminal } from "../terminal.ts";
+import { Terminal, Colour } from "../terminal.ts";
 
 class TableBorders {
 	static draw(
@@ -8,8 +8,8 @@ class TableBorders {
 		trows: number,
 		heights: number[],
 		widths: number[],
-		backColour: number,
-		fgColour: number
+		backColour: Colour,
+		fgColour: Colour
 	) {
 		const hLine = (l: string, m: string, r: string) =>
 			l + widths.map((w) => "─".repeat(w)).join(m) + r;
@@ -91,9 +91,9 @@ class Table {
 		rows: number,
 		cols: number,
 		cells: string[][],
-		backColour: number,
-		fgColour: number,
-		borderColour: number
+		backColour: Colour,
+		fgColour: Colour,
+		borderColour: Colour
 	): number {
 		if (cells.length === 0) {
 			return 0;

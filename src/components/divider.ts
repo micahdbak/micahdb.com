@@ -1,4 +1,4 @@
-import { Terminal } from "../terminal.ts";
+import { Terminal, Colour } from "../terminal.ts";
 
 class Divider {
 	private terminal: Terminal;
@@ -88,8 +88,8 @@ class Divider {
 				str,
 				drawn_row,
 				drawn_col,
-				16,
-				this.hovering ? 8 : 0
+				Colour.BG,
+				this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
 			);
 
 			if (this.dragging) {
@@ -118,8 +118,8 @@ class Divider {
 					"│",
 					drawn_row + i,
 					drawn_col,
-					16,
-					this.hovering ? 8 : 0
+					Colour.BG,
+					this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
 				);
 			}
 
@@ -149,7 +149,13 @@ class Divider {
 					break;
 			}
 
-			this.terminal.drawText(ch, intRow, intCol, 16, this.hovering ? 8 : 0);
+			this.terminal.drawText(
+				ch,
+				intRow,
+				intCol,
+				Colour.BG,
+				this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
+			);
 		}
 
 		// mouse tracking

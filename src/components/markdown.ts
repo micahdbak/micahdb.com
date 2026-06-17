@@ -2,7 +2,7 @@ import { fromMarkdown } from "mdast-util-from-markdown";
 import type { Node, Parent, Text, Heading, Link as MdastLink } from "mdast";
 
 import { Link } from "./link.ts";
-import { Glyph, Terminal } from "../terminal.ts";
+import { Glyph, Terminal, Colour } from "../terminal.ts";
 
 class Markdown {
 	private static readonly SECTION_TYPES = [
@@ -38,8 +38,8 @@ class Markdown {
 		// text drawing settings
 		let r = row - 2; // first section will increment by 2
 		let c = col;
-		let bg = 16;
-		let fg = 17;
+		let bg = Colour.BG;
+		let fg = Colour.FG;
 
 		// lists
 		let list_idx = 0;
@@ -81,7 +81,10 @@ class Markdown {
 			const link_url: string = is_link ? (node as MdastLink).url : "";
 
 			if (is_link) {
-				node = (node as MdastLink).children[0] as Node; // pray this is Text
+				const link_content: Node =
+					(node as MdastLink).children[0] ||
+					({ type: "text", value: link_url } as Node);
+				node = link_content;
 			}
 
 			let font = fonts[depth];
@@ -93,7 +96,13 @@ class Markdown {
 						const heading = node as Heading;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText("#".repeat(heading.depth), r, c, 16, 7);
+							this.terminal.drawText(
+								"#".repeat(heading.depth),
+								r,
+								c,
+								Colour.BG,
+								Colour.GREY
+							);
 						}
 
 						c += heading.depth + 1;
@@ -107,7 +116,7 @@ class Markdown {
 						const text = " -  "; // `${list_idx < 10 ? " " : ""}${list_idx++}. `;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(text, r, c, 16, 7);
+							this.terminal.drawText(text, r, c, Colour.BG, Colour.GREY);
 						}
 
 						c += text.length;
@@ -134,7 +143,7 @@ class Markdown {
 				r += 2;
 
 				if (r >= row && r < row + rows) {
-					this.terminal.drawText("----", r, c, 16, 7);
+					this.terminal.drawText("----", r, c, Colour.BG, Colour.GREY);
 				}
 
 				continue;
@@ -192,7 +201,17 @@ class Markdown {
 							if (word === " " && c === col) {
 								// skip trailing space of a word that ended in a newline to avoid leading spaces
 							} else if (r >= row && r < row + rows) {
-								this.terminal.drawText(word, r, c, bg, fg, 0, 0, false, font);
+								this.terminal.drawText(
+									word,
+									r,
+									c,
+									bg,
+									fg,
+									Colour.BLACK,
+									Colour.BLACK,
+									false,
+									font
+								);
 								c += word.length;
 							}
 						}
@@ -205,7 +224,17 @@ class Markdown {
 
 					if (prefix.length > 0) {
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(prefix, r, c, bg, fg, 0, 0, false, font);
+							this.terminal.drawText(
+								prefix,
+								r,
+								c,
+								bg,
+								fg,
+								Colour.BLACK,
+								Colour.BLACK,
+								false,
+								font
+							);
 						}
 
 						c += prefix.length;
