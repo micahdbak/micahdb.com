@@ -2,7 +2,9 @@ import { fromMarkdown } from "mdast-util-from-markdown";
 import type { Node, Parent, Text, Heading, Link as MdastLink } from "mdast";
 
 import { Link } from "./link.ts";
-import { Glyph, Terminal, Colour } from "../terminal.ts";
+import { Terminal } from "../terminal.ts";
+import { Glyph } from "../glyph.ts";
+import { Colour } from "../colour.ts";
 
 class Markdown {
 	private static readonly SECTION_TYPES = [

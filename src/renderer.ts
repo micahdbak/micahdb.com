@@ -1,5 +1,5 @@
-import VERTEX_SHADER from "./renderer.vert" with { type: "text" };
-import FRAGMENT_SHADER from "./renderer.frag" with { type: "text" };
+import VERTEX_SHADER from "./shaders/renderer.vert" with { type: "text" };
+import FRAGMENT_SHADER from "./shaders/renderer.frag" with { type: "text" };
 
 import {
 	TEXTURES,
@@ -9,6 +9,12 @@ import {
 	loadTextures
 } from "./textures.ts";
 import { ProgramManager } from "./program_manager.ts";
+import { PALETTE } from "./colour.ts";
+import {
+	compileProgram,
+	getAttribLocations,
+	getUniformLocations
+} from "./program.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
@@ -21,32 +27,17 @@ class Renderer {
 	private gl: WebGL2RenderingContext;
 	private glProgram: WebGLProgram;
 
-	private attributes: {
-		bgColour: number;
-		fgColour: number;
-		charCode: number;
-	};
-
-	private uniforms: {
-		rows: WebGLUniformLocation;
-		cols: WebGLUniformLocation;
-		programRow: WebGLUniformLocation;
-		programCol: WebGLUniformLocation;
-		programRows: WebGLUniformLocation;
-		programCols: WebGLUniformLocation;
-		glyphAtlas: WebGLUniformLocation;
-		program: WebGLUniformLocation;
-		palette: WebGLUniformLocation;
-	};
+	private attributes: Record<string, number>;
+	private uniforms: Record<string, WebGLUniformLocation>;
 
 	private logMessage: (source: string, message: string) => void;
+
+	private palette: Float32Array;
 
 	private program: ProgramManager;
 
 	private vbo: WebGLBuffer;
 	private count: number;
-
-	private palette: Float32Array;
 
 	private canvasWidth: number;
 	private canvasHeight: number;
@@ -85,156 +76,53 @@ class Renderer {
 	}
 
 	async init() {
-		this.initializeProgram();
-		this.initializeLocations();
-		this.initializeVBO();
+		this.glProgram = compileProgram(this.gl, VERTEX_SHADER, FRAGMENT_SHADER);
 
-		await loadTextures(this.gl, this.logMessage);
+		this.attributes = getAttribLocations(this.gl, this.glProgram, {
+			bgColour: "a_bgColour",
+			fgColour: "a_fgColour",
+			charCode: "a_charCode"
+		});
 
-		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
+		this.uniforms = getUniformLocations(this.gl, this.glProgram, {
+			rows: "u_rows",
+			cols: "u_cols",
+			programRow: "u_program_row",
+			programCol: "u_program_col",
+			programRows: "u_program_rows",
+			programCols: "u_program_cols",
+			glyphAtlas: "u_glyphAtlas",
+			program: "u_program",
+			palette: "u_palette"
+		});
 
-		this.gl.uniform1i(this.uniforms.rows, this.rows);
-		this.gl.uniform1i(this.uniforms.cols, this.cols);
-
-		this.gl.uniform1i(this.uniforms.programRow, this.programRow);
-		this.gl.uniform1i(this.uniforms.programCol, this.programCol);
-		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
-		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
-
-		this.program = new ProgramManager(this.gl, this.logMessage);
-		this.program.init();
-		this.program.which = "earth";
-	}
-
-	initializeProgram() {
-		const vertShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-		if (!vertShader) {
-			throw new Error("When creating vertex shader");
-		}
-
-		this.gl.shaderSource(vertShader, VERTEX_SHADER);
-		this.gl.compileShader(vertShader);
-		if (!this.gl.getShaderParameter(vertShader, this.gl.COMPILE_STATUS)) {
-			throw new Error(
-				"When compiling vertex shader: " + this.gl.getShaderInfoLog(vertShader)
-			);
-		}
-
-		const fragShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-		if (!fragShader) {
-			throw new Error("When creating fragment shader");
-		}
-
-		this.gl.shaderSource(fragShader, FRAGMENT_SHADER);
-		this.gl.compileShader(fragShader);
-		if (!this.gl.getShaderParameter(fragShader, this.gl.COMPILE_STATUS)) {
-			throw new Error(
-				"When compiling fragment shader: " +
-					this.gl.getShaderInfoLog(fragShader)
-			);
-		}
-
-		const glProgram = this.gl.createProgram();
-		if (!glProgram) {
-			throw new Error("When creating GPU glProgram");
-		}
-
-		this.glProgram = glProgram;
-
-		this.gl.attachShader(this.glProgram, vertShader);
-		this.gl.attachShader(this.glProgram, fragShader);
-		this.gl.linkProgram(this.glProgram);
-		if (!this.gl.getProgramParameter(this.glProgram, this.gl.LINK_STATUS)) {
-			throw new Error(
-				"When linking shader program: " +
-					this.gl.getProgramInfoLog(this.glProgram)
-			);
-		}
-
-		this.gl.useProgram(this.glProgram);
-	}
-
-	initializeLocations() {
-		// store attribute locations
-		this.attributes = {
-			bgColour: this.gl.getAttribLocation(this.glProgram, "a_bgColour"),
-			fgColour: this.gl.getAttribLocation(this.glProgram, "a_fgColour"),
-			charCode: this.gl.getAttribLocation(this.glProgram, "a_charCode")
-		};
-
-		if (
-			this.attributes.bgColour < 0 ||
-			this.attributes.fgColour < 0 ||
-			this.attributes.charCode < 0
-		) {
-			throw new Error("When getting attribute locations");
-		}
-
-		const rows = this.gl.getUniformLocation(this.glProgram, "u_rows");
-		const cols = this.gl.getUniformLocation(this.glProgram, "u_cols");
-		const programRow = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_program_row"
-		);
-		const programCol = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_program_col"
-		);
-		const programRows = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_program_rows"
-		);
-		const programCols = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_program_cols"
-		);
-		const glyphAtlas = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_glyphAtlas"
-		);
-		const program = this.gl.getUniformLocation(this.glProgram, "u_program");
-		const palette = this.gl.getUniformLocation(this.glProgram, "u_palette");
-
-		if (
-			!rows ||
-			!cols ||
-			!programRow ||
-			!programCol ||
-			!programRows ||
-			!programCols ||
-			!glyphAtlas ||
-			!program ||
-			!palette
-		) {
-			throw new Error("When getting uniform locations");
-		}
-
-		this.gl.uniform1i(program, PROGRAM_TEXTURE_INDEX);
-
-		// store uniform locations
-		this.uniforms = {
-			rows,
-			cols,
-			programRow,
-			programCol,
-			programRows,
-			programCols,
-			glyphAtlas,
-			program,
-			palette
-		};
-	}
-
-	initializeVBO() {
 		this.vbo = this.gl.createBuffer();
+
 		if (!this.vbo) {
 			throw new Error("When creating vertex buffer");
 		}
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
-	}
 
-	async initializeTextures() {}
+		await loadTextures(this.gl, this.logMessage);
+
+		this.palette = new Float32Array(PALETTE.map((e) => e / 0xff));
+
+		this.gl.useProgram(this.glProgram);
+		this.gl.uniform1i(this.uniforms.rows, this.rows);
+		this.gl.uniform1i(this.uniforms.cols, this.cols);
+		this.gl.uniform1i(this.uniforms.programRow, this.programRow);
+		this.gl.uniform1i(this.uniforms.programCol, this.programCol);
+		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
+		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
+		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.program, PROGRAM_TEXTURE_INDEX);
+		this.gl.uniform3fv(this.uniforms.palette, this.palette);
+
+		this.program = new ProgramManager(this.gl, this.logMessage);
+		this.program.init();
+		this.program.which = "earth";
+	}
 
 	enableAttributes() {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
@@ -333,12 +221,6 @@ class Renderer {
 		this.gl.useProgram(this.glProgram);
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
-	}
-
-	setPalette(palette: Float32Array) {
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform3fv(this.uniforms.palette, palette);
-		this.palette = palette;
 	}
 
 	draw() {

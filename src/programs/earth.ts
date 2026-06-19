@@ -1,5 +1,5 @@
-import VERTEX_SHADER from "./sphere.vert" with { type: "text" };
-import FRAGMENT_SHADER from "./sphere.frag" with { type: "text" };
+import VERTEX_SHADER from "../shaders/sphere.vert" with { type: "text" };
+import FRAGMENT_SHADER from "../shaders/sphere.frag" with { type: "text" };
 
 import {
 	TEXTURES,
@@ -9,28 +9,19 @@ import {
 	EARTH_NORMAL,
 	MOON_TEXTURE,
 	MOON_NORMAL
-} from "../../textures.ts";
-import { Program } from "../../program.ts";
+} from "../textures.ts";
+import {
+	compileProgram,
+	getAttribLocations,
+	getUniformLocations,
+	Program
+} from "../program.ts";
 import { Mat4 } from "../math.ts";
 import { SphereMesh } from "../meshes/sphere.ts";
 
 export class EarthProgram extends Program {
-	private attributes: {
-		position: number;
-		normal: number;
-		tangent: number;
-		uvCoord: number;
-	};
-
-	private uniforms: {
-		projectionMatrix: WebGLUniformLocation;
-		viewMatrix: WebGLUniformLocation;
-		modelMatrix: WebGLUniformLocation;
-		normalMatrix: WebGLUniformLocation;
-		sphereTexture: WebGLUniformLocation;
-		sphereNormal: WebGLUniformLocation;
-		lightPosition: WebGLUniformLocation;
-	};
+	private attributes: Record<string, number>;
+	private uniforms: Record<string, WebGLUniformLocation>;
 
 	private vbo: WebGLBuffer;
 	private ibo: WebGLBuffer;
@@ -38,8 +29,24 @@ export class EarthProgram extends Program {
 	private sphere: SphereMesh;
 
 	init() {
-		this.loadProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-		this.initializeLocations();
+		this.glProgram = compileProgram(this.gl, VERTEX_SHADER, FRAGMENT_SHADER);
+
+		this.attributes = getAttribLocations(this.gl, this.glProgram, {
+			position: "a_position",
+			normal: "a_normal",
+			tangent: "a_tangent",
+			uvCoord: "a_uvCoord"
+		});
+
+		this.uniforms = getUniformLocations(this.gl, this.glProgram, {
+			projectionMatrix: "u_projectionMatrix",
+			viewMatrix: "u_viewMatrix",
+			modelMatrix: "u_modelMatrix",
+			normalMatrix: "u_normalMatrix",
+			sphereTexture: "u_sphereTexture",
+			sphereNormal: "u_sphereNormal",
+			lightPosition: "u_lightPosition"
+		});
 
 		this.vbo = this.gl.createBuffer();
 		if (!this.vbo) {
@@ -69,79 +76,6 @@ export class EarthProgram extends Program {
 			new Uint16Array(this.sphere.indices),
 			this.gl.STATIC_DRAW
 		);
-	}
-
-	initializeLocations() {
-		this.gl.useProgram(this.glProgram);
-
-		// store attribute locations
-		this.attributes = {
-			position: this.gl.getAttribLocation(this.glProgram, "a_position"),
-			normal: this.gl.getAttribLocation(this.glProgram, "a_normal"),
-			tangent: this.gl.getAttribLocation(this.glProgram, "a_tangent"),
-			uvCoord: this.gl.getAttribLocation(this.glProgram, "a_uvCoord")
-		};
-
-		if (
-			this.attributes.position < 0 ||
-			this.attributes.normal < 0 ||
-			this.attributes.tangent < 0 ||
-			this.attributes.uvCoord < 0
-		) {
-			throw new Error("When getting attribute locations");
-		}
-
-		const projectionMatrix = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_projectionMatrix"
-		);
-		const viewMatrix = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_viewMatrix"
-		);
-		const modelMatrix = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_modelMatrix"
-		);
-		const normalMatrix = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_normalMatrix"
-		);
-		const sphereTexture = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_sphereTexture"
-		);
-		const sphereNormal = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_sphereNormal"
-		);
-		const lightPosition = this.gl.getUniformLocation(
-			this.glProgram,
-			"u_lightPosition"
-		);
-
-		if (
-			!projectionMatrix ||
-			!viewMatrix ||
-			!modelMatrix ||
-			!normalMatrix ||
-			!sphereTexture ||
-			!sphereNormal ||
-			!lightPosition
-		) {
-			throw new Error("When getting uniform locations");
-		}
-
-		// store uniform locations
-		this.uniforms = {
-			projectionMatrix,
-			modelMatrix,
-			viewMatrix,
-			normalMatrix,
-			sphereTexture,
-			sphereNormal,
-			lightPosition
-		};
 	}
 
 	draw(projectionMatrix: Float32Array, viewMatrix: Float32Array) {

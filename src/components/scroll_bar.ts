@@ -1,4 +1,5 @@
-import { Terminal, Colour } from "../terminal.ts";
+import { Terminal } from "../terminal.ts";
+import { Colour } from "../colour.ts";
 
 class ScrollBar {
 	private terminal: Terminal;

@@ -1,5 +1,5 @@
+import { Mat4 } from "./math.ts";
 import { Program } from "./program.ts";
-import { Mat4 } from "./programs/math.ts";
 import { CubeProgram } from "./programs/cube";
 import { EarthProgram } from "./programs/earth";
 import { SkyboxProgram } from "./programs/skybox";

@@ -1,0 +1,47 @@
+export enum Colour {
+	BLACK = 0,
+	RED = 1,
+	ORANGE = 2,
+	GREEN = 3,
+	CYAN = 4,
+	BLUE = 5,
+	PURPLE = 6,
+	GREY = 7,
+	LIGHT_BLACK = 8,
+	LIGHT_RED = 9,
+	YELLOW = 10,
+	LIGHT_GREEN = 11,
+	LIGHT_CYAN = 12,
+	LIGHT_BLUE = 13,
+	LIGHT_PURPLE = 14,
+	WHITE = 15,
+	BG = 16,
+	FG = 17
+}
+
+// prettier-ignore
+export const PALETTE = [
+	// dark colours
+	0x28, 0x2a, 0x2e, // Colour.BLACK
+	0xa5, 0x42, 0x42, // Colour.RED
+	0xde, 0x93, 0x5f, // Colour.ORANGE
+	0x8c, 0x94, 0x40, // Colour.GREEN
+	0x5e, 0x8d, 0x87, // Colour.CYAN
+	0x5f, 0x81, 0x9d, // Colour.BLUE
+	0x85, 0x67, 0x8f, // Colour.PURPLE
+	0x86, 0x88, 0x86, // Colour.GREY
+
+	// bright colours
+	0x37, 0x3b, 0x41, // Colour.LIGHT_BLACK
+	0xcc, 0x66, 0x66, // Colour.LIGHT_RED
+	0xf0, 0xc6, 0x74, // Colour.YELLOW
+	0xb5, 0xbd, 0x68, // Colour.LIGHT_GREEN
+	0x8a, 0xbe, 0xb7, // Colour.LIGHT_CYAN
+	0x81, 0xa2, 0xbe, // Colour.LIGHT_BLUE
+	0xb2, 0x94, 0xbb, // Colour.LIGHT_PURPLE
+	0xd5, 0xd8, 0xd6, // Colour.WHITE
+
+	// extra colours
+	0x16, 0x17, 0x18, // Colour.BG
+	0xcd, 0xcd, 0xcd, // Colour.FG
+];

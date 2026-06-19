@@ -1,4 +1,6 @@
-import { Glyph, Terminal, Colour } from "../terminal.ts";
+import { Glyph } from "../glyph.ts";
+import { Terminal } from "../terminal.ts";
+import { Colour } from "../colour.ts";
 
 class Link {
 	static draw(

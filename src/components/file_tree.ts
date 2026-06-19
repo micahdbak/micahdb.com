@@ -1,5 +1,7 @@
 import { ScrollBar } from "./scroll_bar.ts";
-import { Glyph, Terminal, Colour } from "../terminal.ts";
+import { Glyph } from "../glyph.ts";
+import { Terminal } from "../terminal.ts";
+import { Colour } from "../colour.ts";
 
 type FileClickFunction = (file: File) => void;
 
