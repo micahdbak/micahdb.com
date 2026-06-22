@@ -6,13 +6,13 @@ precision mediump float;
 
 in mat3 v_TBN;
 in vec3 v_position;
-in vec2 v_uvCoord;
+in vec2 v_uv_coord;
 in vec3 v_light;
 
-uniform sampler2D u_sphereTexture;
-uniform sampler2D u_sphereNormal;
+uniform sampler2D u_sphere_texture;
+uniform sampler2D u_sphere_normal;
 
-out vec4 fragColour;
+out vec4 frag_colour;
 
 // NOTE: these are in order of the colours in src/index.ts
 const vec3 dimensions[NUM_DIMENSIONS] = vec3[NUM_DIMENSIONS](
@@ -49,14 +49,14 @@ float getLum(vec3 col, uint dim) {
 }
 
 void main() {
-	vec3 normal = texture(u_sphereNormal, v_uvCoord).rgb;
+	vec3 normal = texture(u_sphere_normal, v_uv_coord).rgb;
 	normal = normal * 2.0 - 1.0;
 	normal = normalize(v_TBN * normal);
 
 	vec3 light = normalize(v_light);
 	float lam = 1.5 * dot(normal, light);
 
-	vec3 col = texture(u_sphereTexture, v_uvCoord).rgb;
+	vec3 col = texture(u_sphere_texture, v_uv_coord).rgb;
 
 	uint dim = getDim(col);
 	float lum = lam * getLum(col, dim);
@@ -92,7 +92,7 @@ void main() {
 	uint bg = bgs[layer];
 	uint fg = fgs[layer];
 
-	fragColour = vec4(
+	frag_colour = vec4(
 		float(glyph >> 8) / 256.0,
 		float(glyph & 255U) / 256.0,
 		float(bg) / 256.0,

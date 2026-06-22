@@ -89,14 +89,8 @@ export class Canvas extends EventTarget {
 		this.element.height = this.height;
 		this.element.width = this.width;
 
-		this.actual_cell_height = Math.max(
-			Canvas.CELL_HEIGHT / 2,
-			Canvas.CELL_HEIGHT * dpr
-		);
-		this.actual_cell_width = Math.max(
-			Canvas.CELL_WIDTH / 2,
-			Canvas.CELL_WIDTH * dpr
-		);
+		this.actual_cell_height = Math.max(Canvas.CELL_HEIGHT / 2, Canvas.CELL_HEIGHT * dpr);
+		this.actual_cell_width = Math.max(Canvas.CELL_WIDTH / 2, Canvas.CELL_WIDTH * dpr);
 
 		const rows = Math.round(Math.max(1, this.height / this.actual_cell_height));
 		const cols = Math.round(Math.max(1, this.width / this.actual_cell_width));

@@ -4,9 +4,9 @@ import { join } from "node:path";
 export async function loadContent(): Promise<Record<string, string>> {
 	const glob = new Glob("**/*.md"); // all markdown files
 	const scan_path = "./src/markdown";
-	const paths = await Array.fromAsync(
-		glob.scan({ cwd: scan_path, onlyFiles: true })
-	);
+
+	// eslint-disable-next-line
+	const paths = await Array.fromAsync(glob.scan({ cwd: scan_path, onlyFiles: true }));
 
 	const content: Record<string, string> = {};
 

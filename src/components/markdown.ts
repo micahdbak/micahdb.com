@@ -7,13 +7,7 @@ import { Glyph } from "../glyph.ts";
 import { Colour } from "../colour.ts";
 
 class Markdown {
-	private static readonly SECTION_TYPES = [
-		"code",
-		"heading",
-		"list",
-		"listItem",
-		"paragraph"
-	];
+	private static readonly SECTION_TYPES = ["code", "heading", "list", "listItem", "paragraph"];
 
 	private terminal: Terminal;
 	private root: Node;
@@ -84,8 +78,7 @@ class Markdown {
 
 			if (is_link) {
 				const link_content: Node =
-					(node as MdastLink).children[0] ||
-					({ type: "text", value: link_url } as Node);
+					(node as MdastLink).children[0] || ({ type: "text", value: link_url } as Node);
 				node = link_content;
 			}
 
@@ -98,12 +91,7 @@ class Markdown {
 						const heading = node as Heading;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(
-								"#".repeat(heading.depth),
-								r,
-								c,
-								Colour.GREY
-							);
+							this.terminal.drawText("#".repeat(heading.depth), r, c, Colour.GREY);
 						}
 
 						c += heading.depth + 1;

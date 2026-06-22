@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "copy-public": "mkdir -p build && cp -r ./public/* ./build",
-    "build": "bun run copy-public && bun build ./src/index.ts --outdir ./build && bun build ./src/glyphatlas.ts --outdir ./build",
+    "build": "bun run copy-public && bun build ./src/index.ts --outdir ./build && bun build ./src/glyph_atlas.ts --outdir ./build",
     "dev": "bun run copy-public && bun build ./src/index.ts --outdir ./build --watch",
     "lint": "eslint src",
     "format": "prettier --write src",
@@ -13,7 +13,8 @@
   },
   "prettier": {
     "useTabs": true,
-    "trailingComma": "none"
+    "trailingComma": "none",
+    "printWidth": 100
   },
   "devDependencies": {
     "@types/bun": "latest",

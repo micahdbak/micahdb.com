@@ -10,12 +10,7 @@ import {
 	MOON_TEXTURE,
 	MOON_NORMAL
 } from "../textures.ts";
-import {
-	compileProgram,
-	getAttribLocations,
-	getUniformLocations,
-	Program
-} from "../program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations, Program } from "../program.ts";
 import { Mat4 } from "../math.ts";
 import { SphereMesh } from "../meshes/sphere.ts";
 
@@ -29,23 +24,23 @@ export class EarthProgram extends Program {
 	private sphere: SphereMesh;
 
 	init() {
-		this.glProgram = compileProgram(this.gl, VERTEX_SHADER, FRAGMENT_SHADER);
+		this.gl_program = compileProgram(this.gl, VERTEX_SHADER, FRAGMENT_SHADER);
 
-		this.attributes = getAttribLocations(this.gl, this.glProgram, {
+		this.attributes = getAttribLocations(this.gl, this.gl_program, {
 			position: "a_position",
 			normal: "a_normal",
 			tangent: "a_tangent",
-			uvCoord: "a_uvCoord"
+			uv_coord: "a_uv_coord"
 		});
 
-		this.uniforms = getUniformLocations(this.gl, this.glProgram, {
-			projectionMatrix: "u_projectionMatrix",
-			viewMatrix: "u_viewMatrix",
-			modelMatrix: "u_modelMatrix",
-			normalMatrix: "u_normalMatrix",
-			sphereTexture: "u_sphereTexture",
-			sphereNormal: "u_sphereNormal",
-			lightPosition: "u_lightPosition"
+		this.uniforms = getUniformLocations(this.gl, this.gl_program, {
+			projection_matrix: "u_projection_matrix",
+			view_matrix: "u_view_matrix",
+			model_matrix: "u_model_matrix",
+			normal_matrix: "u_normal_matrix",
+			sphere_texture: "u_sphere_texture",
+			sphere_normal: "u_sphere_normal",
+			light_position: "u_light_position"
 		});
 
 		this.vbo = this.gl.createBuffer();
@@ -58,18 +53,14 @@ export class EarthProgram extends Program {
 			throw new Error("When creating index buffer");
 		}
 
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
+		this.gl.useProgram(this.gl_program);
+		this.gl.uniform1i(this.uniforms.sphere_texture, SPHERE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.sphere_normal, SPHERE_NORMAL_INDEX);
 
 		this.sphere = new SphereMesh(7, 15);
 
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
-		this.gl.bufferData(
-			this.gl.ARRAY_BUFFER,
-			this.sphere.data(),
-			this.gl.STATIC_DRAW
-		);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, this.sphere.data(), this.gl.STATIC_DRAW);
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
 		this.gl.bufferData(
 			this.gl.ELEMENT_ARRAY_BUFFER,
@@ -78,45 +69,38 @@ export class EarthProgram extends Program {
 		);
 	}
 
-	draw(projectionMatrix: Float32Array, viewMatrix: Float32Array) {
-		this.gl.useProgram(this.glProgram);
+	draw(projection_matrix: Float32Array, view_matrix: Float32Array) {
+		this.gl.useProgram(this.gl_program);
 
 		// consistent for both earth and moon
 
 		this.sphere.enableAttributes(this.gl, this.vbo, this.attributes);
 
-		this.gl.uniformMatrix4fv(
-			this.uniforms.projectionMatrix,
-			false,
-			projectionMatrix
-		);
+		this.gl.uniformMatrix4fv(this.uniforms.projection_matrix, false, projection_matrix);
 
-		this.gl.uniformMatrix4fv(this.uniforms.viewMatrix, false, viewMatrix);
+		this.gl.uniformMatrix4fv(this.uniforms.view_matrix, false, view_matrix);
 
-		this.gl.uniform3fv(this.uniforms.lightPosition, [1.0, 0.1, 0.0]);
+		this.gl.uniform3fv(this.uniforms.light_position, [1.0, 0.1, 0.0]);
 
-		this.gl.uniform1i(this.uniforms.sphereTexture, SPHERE_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.sphereNormal, SPHERE_NORMAL_INDEX);
+		this.gl.uniform1i(this.uniforms.sphere_texture, SPHERE_TEXTURE_INDEX);
+		this.gl.uniform1i(this.uniforms.sphere_normal, SPHERE_NORMAL_INDEX);
 
-		const modelMatrix = Mat4.create();
-		const modelViewMatrix = Mat4.create();
-		const normalMatrix = new Float32Array(9); // 3x3 matrix
+		const model_matrix = Mat4.create();
+		const model_view_matrix = Mat4.create();
+		const normal_matrix = new Float32Array(9); // 3x3 matrix
 
 		// earth
 
 		const upright = Mat4.rotation("x", Math.PI / 2);
 		const upright2 = Mat4.rotation("z", Math.PI);
 		Mat4.multiply(upright, upright2, upright);
-		const spin = Mat4.rotation(
-			"y",
-			(2.0 * Math.PI * (Date.now() % 30000)) / 30000
-		);
-		Mat4.multiply(modelMatrix, spin, upright);
-		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
+		const spin = Mat4.rotation("y", (2.0 * Math.PI * (Date.now() % 30000)) / 30000);
+		Mat4.multiply(model_matrix, spin, upright);
+		this.gl.uniformMatrix4fv(this.uniforms.model_matrix, false, model_matrix);
 
-		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
-		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
-		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+		Mat4.multiply(model_view_matrix, view_matrix, model_matrix);
+		Mat4.inverseTranspose3x3(normal_matrix, model_view_matrix);
+		this.gl.uniformMatrix3fv(this.uniforms.normal_matrix, false, normal_matrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_TEXTURE]);
@@ -124,29 +108,24 @@ export class EarthProgram extends Program {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[EARTH_NORMAL]);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
-		this.gl.drawElements(
-			this.gl.TRIANGLES,
-			this.sphere.indices.length,
-			this.gl.UNSIGNED_SHORT,
-			0
-		);
+		this.gl.drawElements(this.gl.TRIANGLES, this.sphere.indices.length, this.gl.UNSIGNED_SHORT, 0);
 
 		// moon
 
-		const moonAngle = (2.0 * Math.PI * (Date.now() % 25000)) / 25000;
-		const moonX = 3.0 * Math.cos(moonAngle);
-		const moonZ = 3.0 * Math.sin(moonAngle);
+		const moon_angle = (2.0 * Math.PI * (Date.now() % 25000)) / 25000;
+		const moon_x = 3.0 * Math.cos(moon_angle);
+		const moon_z = 3.0 * Math.sin(moon_angle);
 		Mat4.multiply(
-			modelMatrix,
-			Mat4.translation(moonX, 0.0, moonZ),
-			Mat4.rotation("y", -moonAngle)
+			model_matrix,
+			Mat4.translation(moon_x, 0.0, moon_z),
+			Mat4.rotation("y", -moon_angle)
 		);
-		Mat4.multiply(modelMatrix, modelMatrix, Mat4.scale(0.27, 0.27, 0.27));
-		this.gl.uniformMatrix4fv(this.uniforms.modelMatrix, false, modelMatrix);
+		Mat4.multiply(model_matrix, model_matrix, Mat4.scale(0.27, 0.27, 0.27));
+		this.gl.uniformMatrix4fv(this.uniforms.model_matrix, false, model_matrix);
 
-		Mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
-		Mat4.inverseTranspose3x3(normalMatrix, modelViewMatrix);
-		this.gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, normalMatrix);
+		Mat4.multiply(model_view_matrix, view_matrix, model_matrix);
+		Mat4.inverseTranspose3x3(normal_matrix, model_view_matrix);
+		this.gl.uniformMatrix3fv(this.uniforms.normal_matrix, false, normal_matrix);
 
 		this.gl.activeTexture(this.gl.TEXTURE0 + SPHERE_TEXTURE_INDEX);
 		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_TEXTURE]);
@@ -154,11 +133,6 @@ export class EarthProgram extends Program {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[MOON_NORMAL]);
 
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
-		this.gl.drawElements(
-			this.gl.TRIANGLES,
-			this.sphere.indices.length,
-			this.gl.UNSIGNED_SHORT,
-			0
-		);
+		this.gl.drawElements(this.gl.TRIANGLES, this.sphere.indices.length, this.gl.UNSIGNED_SHORT, 0);
 	}
 }

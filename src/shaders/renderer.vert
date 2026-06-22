@@ -52,7 +52,7 @@ vec2 glyphTopLeft(uint char_code) {
 
 void main() {
 	int cell = gl_VertexID / VERTICES_PER_GLYPH;
-	int cellVertex = gl_VertexID % VERTICES_PER_GLYPH;
+	int cell_vertex = gl_VertexID % VERTICES_PER_GLYPH;
 
 	// top left row/col for this cell
 	int row = cell / u_cols;
@@ -71,12 +71,12 @@ void main() {
 		int vrow = row - u_program_row;
 		int vcol = col - u_program_col;
 
-		vec2 texCell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
-		vec4 texSample = texture(u_program, texCell);
+		vec2 tex_cell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
+		vec4 tex_sample = texture(u_program, tex_cell);
 
-		uint char_code = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
-		uint bg = uint(round(texSample.b * 256.0));
-		uint fg = uint(round(texSample.a * 256.0));
+		uint char_code = (uint(round(tex_sample.r * 256.0)) << 8) + uint(round(tex_sample.g * 256.0));
+		uint bg = uint(round(tex_sample.b * 256.0));
+		uint fg = uint(round(tex_sample.a * 256.0));
 
 		if (bg == 0U && char_code < 32U) {
 			fg = 0U;
@@ -100,7 +100,7 @@ void main() {
 
 
 	// switch properties according to which vertex this is for
-	switch (cellVertex) {
+	switch (cell_vertex) {
 	case 1: // bottom-left
 	case 3:
 		row++;
@@ -131,8 +131,8 @@ void main() {
 	v_uv_coord = uv_coord;
 
 	// position needs to be in [-1.0, 1.0]
-	float ndcX = 2.0 * float(col) / float(u_cols) - 1.0;
-	float ndcY = -2.0 * float(row) / float(u_rows) + 1.0;
+	float ndc_x = 2.0 * float(col) / float(u_cols) - 1.0;
+	float ndc_y = -2.0 * float(row) / float(u_rows) + 1.0;
 
-	gl_Position = vec4(ndcX, ndcY, 0.0, 1.0);
+	gl_Position = vec4(ndc_x, ndc_y, 0.0, 1.0);
 }

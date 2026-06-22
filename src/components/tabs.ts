@@ -19,9 +19,9 @@ class Tabs {
 		row: number,
 		col: number,
 		cols: number,
-		backColour: Colour,
-		fgColour: Colour,
-		selBgColour: Colour
+		bg_col: Colour,
+		fg_col: Colour,
+		sel_bg: Colour
 	) {
 		const rows: string[][] = [[]];
 		const widths: number[] = [0];
@@ -61,37 +61,26 @@ class Tabs {
 
 		for (let i = 0; i < rows.length; i++) {
 			let lcols = Math.floor((cols - widths[i]) / 2);
-			const _tabs = rows[i];
+			const row_tabs = rows[i];
 
-			for (let j = 0; j < _tabs.length; j++) {
-				const tab = _tabs[j];
+			for (let j = 0; j < row_tabs.length; j++) {
+				const tab = row_tabs[j];
 				const c = col + lcols;
 
-				const isHovered = this.terminal.canvas.mouseAt(r, c, 1, tab.length);
-				const wasHovered = this.terminal.canvas.mouseDownAt(
-					r,
-					c,
-					1,
-					tab.length
-				);
+				const is_hovered = this.terminal.canvas.mouseAt(r, c, 1, tab.length);
+				const was_hovered = this.terminal.canvas.mouseDownAt(r, c, 1, tab.length);
 
-				if (isHovered && wasHovered && this.terminal.canvas.mouse_click) {
+				if (is_hovered && was_hovered && this.terminal.canvas.mouse_click) {
 					this.which = tabi;
 				}
 
-				const bg =
-					tabi === this.which
-						? selBgColour
-						: isHovered
-							? Colour.WHITE
-							: backColour;
-				const fg =
-					tabi === this.which ? fgColour : isHovered ? Colour.BG : fgColour;
+				const bg = tabi === this.which ? sel_bg : is_hovered ? Colour.WHITE : bg_col;
+				const fg = tabi === this.which ? fg_col : is_hovered ? Colour.BG : fg_col;
 
 				this.terminal.drawText(tab, r, c, fg, bg);
 
-				if (j < _tabs.length - 1) {
-					this.terminal.drawText("|", r, c + tab.length, backColour, Colour.BG);
+				if (j < row_tabs.length - 1) {
+					this.terminal.drawText("|", r, c + tab.length, bg_col, Colour.BG);
 					lcols += tab.length + 1;
 				} // else; will break
 

@@ -5,7 +5,7 @@ class Divider {
 	private terminal: Terminal;
 	private frac: number;
 	private interactive: boolean;
-	private mouseWasDown: boolean;
+	private mouse_was_down: boolean;
 	private dragging: boolean;
 	private hovering: boolean;
 
@@ -25,7 +25,7 @@ class Divider {
 		this.terminal = terminal;
 		this.frac = frac;
 		this.interactive = interactive;
-		this.mouseWasDown = false;
+		this.mouse_was_down = false;
 		this.dragging = false;
 	}
 
@@ -39,18 +39,15 @@ class Divider {
 		col: number,
 		rows: number,
 		cols: number,
-		minRow: number = 0,
-		minCol: number = 0,
-		intRow: number = 0,
-		intCol: number = 0,
+		min_row: number = 0,
+		min_col: number = 0,
+		int_row: number = 0,
+		int_col: number = 0,
 		intersect: number = Divider.INTERSECT_NONE
 	) {
 		if (
 			intersect !== Divider.INTERSECT_NONE &&
-			(intRow < row ||
-				intRow >= row + rows ||
-				intCol < col ||
-				intCol >= col + cols)
+			(int_row < row || int_row >= row + rows || int_col < col || int_col >= col + cols)
 		) {
 			intersect = Divider.INTERSECT_NONE;
 		}
@@ -75,11 +72,11 @@ class Divider {
 			drawn_col = col;
 			drawn_rows = 1;
 			drawn_cols = cols;
-			intRow = drawn_row;
+			int_row = drawn_row;
 
-			if (drawn_row < minRow) {
-				drawn_row = minRow;
-				intRow = minRow;
+			if (drawn_row < min_row) {
+				drawn_row = min_row;
+				int_row = min_row;
 			}
 
 			this.trows = drawn_row - row;
@@ -91,11 +88,8 @@ class Divider {
 
 			if (this.dragging) {
 				let mouse_row =
-					Math.max(
-						Math.min(this.terminal.canvas.mouse_row, row + rows - 1),
-						row
-					) - row;
-				mouse_row = Math.max(mouse_row, minRow);
+					Math.max(Math.min(this.terminal.canvas.mouse_row, row + rows - 1), row) - row;
+				mouse_row = Math.max(mouse_row, min_row);
 				this.frac = mouse_row / (rows - 1);
 			}
 		} else {
@@ -103,11 +97,11 @@ class Divider {
 			drawn_col = col + Math.floor((cols - 1) * this.frac);
 			drawn_rows = rows;
 			drawn_cols = 1;
-			intCol = drawn_col;
+			int_col = drawn_col;
 
-			if (drawn_col < minCol) {
-				drawn_col = minCol;
-				intCol = minCol;
+			if (drawn_col < min_col) {
+				drawn_col = min_col;
+				int_col = min_col;
 			}
 
 			this.trows = rows;
@@ -119,11 +113,8 @@ class Divider {
 
 			if (this.dragging) {
 				let mouse_col =
-					Math.max(
-						Math.min(this.terminal.canvas.mouse_col, col + cols - 1),
-						col
-					) - col;
-				mouse_col = Math.max(mouse_col, minCol);
+					Math.max(Math.min(this.terminal.canvas.mouse_col, col + cols - 1), col) - col;
+				mouse_col = Math.max(mouse_col, min_col);
 				this.frac = mouse_col / (cols - 1);
 			}
 		}
@@ -146,7 +137,7 @@ class Divider {
 					break;
 			}
 
-			this.terminal.drawText(ch, intRow, intCol, fg);
+			this.terminal.drawText(ch, int_row, int_col, fg);
 		}
 
 		// mouse tracking
@@ -155,35 +146,30 @@ class Divider {
 			return;
 		}
 
-		const mouseInside = this.terminal.canvas.mouseAt(
-			drawn_row,
-			drawn_col,
-			drawn_rows,
-			drawn_cols
-		);
+		const mouse_inside = this.terminal.canvas.mouseAt(drawn_row, drawn_col, drawn_rows, drawn_cols);
 
 		if (!this.terminal.canvas.mouse_down) {
 			if (this.dragging) {
 				this.terminal.canvas.mouse_owner = "";
 			}
-			this.mouseWasDown = false;
+			this.mouse_was_down = false;
 			this.dragging = false;
 
-			if (mouseInside) {
+			if (mouse_inside) {
 				document.body.className = "grab";
 				this.hovering = true;
 			} else {
 				this.hovering = false;
 			}
-		} else if (!this.mouseWasDown) {
-			if (mouseInside && this.terminal.canvas.mouse_owner === "") {
+		} else if (!this.mouse_was_down) {
+			if (mouse_inside && this.terminal.canvas.mouse_owner === "") {
 				this.dragging = true;
 				this.terminal.canvas.mouse_owner = "divider";
 			} else {
 				this.dragging = false;
 			}
 
-			this.mouseWasDown = true;
+			this.mouse_was_down = true;
 		} else if (this.dragging) {
 			// mouse is dragging
 			document.body.className = "grabbing";

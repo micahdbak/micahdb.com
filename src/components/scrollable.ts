@@ -27,9 +27,7 @@ class Scrollable {
 					case 0:
 						this.wheel_px += event.deltaY;
 
-						if (
-							Math.abs(this.wheel_px) >= this.terminal.canvas.actual_cell_height
-						) {
+						if (Math.abs(this.wheel_px) >= this.terminal.canvas.actual_cell_height) {
 							this.wheel_rows += Math.floor(
 								this.wheel_px / this.terminal.canvas.actual_cell_height
 							);
@@ -56,13 +54,7 @@ class Scrollable {
 		);
 	}
 
-	draw(
-		row: number,
-		col: number,
-		rows: number,
-		cols: number,
-		inner_rows: number
-	) {
+	draw(row: number, col: number, rows: number, cols: number, inner_rows: number) {
 		if (row < 0 || col < 0 || rows <= 0 || cols <= 0) {
 			return;
 		}
@@ -90,10 +82,7 @@ class Scrollable {
 			this.terminal.canvas.mouseAt(row, col, rows, cols) &&
 			this.terminal.canvas.mouseDownAt(row, col, rows, cols)
 		) {
-			if (
-				this.terminal.canvas.mouse_owner === "" &&
-				this.terminal.canvas.mouse_down
-			) {
+			if (this.terminal.canvas.mouse_owner === "" && this.terminal.canvas.mouse_down) {
 				this.terminal.canvas.mouse_owner = "scrollable";
 				this.is_dragging = true;
 				this.drag_start_offset = this.row_offset;
@@ -130,17 +119,17 @@ class Scrollable {
 
 		if (this.row_offset > 0) {
 			const hint = "(Scroll Up)";
-			const leftCols = Math.ceil((cols - hint.length) / 2);
-			const rightCols = cols - hint.length - leftCols;
-			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
+			const left_cols = Math.ceil((cols - hint.length) / 2);
+			const right_cols = cols - hint.length - left_cols;
+			const text = " ".repeat(left_cols) + hint + " ".repeat(right_cols);
 			this.terminal.drawText(text, row, col, Colour.BG, Colour.FG);
 		}
 
 		if (inner_rows - this.row_offset > rows) {
 			const hint = "(Scroll Down)";
-			const leftCols = Math.ceil((cols - hint.length) / 2);
-			const rightCols = cols - hint.length - leftCols;
-			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
+			const left_cols = Math.ceil((cols - hint.length) / 2);
+			const right_cols = cols - hint.length - left_cols;
+			const text = " ".repeat(left_cols) + hint + " ".repeat(right_cols);
 			this.terminal.drawText(text, row + rows - 1, col, Colour.BG, Colour.FG);
 		}
 	}

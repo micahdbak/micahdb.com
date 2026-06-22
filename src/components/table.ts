@@ -9,29 +9,30 @@ class TableBorders {
 		trows: number,
 		heights: number[],
 		widths: number[],
-		fgColour: Colour,
-		bgColour: Colour = Colour.BG
+		fg: Colour,
+		bg: Colour = Colour.BG
 	) {
-		const hLine = (l: string, m: string, r: string) =>
-			l + widths.map((w) => "─".repeat(w)).join(m) + r;
+		function hLine(l: string, m: string, r: string) {
+			return l + widths.map((w) => "─".repeat(w)).join(m) + r;
+		}
 
-		const contentLine = "│" + widths.map((w) => " ".repeat(w)).join("│") + "│";
+		const inner_line = "│" + widths.map((w) => " ".repeat(w)).join("│") + "│";
 
-		let tableStr = hLine("┌", "┬", "┐") + "\n";
+		let text = hLine("┌", "┬", "┐") + "\n";
 
 		for (let i = 0; i < trows; i++) {
 			for (let j = 0; j < heights[i]; j++) {
-				tableStr += contentLine + "\n";
+				text += inner_line + "\n";
 			}
 
 			if (i < trows - 1) {
-				tableStr += hLine("├", "┼", "┤") + "\n";
+				text += hLine("├", "┼", "┤") + "\n";
 			}
 		}
 
-		tableStr += hLine("└", "┴", "┘");
+		text += hLine("└", "┴", "┘");
 
-		terminal.drawText(tableStr, row, col, fgColour, bgColour);
+		terminal.drawText(text, row, col, fg, bg);
 	}
 }
 
@@ -42,44 +43,44 @@ class Table {
 		this.terminal = terminal;
 	}
 
-	private wrapText(text: string, maxWidth: number): string[] {
-		if (maxWidth <= 0) {
+	private wrapText(text: string, max_width: number): string[] {
+		if (max_width <= 0) {
 			return [text];
 		}
 
 		const lines: string[] = [];
-		let currentLine = "";
+		let line = "";
 		const words = text.split(" ");
 
 		for (let word of words) {
-			if (word.length > maxWidth) {
-				if (currentLine !== "") {
-					lines.push(currentLine);
-					currentLine = "";
+			if (word.length > max_width) {
+				if (line !== "") {
+					lines.push(line);
+					line = "";
 				}
 
-				while (word.length > maxWidth) {
-					lines.push(word.substring(0, maxWidth));
-					word = word.substring(maxWidth);
+				while (word.length > max_width) {
+					lines.push(word.substring(0, max_width));
+					word = word.substring(max_width);
 				}
 
-				currentLine = word;
+				line = word;
 				continue;
 			}
 
-			const newLine = currentLine === "" ? word : currentLine + " " + word;
+			const new_line = line === "" ? word : line + " " + word;
 
-			if (newLine.length > maxWidth) {
-				lines.push(currentLine);
-				currentLine = word;
+			if (new_line.length > max_width) {
+				lines.push(line);
+				line = word;
 				continue;
 			}
 
-			currentLine = newLine;
+			line = new_line;
 		}
 
-		if (currentLine !== "") {
-			lines.push(currentLine);
+		if (line !== "") {
+			lines.push(line);
 		}
 
 		return lines;
@@ -92,133 +93,118 @@ class Table {
 		rows: number,
 		cols: number,
 		cells: string[][],
-		backColour: Colour,
-		fgColour: Colour,
-		borderColour: Colour
+		bg: Colour,
+		fg: Colour,
+		border: Colour
 	): number {
 		if (cells.length === 0) {
 			return 0;
 		}
 
-		const numCols = cells[0].length;
-		const availableWidth = cols - (numCols + 1);
+		const num_cols = cells[0].length;
+		const available_width = cols - (num_cols + 1);
 
-		if (availableWidth <= 0) {
+		if (available_width <= 0) {
 			return 0;
 		}
 
-		const colWidths: number[] = Array.from({ length: numCols }, () => 0);
-		let totalMaxLen = 0;
+		const col_widths: number[] = Array.from({ length: num_cols }, () => 0);
+		let total_max_len = 0;
 
-		for (let c = 0; c < numCols; c++) {
-			let maxLen = 0;
+		for (let c = 0; c < num_cols; c++) {
+			let max_len = 0;
 			for (let r = 0; r < cells.length; r++) {
-				maxLen = Math.max(maxLen, cells[r][c].length);
+				max_len = Math.max(max_len, cells[r][c].length);
 			}
-			colWidths[c] = maxLen;
-			totalMaxLen += maxLen;
+			col_widths[c] = max_len;
+			total_max_len += max_len;
 		}
 
 		// distribute available width
-		const finalWidths: number[] = Array.from({ length: numCols }, () => 0);
+		const final_widths: number[] = Array.from({ length: num_cols }, () => 0);
 
-		if (totalMaxLen <= availableWidth) {
+		if (total_max_len <= available_width) {
 			// everything fits, just use the max lens or distribute the rest
-			const remaining = availableWidth - totalMaxLen;
+			const remaining = available_width - total_max_len;
 
-			for (let c = 0; c < numCols; c++) {
-				finalWidths[c] = colWidths[c] + Math.floor(remaining / numCols);
+			for (let c = 0; c < num_cols; c++) {
+				final_widths[c] = col_widths[c] + Math.floor(remaining / num_cols);
 			}
 
 			// add the residue to the last column
-			finalWidths[numCols - 1] += remaining % numCols;
+			final_widths[num_cols - 1] += remaining % num_cols;
 		} else {
 			// need to shrink columns proportionally
-			for (let c = 0; c < numCols; c++) {
-				finalWidths[c] = Math.max(
+			for (let c = 0; c < num_cols; c++) {
+				final_widths[c] = Math.max(
 					1,
-					Math.floor((colWidths[c] / totalMaxLen) * availableWidth)
+					Math.floor((col_widths[c] / total_max_len) * available_width)
 				);
 			}
 
-			const currentSum = finalWidths.reduce((a, b) => a + b, 0);
-			let diff = availableWidth - currentSum;
+			const current_sum = final_widths.reduce((a, b) => a + b, 0);
+			let diff = available_width - current_sum;
 
 			// distribute diff to columns that have most content
-			for (let i = numCols - 1; i >= 0 && diff > 0; i--) {
-				finalWidths[i]++;
+			for (let i = num_cols - 1; i >= 0 && diff > 0; i--) {
+				final_widths[i]++;
 				diff--;
 			}
 		}
 
 		// wrap text and determine row heights
-		const rowHeights: number[] = Array.from({ length: cells.length }, () => 0);
-		const wrappedCells: string[][][] = [];
+		const row_heights: number[] = Array.from({ length: cells.length }, () => 0);
+		const wrapped_cells: string[][][] = [];
 
 		for (let r = 0; r < cells.length; r++) {
-			const rowWrapped: string[][] = [];
-			let maxHeight = 0;
+			const row_wrapped: string[][] = [];
+			let max_height = 0;
 
-			for (let c = 0; c < numCols; c++) {
-				const lines = this.wrapText(cells[r][c], finalWidths[c]);
-				rowWrapped.push(lines);
-				maxHeight = Math.max(maxHeight, lines.length);
+			for (let c = 0; c < num_cols; c++) {
+				const lines = this.wrapText(cells[r][c], final_widths[c]);
+				row_wrapped.push(lines);
+				max_height = Math.max(max_height, lines.length);
 			}
 
-			wrappedCells.push(rowWrapped);
-			rowHeights[r] = maxHeight;
+			wrapped_cells.push(row_wrapped);
+			row_heights[r] = max_height;
 		}
 
 		// draw borders
-		TableBorders.draw(
-			this.terminal,
-			row,
-			col,
-			cells.length,
-			rowHeights,
-			finalWidths,
-			backColour,
-			borderColour
-		);
+		TableBorders.draw(this.terminal, row, col, cells.length, row_heights, final_widths, bg, border);
 
 		// draw cell content
-		let currentRow = row + 1;
+		let current_row = row + 1;
 
 		for (let r = 0; r < cells.length; r++) {
-			if (currentRow >= row + rows) {
+			if (current_row >= row + rows) {
 				break;
 			}
 
-			for (let i = 0; i < rowHeights[r]; i++) {
-				if (currentRow >= row + rows) {
+			for (let i = 0; i < row_heights[r]; i++) {
+				if (current_row >= row + rows) {
 					break;
 				}
 
-				let currentCol = col + 1;
+				let current_col = col + 1;
 
-				for (let c = 0; c < numCols; c++) {
+				for (let c = 0; c < num_cols; c++) {
 					// pad line to column width
-					const line = wrappedCells[r][c][i] || "";
-					const paddedLine = line.padEnd(finalWidths[c], " ");
+					let line = wrapped_cells[r][c][i] || "";
+					line = line.padEnd(final_widths[c], " ");
 
-					this.terminal.drawText(
-						paddedLine,
-						currentRow,
-						currentCol,
-						fgColour,
-						backColour
-					);
+					this.terminal.drawText(line, current_row, current_col, fg, bg);
 
-					currentCol += finalWidths[c] + 1;
+					current_col += final_widths[c] + 1;
 				}
 
-				currentRow++;
+				current_row++;
 			}
 
-			currentRow++; // horizontal border line
+			current_row++; // horizontal border line
 		}
 
-		return currentRow - row;
+		return current_row - row;
 	}
 }
 

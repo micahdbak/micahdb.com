@@ -43,7 +43,7 @@ const CARD = `\
 
 ----`.replaceAll("%", "&17; &17;");
 
-const main = async () => {
+async function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
@@ -105,15 +105,7 @@ const main = async () => {
 
 			if (canvas.cols > 2 * canvas.rows) {
 				divider.setFrac(PANE_RATIO);
-				divider.draw(
-					Divider.VERTICAL,
-					0,
-					0,
-					canvas.rows,
-					canvas.cols,
-					0,
-					PANE_COLS
-				);
+				divider.draw(Divider.VERTICAL, 0, 0, canvas.rows, canvas.cols, 0, PANE_COLS);
 
 				const lcols = divider.lcols;
 				pane1 = [0, 0, canvas.rows, lcols]; // left
@@ -161,6 +153,6 @@ const main = async () => {
 	} catch (err: Error) {
 		console.error(err);
 	}
-};
+}
 
 await main();

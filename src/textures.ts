@@ -100,22 +100,11 @@ function loadGlyphAtlas(gl: WebGL2RenderingContext): Promise<WebGLTexture> {
 			// prevent texture halos/outlines from filtering
 			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-			gl.texImage2D(
-				gl.TEXTURE_2D,
-				0,
-				gl.RGBA,
-				gl.RGBA,
-				gl.UNSIGNED_BYTE,
-				image
-			);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
 			gl.generateMipmap(gl.TEXTURE_2D);
 
-			gl.texParameteri(
-				gl.TEXTURE_2D,
-				gl.TEXTURE_MIN_FILTER,
-				gl.LINEAR_MIPMAP_LINEAR
-			);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
@@ -124,10 +113,7 @@ function loadGlyphAtlas(gl: WebGL2RenderingContext): Promise<WebGLTexture> {
 	});
 }
 
-function loadTexture(
-	gl: WebGL2RenderingContext,
-	path: string
-): Promise<WebGLTexture> {
+function loadTexture(gl: WebGL2RenderingContext, path: string): Promise<WebGLTexture> {
 	return new Promise((resolve, reject) => {
 		const image = new Image();
 		image.src = path;
@@ -143,22 +129,11 @@ function loadTexture(
 			// prevent texture halos/outlines from filtering
 			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-			gl.texImage2D(
-				gl.TEXTURE_2D,
-				0,
-				gl.RGBA,
-				gl.RGBA,
-				gl.UNSIGNED_BYTE,
-				image
-			);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
 			gl.generateMipmap(gl.TEXTURE_2D);
 
-			gl.texParameteri(
-				gl.TEXTURE_2D,
-				gl.TEXTURE_MIN_FILTER,
-				gl.LINEAR_MIPMAP_LINEAR
-			);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
@@ -167,10 +142,7 @@ function loadTexture(
 	});
 }
 
-async function loadCubeMap(
-	gl: WebGL2RenderingContext,
-	faces: string[]
-): Promise<WebGLTexture> {
+async function loadCubeMap(gl: WebGL2RenderingContext, faces: string[]): Promise<WebGLTexture> {
 	if (faces.length !== 6) {
 		throw new Error("Cube map requires exactly 6 faces");
 	}
@@ -196,8 +168,7 @@ async function loadCubeMap(
 			const img = new Image();
 			img.src = path;
 			img.onload = () => resolve(img);
-			img.onerror = (err) =>
-				reject(new Error(`When loading image at ${path}`, { cause: err }));
+			img.onerror = (err) => reject(new Error(`When loading image at ${path}`, { cause: err }));
 		});
 
 		const img = await image;
@@ -209,11 +180,7 @@ async function loadCubeMap(
 
 	gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 
-	gl.texParameteri(
-		gl.TEXTURE_CUBE_MAP,
-		gl.TEXTURE_MIN_FILTER,
-		gl.LINEAR_MIPMAP_LINEAR
-	);
+	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 	gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
 	return texture;

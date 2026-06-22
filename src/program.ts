@@ -3,30 +3,26 @@ export function compileProgram(
 	vertex_shader: string,
 	fragment_shader: string
 ): WebGLProgram {
-	const vertShader = gl.createShader(gl.VERTEX_SHADER);
-	if (!vertShader) {
+	const vert = gl.createShader(gl.VERTEX_SHADER);
+	if (!vert) {
 		throw new Error("When creating vertex shader");
 	}
 
-	gl.shaderSource(vertShader, vertex_shader);
-	gl.compileShader(vertShader);
-	if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
-		throw new Error(
-			"When compiling vertex shader: " + gl.getShaderInfoLog(vertShader)
-		);
+	gl.shaderSource(vert, vertex_shader);
+	gl.compileShader(vert);
+	if (!gl.getShaderParameter(vert, gl.COMPILE_STATUS)) {
+		throw new Error("When compiling vertex shader: " + gl.getShaderInfoLog(vert));
 	}
 
-	const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-	if (!fragShader) {
+	const frag = gl.createShader(gl.FRAGMENT_SHADER);
+	if (!frag) {
 		throw new Error("When creating fragment shader");
 	}
 
-	gl.shaderSource(fragShader, fragment_shader);
-	gl.compileShader(fragShader);
-	if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
-		throw new Error(
-			"When compiling fragment shader: " + gl.getShaderInfoLog(fragShader)
-		);
+	gl.shaderSource(frag, fragment_shader);
+	gl.compileShader(frag);
+	if (!gl.getShaderParameter(frag, gl.COMPILE_STATUS)) {
+		throw new Error("When compiling fragment shader: " + gl.getShaderInfoLog(frag));
 	}
 
 	const prog = gl.createProgram();
@@ -34,13 +30,11 @@ export function compileProgram(
 		throw new Error("When creating GPU program");
 	}
 
-	gl.attachShader(prog, vertShader);
-	gl.attachShader(prog, fragShader);
+	gl.attachShader(prog, vert);
+	gl.attachShader(prog, frag);
 	gl.linkProgram(prog);
 	if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-		throw new Error(
-			"When linking shader program: " + gl.getProgramInfoLog(prog)
-		);
+		throw new Error("When linking shader program: " + gl.getProgramInfoLog(prog));
 	}
 
 	return prog;
@@ -90,7 +84,7 @@ export function getUniformLocations(
 
 export abstract class Program {
 	protected gl: WebGL2RenderingContext;
-	protected glProgram: WebGLProgram;
+	protected gl_program: WebGLProgram;
 
 	constructor(gl: WebGL2RenderingContext) {
 		this.gl = gl;

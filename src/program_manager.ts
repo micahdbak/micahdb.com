@@ -8,13 +8,13 @@ class ProgramManager {
 	private gl: WebGL2RenderingContext;
 
 	// width/height of framebuffer object
-	private targetWidth: number;
-	private targetHeight: number;
+	private target_width: number;
+	private target_height: number;
 
 	private dbo: WebGLRenderbuffer;
 	private fbo: WebGLFramebuffer;
 
-	private projectionMatrix: Float32Array;
+	private projection_matrix: Float32Array;
 
 	private cube: CubeProgram;
 	private earth: EarthProgram;
@@ -33,7 +33,7 @@ class ProgramManager {
 		this.initializeDBO();
 		this.initializeFBO();
 
-		this.projectionMatrix = Mat4.create();
+		this.projection_matrix = Mat4.create();
 
 		this.cube = new CubeProgram(gl);
 		this.earth = new EarthProgram(gl);
@@ -50,8 +50,8 @@ class ProgramManager {
 	}
 
 	initializeTexture() {
-		this.targetWidth = 32;
-		this.targetHeight = 32;
+		this.target_width = 32;
+		this.target_height = 32;
 
 		this.texture = this.gl.createTexture();
 		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
@@ -67,27 +67,11 @@ class ProgramManager {
 			null
 		);
 
-		this.gl.texParameteri(
-			this.gl.TEXTURE_2D,
-			this.gl.TEXTURE_MIN_FILTER,
-			this.gl.NEAREST
-		);
-		this.gl.texParameteri(
-			this.gl.TEXTURE_2D,
-			this.gl.TEXTURE_MAG_FILTER,
-			this.gl.NEAREST
-		);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 
-		this.gl.texParameteri(
-			this.gl.TEXTURE_2D,
-			this.gl.TEXTURE_WRAP_S,
-			this.gl.CLAMP_TO_EDGE
-		);
-		this.gl.texParameteri(
-			this.gl.TEXTURE_2D,
-			this.gl.TEXTURE_WRAP_T,
-			this.gl.CLAMP_TO_EDGE
-		);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 	}
 
 	initializeDBO() {
@@ -100,8 +84,8 @@ class ProgramManager {
 		this.gl.renderbufferStorage(
 			this.gl.RENDERBUFFER,
 			this.gl.DEPTH_COMPONENT16,
-			this.targetWidth,
-			this.targetHeight
+			this.target_width,
+			this.target_height
 		);
 	}
 
@@ -147,54 +131,42 @@ class ProgramManager {
 
 		// update depth buffer size to match texture
 		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
-		this.gl.renderbufferStorage(
-			this.gl.RENDERBUFFER,
-			this.gl.DEPTH_COMPONENT16,
-			width,
-			height
-		);
+		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, width, height);
 
 		// update projection matrix
 		const fovy = Math.PI / 4;
 		const aspect = (0.5 * width) / height;
 		const near = 0.1;
 		const far = 100.0;
-		Mat4.perspective(this.projectionMatrix, fovy, aspect, near, far);
+		Mat4.perspective(this.projection_matrix, fovy, aspect, near, far);
 
-		this.targetWidth = width;
-		this.targetHeight = height;
+		this.target_width = width;
+		this.target_height = height;
 	}
 
 	draw() {
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
 		this.gl.enable(this.gl.DEPTH_TEST);
 
-		this.gl.viewport(0, 0, this.targetWidth, this.targetHeight);
+		this.gl.viewport(0, 0, this.target_width, this.target_height);
 		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
 		switch (this.which) {
 			case "cube":
-				this.cube.draw(this.projectionMatrix);
+				this.cube.draw(this.projection_matrix);
 
 				break;
 
 			case "earth":
-				const viewX =
-					5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
-				const viewZ =
-					5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
+				const view_x = 5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
+				const view_z = 5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
 
-				const viewMatrix = Mat4.create();
-				Mat4.lookAt(
-					viewMatrix,
-					[viewX, 0.5, viewZ],
-					[0.0, 0.0, 0.0],
-					[0.0, -1.0, 0.0]
-				);
+				const view_matrix = Mat4.create();
+				Mat4.lookAt(view_matrix, [view_x, 0.5, view_z], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 
-				this.skybox.draw(this.projectionMatrix, viewMatrix);
-				this.earth.draw(this.projectionMatrix, viewMatrix);
+				this.skybox.draw(this.projection_matrix, view_matrix);
+				this.earth.draw(this.projection_matrix, view_matrix);
 
 				break;
 

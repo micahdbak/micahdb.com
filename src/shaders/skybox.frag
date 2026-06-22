@@ -6,9 +6,9 @@ precision mediump float;
 
 in vec3 v_position;
 
-uniform samplerCube u_skyboxTexture;
+uniform samplerCube u_skybox_texture;
 
-out vec4 fragColour;
+out vec4 frag_colour;
 
 // NOTE: these are in order of the colours in src/index.ts
 const vec3 dimensions[NUM_DIMENSIONS] = vec3[NUM_DIMENSIONS](
@@ -58,7 +58,7 @@ float getLum(vec3 col, uint dim) {
 }
 
 void main() {
-	vec3 col = texture(u_skyboxTexture, v_position).rgb;
+	vec3 col = texture(u_skybox_texture, v_position).rgb;
 
 	// dithering
 	float bayer[16] = float[](
@@ -67,13 +67,13 @@ void main() {
 		0.1875, 0.6875, 0.0625, 0.5625,
 		0.9375, 0.4375, 0.8125, 0.3125
 	);
-	float bayerVal = bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4];
+	float bayer_val = bayer[int(gl_FragCoord.y) % 4 * 4 + int(gl_FragCoord.x) % 4];
 
 	Dims dims = getDims(col);
-	uint dim = (bayerVal < dims.ratio) ? dims.dim2 : dims.dim1;
+	uint dim = (bayer_val < dims.ratio) ? dims.dim2 : dims.dim1;
 	float lum = getLum(col, dim);
 
-	float dither = (bayerVal - 0.5) / 12.0;
+	float dither = (bayer_val - 0.5) / 12.0;
 	lum = clamp(lum + dither, 0.0, 1.0);
 	int layer = clamp(int(lum * 3.0), 0, 2);
 
@@ -97,7 +97,7 @@ void main() {
 	uint bg = bgs[layer];
 	uint fg = fgs[layer];
 
-	fragColour = vec4(
+	frag_colour = vec4(
 		float(glyph >> 8) / 256.0,
 		float(glyph & 255U) / 256.0,
 		float(bg) / 256.0,

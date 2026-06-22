@@ -32,18 +32,12 @@ export class Glyph {
 	data(): Uint32Array {
 		// Uint32 containing bg_colour (1 byte), fg_colour (1 byte), char_code (2 bytes)
 		const packed =
-			(this.bg_colour & 0xff) |
-			((this.fg_colour & 0xff) << 8) |
-			((this.char_code & 0xffff) << 16);
+			(this.bg_colour & 0xff) | ((this.fg_colour & 0xff) << 8) | ((this.char_code & 0xffff) << 16);
 		return new Uint32Array(Glyph.VERTICES).fill(packed);
 	}
 
 	static fromData(data: Uint32Array): Glyph {
 		const packed = data[0];
-		return new Glyph(
-			packed & 0xff,
-			(packed >> 8) & 0xff,
-			(packed >> 16) & 0xffff
-		);
+		return new Glyph(packed & 0xff, (packed >> 8) & 0xff, (packed >> 16) & 0xffff);
 	}
 }

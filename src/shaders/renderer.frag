@@ -50,19 +50,19 @@ uniform sampler2D u_glyph_atlas;
 out vec4 frag_colour;
 
 void main() {
-	int cellX = int(gl_FragCoord.x);
-	int cellY = int(gl_FragCoord.y);
+	int cell_x = int(gl_FragCoord.x);
+	int cell_y = int(gl_FragCoord.y);
 
-	int sectionX = min(int(v_cell_coord.x * 5.0), 4); // --2--
-	int sectionY = min(int(v_cell_coord.y * 9.0), 8); // ----4----
+	int section_x = min(int(v_cell_coord.x * 5.0), 4); // --2--
+	int section_y = min(int(v_cell_coord.y * 9.0), 8); // ----4----
 
-	bool centerX = sectionX == 2;
-	bool centerY = sectionY == 4;
+	bool center_x = section_x == 2;
+	bool center_y = section_y == 4;
 
-	bool specialBlock = true;
+	bool special_block = true;
 	bool foreground = false;
 
-	vec3 fgColour = v_fg_colour;
+	vec3 fg_colour = v_fg_colour;
 
 	// check for special (fragment rendered) block characters
 	switch (v_char_code) {
@@ -82,31 +82,31 @@ void main() {
 
 	case GLYPH_75P_FILL:
 		/*
-		if (cellX % 2 == 0 || cellY % 2 == 0) {
+		if (cell_x % 2 == 0 || cell_y % 2 == 0) {
 			foreground = true;
 		}
 		*/
-		fgColour = 0.75 * v_fg_colour + 0.25 * v_bg_colour;
+		fg_colour = 0.75 * v_fg_colour + 0.25 * v_bg_colour;
 		foreground = true;
 		break;
 
 	case GLYPH_50P_FILL:
 		/*
-		if ((cellY % 2 == 0 && cellX % 2 == 1) || (cellY % 2 == 1 && cellX % 2 == 0)) {
+		if ((cell_y % 2 == 0 && cell_x % 2 == 1) || (cell_y % 2 == 1 && cell_x % 2 == 0)) {
 			foreground = true;
 		}
 		*/
-		fgColour = 0.50 * v_fg_colour + 0.50 * v_bg_colour;
+		fg_colour = 0.50 * v_fg_colour + 0.50 * v_bg_colour;
 		foreground = true;
 		break;
 	
 	case GLYPH_25P_FILL:
 		/*
-		if (cellX % 2 == 1 && cellY % 2 == 1) {
+		if (cell_x % 2 == 1 && cell_y % 2 == 1) {
 			foreground = true;
 		}
 		*/
-		fgColour = 0.25 * v_fg_colour + 0.75 * v_bg_colour;
+		fg_colour = 0.25 * v_fg_colour + 0.75 * v_bg_colour;
 		foreground = true;
 		break;
 
@@ -199,81 +199,81 @@ void main() {
 	// line characters
 
 	case GLYPH_LINE_TR:
-		if ((centerX && v_cell_coord.y < 0.5) || (centerY && v_cell_coord.x > 0.5) || (centerX && centerY)) {
+		if ((center_x && v_cell_coord.y < 0.5) || (center_y && v_cell_coord.x > 0.5) || (center_x && center_y)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TRB:
-		if (centerX || (centerY && v_cell_coord.x > 0.5)) {
+		if (center_x || (center_y && v_cell_coord.x > 0.5)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TRBL:
-		if (centerX || centerY) {
+		if (center_x || center_y) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TRL:
-		if (centerY || (centerX && v_cell_coord.y < 0.5)) {
+		if (center_y || (center_x && v_cell_coord.y < 0.5)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TBL:
-		if (centerX || (centerY && v_cell_coord.x < 0.5)) {
+		if (center_x || (center_y && v_cell_coord.x < 0.5)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TB:
-		if (centerX) {
+		if (center_x) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_TL:
-		if ((centerX && v_cell_coord.y < 0.5) || (centerY && v_cell_coord.x < 0.5) || (centerX && centerY)) {
+		if ((center_x && v_cell_coord.y < 0.5) || (center_y && v_cell_coord.x < 0.5) || (center_x && center_y)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_RB:
-		if ((centerX && v_cell_coord.y > 0.5) || (centerY && v_cell_coord.x > 0.5) || (centerX && centerY)) {
+		if ((center_x && v_cell_coord.y > 0.5) || (center_y && v_cell_coord.x > 0.5) || (center_x && center_y)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_RBL:
-		if (centerY || (centerX && v_cell_coord.y > 0.5)) {
+		if (center_y || (center_x && v_cell_coord.y > 0.5)) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_RL:
-		if (centerY) {
+		if (center_y) {
 			foreground = true;
 		}
 		break;
 
 	case GLYPH_LINE_BL:
-		if ((centerX && v_cell_coord.y > 0.5) || (centerY && v_cell_coord.x < 0.5) || (centerX && centerY)) {
+		if ((center_x && v_cell_coord.y > 0.5) || (center_y && v_cell_coord.x < 0.5) || (center_x && center_y)) {
 			foreground = true;
 		}
 		break;
 
 	default:
 		// not a special block character; render with glyph atlas
-		specialBlock = false;
+		special_block = false;
 
 		break;
 	}
 
-	if (specialBlock) {
+	if (special_block) {
 		if (foreground) {
-			frag_colour = vec4(fgColour, 1.0);
+			frag_colour = vec4(fg_colour, 1.0);
 		} else {
 			frag_colour = vec4(v_bg_colour, 1.0);
 		}
@@ -282,8 +282,8 @@ void main() {
 	}
 
 	// render glyph using glyph atlas
-	vec4 glyphSample = texture(u_glyph_atlas, v_uv_coord);
-	float fgMask = clamp(glyphSample.a, 0.0, 1.0);
-	float bgMask = 1.0 - fgMask;
-	frag_colour = vec4(v_bg_colour * bgMask, bgMask) + vec4(fgColour * fgMask, fgMask);
+	vec4 glyph_sample = texture(u_glyph_atlas, v_uv_coord);
+	float fg_mask = clamp(glyph_sample.a, 0.0, 1.0);
+	float bg_mask = 1.0 - fg_mask;
+	frag_colour = vec4(v_bg_colour * bg_mask, bg_mask) + vec4(fg_colour * fg_mask, fg_mask);
 }

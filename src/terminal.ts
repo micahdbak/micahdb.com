@@ -31,8 +31,7 @@ class Terminal {
 	}
 
 	resize() {
-		const count =
-			this.canvas.rows * this.canvas.cols * Terminal.UINT32_PER_GLYPH;
+		const count = this.canvas.rows * this.canvas.cols * Terminal.UINT32_PER_GLYPH;
 		this.data = new Uint32Array(count);
 	}
 
@@ -51,7 +50,7 @@ class Terminal {
 		col: number,
 		fg_colour: Colour,
 		bg_colour: Colour = Colour.BG,
-		fontOffset: number = Glyph.NORMAL_FONT
+		font: number = Glyph.NORMAL_FONT
 	) {
 		row = Math.round(row);
 		col = Math.round(col);
@@ -82,7 +81,7 @@ class Terminal {
 				const glyph_index = r * this.canvas.cols + c;
 				const uint32_index = glyph_index * Terminal.UINT32_PER_GLYPH;
 
-				const off = char_code < 33 ? 0 : fontOffset;
+				const off = char_code < 33 ? 0 : font;
 				const glyph = new Glyph(bg, fg, char_code + off);
 
 				this.data.set(glyph.data(), uint32_index);
@@ -105,10 +104,7 @@ class Terminal {
 			const glyph_index = mr * this.canvas.cols + mc;
 			const uint32_index = glyph_index * Terminal.UINT32_PER_GLYPH;
 
-			const cell_data = this.data.subarray(
-				uint32_index,
-				uint32_index + Terminal.UINT32_PER_GLYPH
-			);
+			const cell_data = this.data.subarray(uint32_index, uint32_index + Terminal.UINT32_PER_GLYPH);
 
 			const glyph = Glyph.fromData(cell_data);
 
@@ -135,12 +131,7 @@ class Terminal {
 		this.canvas.mouse_click = false;
 
 		if (this.detail_text.length > 0) {
-			this.drawText(
-				this.detail_text,
-				this.canvas.rows - 1,
-				Colour.BLACK,
-				Colour.WHITE
-			);
+			this.drawText(this.detail_text, this.canvas.rows - 1, Colour.BLACK, Colour.WHITE);
 			this.detail_text = "";
 		}
 

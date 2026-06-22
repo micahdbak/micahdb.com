@@ -1,6 +1,6 @@
 import { TriangleMesh } from "../mesh.ts";
 
-function _repeat(arr: number[], n: number): number[] {
+function repeat(arr: number[], n: number): number[] {
 	const ret = [];
 
 	for (let i = 0; i < n; i++) {
@@ -46,21 +46,21 @@ export class CubeMesh extends TriangleMesh {
 		];
 
 		this.normals = [
-			..._repeat([0, 0, 1], 6),
-			..._repeat([0, 0, -1], 6),
-			..._repeat([1, 0, 0], 6),
-			..._repeat([-1, 0, 0], 6),
-			..._repeat([0, 1, 0], 6),
-			..._repeat([0, -1, 0], 6)
+			...repeat([0, 0, 1], 6),
+			...repeat([0, 0, -1], 6),
+			...repeat([1, 0, 0], 6),
+			...repeat([-1, 0, 0], 6),
+			...repeat([0, 1, 0], 6),
+			...repeat([0, -1, 0], 6)
 		];
 
 		this.tangents = [
-			..._repeat([1, 0, 0], 6),
-			..._repeat([-1, 0, 0], 6),
-			..._repeat([0, 0, -1], 6),
-			..._repeat([0, 0, 1], 6),
-			..._repeat([1, 0, 0], 6),
-			..._repeat([1, 0, 0], 6)
+			...repeat([1, 0, 0], 6),
+			...repeat([-1, 0, 0], 6),
+			...repeat([0, 0, -1], 6),
+			...repeat([0, 0, 1], 6),
+			...repeat([1, 0, 0], 6),
+			...repeat([1, 0, 0], 6)
 		];
 
 		// prettier-ignore

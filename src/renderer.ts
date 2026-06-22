@@ -10,11 +10,7 @@ import {
 } from "./textures.ts";
 import { ProgramManager } from "./program_manager.ts";
 import { PALETTE } from "./colour.ts";
-import {
-	compileProgram,
-	getAttribLocations,
-	getUniformLocations
-} from "./program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "./program.ts";
 import { Canvas } from "./canvas.ts";
 
 class Renderer {
@@ -117,33 +113,15 @@ class Renderer {
 		// total/stride: 4 bytes
 
 		// bg_colour
-		gl.vertexAttribIPointer(
-			this.attributes.bg_colour,
-			1,
-			gl.UNSIGNED_BYTE,
-			Renderer.STRIDE,
-			0
-		);
+		gl.vertexAttribIPointer(this.attributes.bg_colour, 1, gl.UNSIGNED_BYTE, Renderer.STRIDE, 0);
 		gl.enableVertexAttribArray(this.attributes.bg_colour);
 
 		// fg_colour
-		gl.vertexAttribIPointer(
-			this.attributes.fg_colour,
-			1,
-			gl.UNSIGNED_BYTE,
-			Renderer.STRIDE,
-			1
-		);
+		gl.vertexAttribIPointer(this.attributes.fg_colour, 1, gl.UNSIGNED_BYTE, Renderer.STRIDE, 1);
 		gl.enableVertexAttribArray(this.attributes.fg_colour);
 
 		// char_code
-		gl.vertexAttribIPointer(
-			this.attributes.char_code,
-			1,
-			gl.UNSIGNED_SHORT,
-			Renderer.STRIDE,
-			2
-		);
+		gl.vertexAttribIPointer(this.attributes.char_code, 1, gl.UNSIGNED_SHORT, Renderer.STRIDE, 2);
 		gl.enableVertexAttribArray(this.attributes.char_code);
 	}
 
@@ -202,12 +180,7 @@ class Renderer {
 
 		// clear the canvas
 		const bg = 16 * 3;
-		gl.clearColor(
-			this.palette[bg],
-			this.palette[bg + 1],
-			this.palette[bg + 2],
-			1.0
-		);
+		gl.clearColor(this.palette[bg], this.palette[bg + 1], this.palette[bg + 2], 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		gl.activeTexture(gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);

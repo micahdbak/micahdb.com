@@ -9,11 +9,7 @@ class File {
 	public content: string;
 	public onclick: FileClickFunction;
 
-	constructor(
-		name: string,
-		content: string,
-		onclick: FileClickFunction = () => {}
-	) {
+	constructor(name: string, content: string, onclick: FileClickFunction = () => {}) {
 		this.name = name;
 		this.content = content;
 		this.onclick = onclick;
@@ -41,7 +37,7 @@ class FileTree {
 	}
 
 	treeHeight() {
-		let rowsDisplayed = 0;
+		let height = 0;
 		const folders = [this.root];
 		const indices = [0];
 
@@ -63,32 +59,32 @@ class FileTree {
 				indices.push(0);
 			}
 
-			rowsDisplayed++;
+			height++;
 		}
 
-		return Math.max(rowsDisplayed, 1);
+		return Math.max(height, 1);
 	}
 
 	draw(
-		fg1Colour: Colour,
-		fg2Colour: Colour,
-		bgColour: Colour,
-		startRow: number,
-		startCol: number,
-		rowCount: number,
-		colCount: number
+		fg1: Colour,
+		fg2: Colour,
+		bg_col: Colour,
+		start_row: number,
+		start_col: number,
+		rows: number,
+		cols: number
 	) {
-		if (colCount < 2 || rowCount < 2) {
+		if (cols < 2 || rows < 2) {
 			return;
 		}
 
-		const col = startCol;
+		const col = start_col;
 		const folders = [this.root];
 		const indices = [0];
 
-		let row = startRow;
+		let row = start_row;
 
-		while (folders.length > 0 && row - startRow < rowCount) {
+		while (folders.length > 0 && row - start_row < rows) {
 			const folder = folders.at(folders.length - 1) as Folder;
 			const i = indices.at(folders.length - 1) as number;
 			const depth = indices.length;
@@ -100,10 +96,10 @@ class FileTree {
 			}
 
 			const file = folder.children[i];
-			const isFolder = file instanceof Folder;
+			const is_folder = file instanceof Folder;
 			indices[indices.length - 1] = i + 1;
 
-			if (isFolder && file.open) {
+			if (is_folder && file.open) {
 				folders.push(file);
 				indices.push(0);
 			}
@@ -115,26 +111,19 @@ class FileTree {
 			}
 
 			branch += i >= folder.children.length - 1 ? "└── " : "├── ";
-			branch = branch.slice(0, colCount);
+			branch = branch.slice(0, cols);
 
-			this.terminal.drawText(branch, row, col, Colour.LIGHT_BLACK, bgColour);
+			this.terminal.drawText(branch, row, col, Colour.LIGHT_BLACK, bg_col);
 
-			let fg = isFolder ? fg2Colour : fg1Colour;
-			let bg = bgColour;
+			let fg = is_folder ? fg2 : fg1;
+			let bg = bg_col;
 
-			if (
-				this.terminal.canvas.mouseAt(
-					row,
-					col + branch.length,
-					1,
-					file.name.length
-				)
-			) {
+			if (this.terminal.canvas.mouseAt(row, col + branch.length, 1, file.name.length)) {
 				bg = Colour.LIGHT_GREEN;
 				fg = Colour.LIGHT_BLACK;
 
 				if (this.terminal.canvas.mouse_click) {
-					if (isFolder) {
+					if (is_folder) {
 						file.open = !file.open;
 					} else {
 						file.onclick();
@@ -142,7 +131,7 @@ class FileTree {
 				}
 			}
 
-			const name = file.name.slice(0, colCount - branch.length);
+			const name = file.name.slice(0, cols - branch.length);
 
 			if (name.length > 0) {
 				this.terminal.drawText(
@@ -151,7 +140,7 @@ class FileTree {
 					col + branch.length,
 					fg,
 					bg,
-					isFolder ? Glyph.BOLD_FONT : Glyph.NORMAL_FONT
+					is_folder ? Glyph.BOLD_FONT : Glyph.NORMAL_FONT
 				);
 			}
 

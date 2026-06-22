@@ -11,18 +11,22 @@ export default defineConfig([
         projectService: true,
       },
     },
-  }/*,
+  },
   {
     rules: {
       "@typescript-eslint/naming-convention": [
         "error",
+        { "selector": "default", "format": ["snake_case"] },
+        { "selector": "import", "format": null },
         { "selector": "function", "format": ["camelCase"] },
+        { "selector": "enum", "format": ["PascalCase"] },
+        { "selector": "enumMember", "format": ["UPPER_CASE"] },
+        { "selector": "typeAlias", "format": ["PascalCase"] },
         { "selector": "class", "format": ["PascalCase"] },
-        { "selector": "property", "format": ["snake_case"] },
         { "selector": "property", "modifiers": ["readonly"], "format": ["UPPER_CASE"] },
-        { "selector": "variable", "format": ["snake_case"] }
-        { "selector": "variable", "modifiers": ["const", "global"], "format": ["UPPER_CASE"] },
+        { "selector": "method", "format": ["camelCase"] },
+        { "selector": "variable", "modifiers": ["const", "global"], "format": ["UPPER_CASE"] }
       ]
     }
-  }*/
+  }
 ]);
