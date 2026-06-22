@@ -1,3 +1,4 @@
+import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 
 // components
@@ -15,41 +16,16 @@ const INDEX_URL = "#";
 //  ▄ ▀ ▐ ▌ ▝ ▗ ▖ ▘ ▙ ▛ ▜ ▟ ▞ ▚
 //
 //  ┐ ┌ ┘ └ ├ ┤ ┴ ┬ │ ─
-/*
-
-█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄
-▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀
-▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐
-
-*/
 
 const PANE_RATIO = 1.0 - 1.0 / 1.618;
 const PANE_COLS = 50;
 const PANE_ROW_PADDING = 1;
 const PANE_COL_PADDING = 2;
 
-const SESSION_DATE = Intl.DateTimeFormat("en-US", {
-	weekday: "short",
-	month: "short",
-	day: "2-digit",
-	hour: "2-digit",
-	minute: "2-digit",
-	second: "2-digit",
-	hour12: false
-})
-	.format(Date.now())
-	.replace(/,/g, "");
-
-const BANNER = `\
-********************************************************************
-Session: ${SESSION_DATE} on tty1
-Welcome to micahdb.com!
-********************************************************************`;
-
 const CARD = `\
-█▐▌▀ % ▄▖▐% ▐▀▄ ▄ ▌▄ ▄ ▄ &n;
-▌▌▌█▐▀▘▗▟▐▜ ▐▀▄ ▄▌▙▘▐▄▌▌▀&n;
-▌ ▌█▐▄▞▚▟▐▐ ▐▄▀▝▄▌▌▙▝▄ ▌&n;
+█▐▌▀ ▄ ▄ ▐ % ▐▀▄ ▄ ▌▄ ▄% ▄&n;
+▌▌▌▌█% ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀&n;
+▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐&n;
 &n;
 &12;**I am a**&17;: % % Software Developer&n;
 &12;**Based in**&17;: % Vancouver, BC, Canada&n;
@@ -68,77 +44,13 @@ const CARD = `\
 ----`.replaceAll("%", "&17; &17;");
 
 const main = async () => {
-	const log = document.getElementById("log");
-	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
+	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const startTime = Date.now();
-		let stillLoading = true;
-		// only display the log if loading takes >500ms
-		setTimeout(() => {
-			if (stillLoading) {
-				log.className = "";
-			}
-		}, 500);
-
 		const content = await loadContent();
-
-		const logMessage = (source: string, message: string) => {
-			let timestamp = ((Date.now() - startTime) / 1000).toFixed(6);
-			const leadingSpaces = " ".repeat(12 - timestamp.length);
-			timestamp = `[${leadingSpaces}${timestamp}]`;
-
-			const pre = document.createElement("pre");
-			pre.textContent = `${timestamp} ${source}: ${message}`;
-			log.appendChild(pre);
-		};
-
-		const banner = document.createElement("pre");
-		banner.textContent = BANNER;
-		log.appendChild(banner);
-
-		const terminal = new Terminal(canvas, logMessage);
+		const canvas = new Canvas(canvas_el);
+		const terminal = new Terminal(canvas);
 		await terminal.init();
-
-		// only display fake prompt if loading took >500ms
-		if (Date.now() - startTime > 500) {
-			logMessage("micahdb.com", "done loading");
-
-			const prompt = "[micah@micahdb.com ~]$ ";
-			const pre = document.createElement("pre");
-			pre.textContent = prompt;
-			log.appendChild(pre);
-
-			for (let i = 0; i < 3; i++) {
-				await new Promise((resolve) => {
-					setTimeout(resolve, 500);
-				});
-
-				// blinking block
-				const block = i % 2 === 0 ? "█" : "";
-				pre.textContent = prompt + block;
-			}
-
-			const cmd = "./dashboard.sh";
-			for (let i = 0; i <= cmd.length; i++) {
-				pre.textContent = prompt + cmd.substr(0, i) + "█";
-
-				await new Promise((resolve) => {
-					setTimeout(resolve, 50);
-				});
-			}
-
-			pre.textContent = prompt + cmd + "\n█";
-
-			// spare a moment before displaying the canvas
-			await new Promise((resolve) => {
-				setTimeout(resolve, 500);
-			});
-		}
-
-		stillLoading = false;
-		log.className = "hidden";
-		canvas.className = "";
 
 		// components
 
@@ -191,40 +103,32 @@ const main = async () => {
 
 			let pane1, pane2;
 
-			if (terminal.cols > 2 * terminal.rows) {
+			if (canvas.cols > 2 * canvas.rows) {
 				divider.setFrac(PANE_RATIO);
 				divider.draw(
 					Divider.VERTICAL,
 					0,
 					0,
-					terminal.rows,
-					terminal.cols,
+					canvas.rows,
+					canvas.cols,
 					0,
 					PANE_COLS
 				);
 
 				const lcols = divider.lcols;
-				pane1 = [0, 0, terminal.rows, lcols]; // left
-				pane2 = [0, lcols + 1, terminal.rows, terminal.cols - lcols - 1]; // right
+				pane1 = [0, 0, canvas.rows, lcols]; // left
+				pane2 = [0, lcols + 1, canvas.rows, canvas.cols - lcols - 1]; // right
 
-				terminal.resize(...pane2);
+				terminal.resizeProgram(...pane2);
 			} else {
 				divider.setFrac(0.5);
-				divider.draw(
-					Divider.HORIZONTAL,
-					0,
-					0,
-					terminal.rows,
-					terminal.cols,
-					0,
-					0
-				);
+				divider.draw(Divider.HORIZONTAL, 0, 0, canvas.rows, canvas.cols, 0, 0);
 
 				const trows = divider.trows;
-				pane1 = [0, 0, trows, terminal.cols]; // top
-				pane2 = [trows + 1, 0, terminal.rows - trows - 1, terminal.cols]; // bottom
+				pane1 = [0, 0, trows, canvas.cols]; // top
+				pane2 = [trows + 1, 0, canvas.rows - trows - 1, canvas.cols]; // bottom
 
-				terminal.resize(...pane2);
+				terminal.resizeProgram(...pane2);
 			}
 
 			// TUI

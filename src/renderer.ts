@@ -15,22 +15,21 @@ import {
 	getAttribLocations,
 	getUniformLocations
 } from "./program.ts";
+import { Canvas } from "./canvas.ts";
 
 class Renderer {
 	// each vertex is stored in the vertex buffer like so:
-	// 2. uint a_bgColour (1 byte)
-	// 3. uint a_fgColour (1 byte)
-	// 4. uint a_charCode (2 bytes)
+	// 2. uint a_bg_colour (1 byte)
+	// 3. uint a_fg_colour (1 byte)
+	// 4. uint a_char_code (2 bytes)
 	// total/stride: 4 bytes
 	static readonly STRIDE = 4;
 
-	private gl: WebGL2RenderingContext;
-	private glProgram: WebGLProgram;
+	private canvas: Canvas;
+	private gl_program: WebGLProgram;
 
 	private attributes: Record<string, number>;
 	private uniforms: Record<string, WebGLUniformLocation>;
-
-	private logMessage: (source: string, message: string) => void;
 
 	private palette: Float32Array;
 
@@ -39,228 +38,191 @@ class Renderer {
 	private vbo: WebGLBuffer;
 	private count: number;
 
-	private canvasWidth: number;
-	private canvasHeight: number;
+	private program_row: number;
+	private program_col: number;
+	private program_rows: number;
+	private program_cols: number;
 
-	private rows: number;
-	private cols: number;
-	private programRow: number;
-	private programCol: number;
-	private programRows: number;
-	private programCols: number;
-
-	public canvas: HTMLCanvasElement;
-
-	constructor(
-		canvas: HTMLCanvasElement,
-		logMessage: (source: string, message: string) => void
-	) {
+	constructor(canvas: Canvas) {
 		this.canvas = canvas;
-
-		const gl: WebGL2RenderingContext | null = this.canvas.getContext("webgl2");
-		if (!gl) {
-			window.location.href = "./about.html";
-			return;
-		}
-
-		this.gl = gl;
-
-		this.rows = 1;
-		this.cols = 1;
-		this.programRow = 0;
-		this.programCol = 0;
-		this.programRows = 1;
-		this.programCols = 1;
-
-		this.logMessage = logMessage;
 	}
 
 	async init() {
-		this.glProgram = compileProgram(this.gl, VERTEX_SHADER, FRAGMENT_SHADER);
+		const gl = this.canvas.gl;
 
-		this.attributes = getAttribLocations(this.gl, this.glProgram, {
-			bgColour: "a_bgColour",
-			fgColour: "a_fgColour",
-			charCode: "a_charCode"
+		this.gl_program = compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+
+		this.attributes = getAttribLocations(gl, this.gl_program, {
+			bg_colour: "a_bg_colour",
+			fg_colour: "a_fg_colour",
+			char_code: "a_char_code"
 		});
 
-		this.uniforms = getUniformLocations(this.gl, this.glProgram, {
+		this.uniforms = getUniformLocations(gl, this.gl_program, {
 			rows: "u_rows",
 			cols: "u_cols",
-			programRow: "u_program_row",
-			programCol: "u_program_col",
-			programRows: "u_program_rows",
-			programCols: "u_program_cols",
-			glyphAtlas: "u_glyphAtlas",
+			program_row: "u_program_row",
+			program_col: "u_program_col",
+			program_rows: "u_program_rows",
+			program_cols: "u_program_cols",
+			glyph_atlas: "u_glyph_atlas",
 			program: "u_program",
 			palette: "u_palette"
 		});
 
-		this.vbo = this.gl.createBuffer();
+		this.vbo = gl.createBuffer();
 
 		if (!this.vbo) {
 			throw new Error("When creating vertex buffer");
 		}
 
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
 
-		await loadTextures(this.gl, this.logMessage);
+		await loadTextures(gl);
 
 		this.palette = new Float32Array(PALETTE.map((e) => e / 0xff));
 
-		this.gl.useProgram(this.glProgram);
-		this.gl.uniform1i(this.uniforms.rows, this.rows);
-		this.gl.uniform1i(this.uniforms.cols, this.cols);
-		this.gl.uniform1i(this.uniforms.programRow, this.programRow);
-		this.gl.uniform1i(this.uniforms.programCol, this.programCol);
-		this.gl.uniform1i(this.uniforms.programRows, this.programRows);
-		this.gl.uniform1i(this.uniforms.programCols, this.programCols);
-		this.gl.uniform1i(this.uniforms.glyphAtlas, GLYPH_ATLAS_TEXTURE_INDEX);
-		this.gl.uniform1i(this.uniforms.program, PROGRAM_TEXTURE_INDEX);
-		this.gl.uniform3fv(this.uniforms.palette, this.palette);
+		gl.useProgram(this.gl_program);
+		gl.uniform1i(this.uniforms.rows, this.canvas.rows);
+		gl.uniform1i(this.uniforms.cols, this.canvas.cols);
+		gl.uniform1i(this.uniforms.program_row, this.program_row);
+		gl.uniform1i(this.uniforms.program_col, this.program_col);
+		gl.uniform1i(this.uniforms.program_rows, this.program_rows);
+		gl.uniform1i(this.uniforms.program_cols, this.program_cols);
+		gl.uniform1i(this.uniforms.glyph_atlas, GLYPH_ATLAS_TEXTURE_INDEX);
+		gl.uniform1i(this.uniforms.program, PROGRAM_TEXTURE_INDEX);
+		gl.uniform3fv(this.uniforms.palette, this.palette);
 
-		this.program = new ProgramManager(this.gl, this.logMessage);
+		this.count = this.canvas.rows * this.canvas.cols * 6;
+
+		this.canvas.addEventListener("resize", () => {
+			this.resize();
+		});
+
+		this.program = new ProgramManager(gl);
 		this.program.init();
+		this.program.resize(this.program_cols, this.program_rows);
 		this.program.which = "earth";
 	}
 
 	enableAttributes() {
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
+		const gl = this.canvas.gl;
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
 
 		// each vertex is stored in the vertex buffer like so:
-		// 2. uint a_bgColour (1 byte) [offset: 0]
-		// 3. uint a_fgColour (1 byte) [offset: 1]
-		// 4. uint a_charCode (2 bytes) [offset: 2]
+		// 2. uint a_bg_colour (1 byte) [offset: 0]
+		// 3. uint a_fg_colour (1 byte) [offset: 1]
+		// 4. uint a_char_code (2 bytes) [offset: 2]
 		// total/stride: 4 bytes
 
-		// bgColour
-		this.gl.vertexAttribIPointer(
-			this.attributes.bgColour,
+		// bg_colour
+		gl.vertexAttribIPointer(
+			this.attributes.bg_colour,
 			1,
-			this.gl.UNSIGNED_BYTE,
+			gl.UNSIGNED_BYTE,
 			Renderer.STRIDE,
 			0
 		);
-		this.gl.enableVertexAttribArray(this.attributes.bgColour);
+		gl.enableVertexAttribArray(this.attributes.bg_colour);
 
-		// fgColour
-		this.gl.vertexAttribIPointer(
-			this.attributes.fgColour,
+		// fg_colour
+		gl.vertexAttribIPointer(
+			this.attributes.fg_colour,
 			1,
-			this.gl.UNSIGNED_BYTE,
+			gl.UNSIGNED_BYTE,
 			Renderer.STRIDE,
 			1
 		);
-		this.gl.enableVertexAttribArray(this.attributes.fgColour);
+		gl.enableVertexAttribArray(this.attributes.fg_colour);
 
-		// charCode
-		this.gl.vertexAttribIPointer(
-			this.attributes.charCode,
+		// char_code
+		gl.vertexAttribIPointer(
+			this.attributes.char_code,
 			1,
-			this.gl.UNSIGNED_SHORT,
+			gl.UNSIGNED_SHORT,
 			Renderer.STRIDE,
 			2
 		);
-		this.gl.enableVertexAttribArray(this.attributes.charCode);
+		gl.enableVertexAttribArray(this.attributes.char_code);
 	}
 
-	resize(
-		canvasWidth: number,
-		canvasHeight: number,
-		rows: number,
-		cols: number,
-		vrow: number,
-		vcol: number,
-		vrows: number,
-		vcols: number
-	) {
-		// update canvas size
-		this.canvas.width = canvasWidth;
-		this.canvas.height = canvasHeight;
-		this.canvasWidth = canvasWidth;
-		this.canvasHeight = canvasHeight;
+	resize() {
+		const gl = this.canvas.gl;
+		gl.useProgram(this.gl_program);
+		gl.uniform1i(this.uniforms.rows, this.canvas.rows);
+		gl.uniform1i(this.uniforms.cols, this.canvas.cols);
+		this.count = this.canvas.rows * this.canvas.cols * 6;
+	}
 
-		// set GL program to renderer
-		this.gl.useProgram(this.glProgram);
-
-		if (rows !== this.rows || cols !== this.cols) {
-			this.rows = rows;
-			this.cols = cols;
-
-			// update uniforms
-			this.gl.uniform1i(this.uniforms.rows, rows);
-			this.gl.uniform1i(this.uniforms.cols, cols);
-
-			// set count to the number of vertices
-			this.count = rows * cols * 6;
-		}
-
+	resizeProgram(row: number, col: number, rows: number, cols: number) {
 		if (
-			vrow !== this.programRow ||
-			vcol !== this.programCol ||
-			vrows !== this.programRows ||
-			vcols !== this.programCols
+			row !== this.program_row ||
+			col !== this.program_col ||
+			rows !== this.program_rows ||
+			cols !== this.program_cols
 		) {
-			this.programRow = vrow;
-			this.programCol = vcol;
-			this.programRows = vrows;
-			this.programCols = vcols;
+			this.program_row = row;
+			this.program_col = col;
+			this.program_rows = rows;
+			this.program_cols = cols;
 
 			// update program uniforms
-			this.gl.uniform1i(this.uniforms.programRow, vrow);
-			this.gl.uniform1i(this.uniforms.programCol, vcol);
-			this.gl.uniform1i(this.uniforms.programRows, vrows);
-			this.gl.uniform1i(this.uniforms.programCols, vcols);
+			const gl = this.canvas.gl;
+			gl.useProgram(this.gl_program);
+			gl.uniform1i(this.uniforms.program_row, row);
+			gl.uniform1i(this.uniforms.program_col, col);
+			gl.uniform1i(this.uniforms.program_rows, rows);
+			gl.uniform1i(this.uniforms.program_cols, cols);
 
-			// resize program
-			this.program.resize(vcols, vrows);
+			// resize program texture
+			this.program.resize(cols, rows);
 		}
 	}
 
 	setData(data: Uint32Array) {
-		this.gl.useProgram(this.glProgram);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.DYNAMIC_DRAW);
+		const gl = this.canvas.gl;
+		gl.useProgram(this.gl_program);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+		gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
 	}
 
 	draw() {
-		if (this.canvas.width === 0 || this.canvas.height === 0) {
-			return;
-		}
-
-		if (this.programRows > 0 && this.programCols > 0) {
+		if (this.program_rows > 0 && this.program_cols > 0) {
 			// render the internal program first
 			this.program.draw();
 		}
 
+		const gl = this.canvas.gl;
+
 		// use renderer program
-		this.gl.useProgram(this.glProgram);
+		gl.useProgram(this.gl_program);
 
 		this.enableAttributes();
 
 		// clear the canvas
 		const bg = 16 * 3;
-		this.gl.clearColor(
+		gl.clearColor(
 			this.palette[bg],
 			this.palette[bg + 1],
 			this.palette[bg + 2],
 			1.0
 		);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		this.gl.activeTexture(this.gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, TEXTURES[GLYPH_ATLAS_TEXTURE]);
-		this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.program.texture);
+		gl.activeTexture(gl.TEXTURE0 + GLYPH_ATLAS_TEXTURE_INDEX);
+		gl.bindTexture(gl.TEXTURE_2D, TEXTURES[GLYPH_ATLAS_TEXTURE]);
+		gl.activeTexture(gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
+		gl.bindTexture(gl.TEXTURE_2D, this.program.texture);
 
 		// render to the canvas
-		this.gl.viewport(0, 0, this.canvasWidth, this.canvasHeight);
-		this.gl.drawArrays(this.gl.TRIANGLES, 0, this.count);
+		gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+		gl.drawArrays(gl.TRIANGLES, 0, this.count);
 
 		// Unbind the program texture to prevent feedback loops in the next frame
-		this.gl.activeTexture(this.gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+		gl.activeTexture(gl.TEXTURE0 + PROGRAM_TEXTURE_INDEX);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
 }
 

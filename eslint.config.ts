@@ -11,5 +11,18 @@ export default defineConfig([
         projectService: true,
       },
     },
-  },
+  }/*,
+  {
+    rules: {
+      "@typescript-eslint/naming-convention": [
+        "error",
+        { "selector": "function", "format": ["camelCase"] },
+        { "selector": "class", "format": ["PascalCase"] },
+        { "selector": "property", "format": ["snake_case"] },
+        { "selector": "property", "modifiers": ["readonly"], "format": ["UPPER_CASE"] },
+        { "selector": "variable", "format": ["snake_case"] }
+        { "selector": "variable", "modifiers": ["const", "global"], "format": ["UPPER_CASE"] },
+      ]
+    }
+  }*/
 ]);

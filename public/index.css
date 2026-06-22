@@ -7,7 +7,7 @@ html {
 }
 
 body {
-	background-color: #161718;
+	background-color: #080808;
 	color: #cdcdcd;
 	margin: 0;
 	padding: 0;
@@ -29,21 +29,6 @@ body.grabbing {
 
 body.pointer {
 	cursor: pointer;
-}
-
-.hidden {
-	display: none;
-}
-
-#log pre {
-	font-family: "JetBrains Mono", monospace;
-	font-optical-sizing: auto;
-	font-weight: 400;
-	font-style: normal;
-	font-size: 10pt;
-	margin: 0;
-	padding: 0;
-	line-height: 1.5;
 }
 
 #webgl {

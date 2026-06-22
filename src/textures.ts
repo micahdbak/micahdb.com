@@ -45,10 +45,7 @@ export const MOON_NORMAL = "/earth/moon_normal.jpg";
 
 // functions
 
-export async function loadTextures(
-	gl: WebGL2RenderingContext,
-	logMessage: (source: string, message: string) => void
-) {
+export async function loadTextures(gl: WebGL2RenderingContext) {
 	// prettier-ignore
 	const textures = [
 		WHITE_TEXTURE, SMOOTH_NORMAL,
@@ -62,7 +59,7 @@ export async function loadTextures(
 	promises.push(
 		(async () => {
 			TEXTURES[GLYPH_ATLAS_TEXTURE] = await loadGlyphAtlas(gl);
-			logMessage("font_loader", `loaded ${GLYPH_ATLAS_TEXTURE}`);
+			console.log(`loaded ${GLYPH_ATLAS_TEXTURE}`);
 		})()
 	);
 
@@ -71,7 +68,7 @@ export async function loadTextures(
 			(async () => {
 				const texture = await loadTexture(gl, textures[i]);
 				TEXTURES[textures[i]] = texture;
-				logMessage("texture_loader", `loaded ${textures[i]}`);
+				console.log(`loaded ${textures[i]}`);
 			})()
 		);
 	}
@@ -80,7 +77,7 @@ export async function loadTextures(
 		(async () => {
 			const texture = await loadCubeMap(gl, EARTH_SKYBOX_FACES);
 			TEXTURES[EARTH_CUBEMAP] = texture;
-			logMessage("cubemap_loader", `loaded ${EARTH_CUBEMAP}`);
+			console.log(`loaded ${EARTH_CUBEMAP}`);
 		})()
 	);
 

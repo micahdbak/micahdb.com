@@ -68,6 +68,8 @@ class Divider {
 
 		let drawn_row, drawn_col, drawn_rows, drawn_cols;
 
+		const fg = this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK;
+
 		if (direction === Divider.HORIZONTAL) {
 			drawn_row = row + Math.floor((rows - 1) * this.frac);
 			drawn_col = col;
@@ -85,19 +87,16 @@ class Divider {
 
 			const str = "─".repeat(cols);
 
-			this.terminal.drawText(
-				str,
-				drawn_row,
-				drawn_col,
-				Colour.BG,
-				this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
-			);
+			this.terminal.drawText(str, drawn_row, drawn_col, fg);
 
 			if (this.dragging) {
-				let mouseRow =
-					Math.max(Math.min(this.terminal.mouseRow, row + rows - 1), row) - row;
-				mouseRow = Math.max(mouseRow, minRow);
-				this.frac = mouseRow / (rows - 1);
+				let mouse_row =
+					Math.max(
+						Math.min(this.terminal.canvas.mouse_row, row + rows - 1),
+						row
+					) - row;
+				mouse_row = Math.max(mouse_row, minRow);
+				this.frac = mouse_row / (rows - 1);
 			}
 		} else {
 			drawn_row = row;
@@ -115,20 +114,17 @@ class Divider {
 			this.lcols = drawn_col - col;
 
 			for (let i = 0; i < rows; i++) {
-				this.terminal.drawText(
-					"│",
-					drawn_row + i,
-					drawn_col,
-					Colour.BG,
-					this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
-				);
+				this.terminal.drawText("│", drawn_row + i, drawn_col, fg);
 			}
 
 			if (this.dragging) {
-				let mouseCol =
-					Math.max(Math.min(this.terminal.mouseCol, col + cols - 1), col) - col;
-				mouseCol = Math.max(mouseCol, minCol);
-				this.frac = mouseCol / (cols - 1);
+				let mouse_col =
+					Math.max(
+						Math.min(this.terminal.canvas.mouse_col, col + cols - 1),
+						col
+					) - col;
+				mouse_col = Math.max(mouse_col, minCol);
+				this.frac = mouse_col / (cols - 1);
 			}
 		}
 
@@ -150,13 +146,7 @@ class Divider {
 					break;
 			}
 
-			this.terminal.drawText(
-				ch,
-				intRow,
-				intCol,
-				Colour.BG,
-				this.hovering ? Colour.LIGHT_BLACK : Colour.BLACK
-			);
+			this.terminal.drawText(ch, intRow, intCol, fg);
 		}
 
 		// mouse tracking
@@ -165,16 +155,16 @@ class Divider {
 			return;
 		}
 
-		const mouseInside = this.terminal.mouseAt(
+		const mouseInside = this.terminal.canvas.mouseAt(
 			drawn_row,
 			drawn_col,
 			drawn_rows,
 			drawn_cols
 		);
 
-		if (!this.terminal.mouseDown) {
+		if (!this.terminal.canvas.mouse_down) {
 			if (this.dragging) {
-				this.terminal.mouseOwner = "";
+				this.terminal.canvas.mouse_owner = "";
 			}
 			this.mouseWasDown = false;
 			this.dragging = false;
@@ -186,9 +176,9 @@ class Divider {
 				this.hovering = false;
 			}
 		} else if (!this.mouseWasDown) {
-			if (mouseInside && this.terminal.mouseOwner === "") {
+			if (mouseInside && this.terminal.canvas.mouse_owner === "") {
 				this.dragging = true;
-				this.terminal.mouseOwner = "divider";
+				this.terminal.canvas.mouse_owner = "divider";
 			} else {
 				this.dragging = false;
 			}

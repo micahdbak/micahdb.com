@@ -102,7 +102,6 @@ class Markdown {
 								"#".repeat(heading.depth),
 								r,
 								c,
-								Colour.BG,
 								Colour.GREY
 							);
 						}
@@ -118,7 +117,7 @@ class Markdown {
 						const text = " -  "; // `${list_idx < 10 ? " " : ""}${list_idx++}. `;
 
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(text, r, c, Colour.BG, Colour.GREY);
+							this.terminal.drawText(text, r, c, Colour.GREY);
 						}
 
 						c += text.length;
@@ -145,7 +144,7 @@ class Markdown {
 				r += 2;
 
 				if (r >= row && r < row + rows) {
-					this.terminal.drawText("----", r, c, Colour.BG, Colour.GREY);
+					this.terminal.drawText("----", r, c, Colour.GREY);
 				}
 
 				continue;
@@ -203,17 +202,7 @@ class Markdown {
 							if (word === " " && c === col) {
 								// skip trailing space of a word that ended in a newline to avoid leading spaces
 							} else if (r >= row && r < row + rows) {
-								this.terminal.drawText(
-									word,
-									r,
-									c,
-									bg,
-									fg,
-									Colour.BLACK,
-									Colour.BLACK,
-									false,
-									font
-								);
+								this.terminal.drawText(word, r, c, fg, bg, font);
 								c += word.length;
 							}
 						}
@@ -226,17 +215,7 @@ class Markdown {
 
 					if (prefix.length > 0) {
 						if (r >= row && r < row + rows) {
-							this.terminal.drawText(
-								prefix,
-								r,
-								c,
-								bg,
-								fg,
-								Colour.BLACK,
-								Colour.BLACK,
-								false,
-								font
-							);
+							this.terminal.drawText(prefix, r, c, fg, bg, font);
 						}
 
 						c += prefix.length;

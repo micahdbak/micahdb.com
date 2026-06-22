@@ -98,10 +98,4 @@ export abstract class Program {
 
 	abstract init(): void;
 	abstract draw(): void;
-
-	// optional to implement:
-	// resize(width: number, height:number)
-	resize(): void {
-		// pass
-	}
 }

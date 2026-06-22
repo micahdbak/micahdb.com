@@ -67,10 +67,15 @@ class Tabs {
 				const tab = _tabs[j];
 				const c = col + lcols;
 
-				const isHovered = this.terminal.mouseAt(r, c, 1, tab.length);
-				const wasHovered = this.terminal.mouseDownAt(r, c, 1, tab.length);
+				const isHovered = this.terminal.canvas.mouseAt(r, c, 1, tab.length);
+				const wasHovered = this.terminal.canvas.mouseDownAt(
+					r,
+					c,
+					1,
+					tab.length
+				);
 
-				if (isHovered && wasHovered && this.terminal.mouseClick) {
+				if (isHovered && wasHovered && this.terminal.canvas.mouse_click) {
 					this.which = tabi;
 				}
 
@@ -83,7 +88,7 @@ class Tabs {
 				const fg =
 					tabi === this.which ? fgColour : isHovered ? Colour.BG : fgColour;
 
-				this.terminal.drawText(tab, r, c, bg, fg);
+				this.terminal.drawText(tab, r, c, fg, bg);
 
 				if (j < _tabs.length - 1) {
 					this.terminal.drawText("|", r, c + tab.length, backColour, Colour.BG);

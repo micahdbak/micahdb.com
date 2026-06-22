@@ -20,18 +20,20 @@ class Scrollable {
 	constructor(terminal: Terminal) {
 		this.terminal = terminal;
 
-		this.terminal.renderer.canvas.addEventListener(
+		this.terminal.canvas.element.addEventListener(
 			"wheel",
 			(event) => {
 				switch (event.deltaMode) {
 					case 0:
 						this.wheel_px += event.deltaY;
 
-						if (Math.abs(this.wheel_px) >= this.terminal.cellHeight) {
+						if (
+							Math.abs(this.wheel_px) >= this.terminal.canvas.actual_cell_height
+						) {
 							this.wheel_rows += Math.floor(
-								this.wheel_px / this.terminal.cellHeight
+								this.wheel_px / this.terminal.canvas.actual_cell_height
 							);
-							this.wheel_px %= this.terminal.cellHeight;
+							this.wheel_px %= this.terminal.canvas.actual_cell_height;
 						}
 
 						break;
@@ -42,13 +44,13 @@ class Scrollable {
 						break;
 
 					case 2:
-						this.wheel_rows += event.deltaY * this.terminal.rows;
+						this.wheel_rows += event.deltaY * this.terminal.canvas.rows;
 
 						break;
 				}
 
-				this.wheel_mouse_row = this.terminal.mouseRow;
-				this.wheel_mouse_col = this.terminal.mouseCol;
+				this.wheel_mouse_row = this.terminal.canvas.mouse_row;
+				this.wheel_mouse_col = this.terminal.canvas.mouse_col;
 			},
 			{ passive: false }
 		);
@@ -68,7 +70,7 @@ class Scrollable {
 		const max_offset = Math.max(0, inner_rows - rows);
 
 		// apply momentum to offset
-		if (!this.terminal.mouseDown && Math.abs(this.velocity) > 0.01) {
+		if (!this.terminal.canvas.mouse_down && Math.abs(this.velocity) > 0.01) {
 			this.row_offset -= this.velocity;
 			this.velocity *= 0.95;
 		}
@@ -85,21 +87,24 @@ class Scrollable {
 		}
 
 		if (
-			this.terminal.mouseAt(row, col, rows, cols) &&
-			this.terminal.mouseDownAt(row, col, rows, cols)
+			this.terminal.canvas.mouseAt(row, col, rows, cols) &&
+			this.terminal.canvas.mouseDownAt(row, col, rows, cols)
 		) {
-			if (this.terminal.mouseOwner === "" && this.terminal.mouseDown) {
-				this.terminal.mouseOwner = "scrollable";
+			if (
+				this.terminal.canvas.mouse_owner === "" &&
+				this.terminal.canvas.mouse_down
+			) {
+				this.terminal.canvas.mouse_owner = "scrollable";
 				this.is_dragging = true;
 				this.drag_start_offset = this.row_offset;
-				this.drag_start_mouse_row = this.terminal.mouseRow;
-				this.last_mouse_row = this.terminal.mouseRow;
+				this.drag_start_mouse_row = this.terminal.canvas.mouse_row;
+				this.last_mouse_row = this.terminal.canvas.mouse_row;
 				this.velocity = 0;
 			}
 
-			if (this.terminal.mouseOwner === "scrollable") {
-				if (this.terminal.mouseDown) {
-					const current_mouse_row = this.terminal.mouseRow;
+			if (this.terminal.canvas.mouse_owner === "scrollable") {
+				if (this.terminal.canvas.mouse_down) {
+					const current_mouse_row = this.terminal.canvas.mouse_row;
 
 					// Velocity for momentum
 					const delta = current_mouse_row - this.last_mouse_row;
@@ -111,12 +116,12 @@ class Scrollable {
 					this.row_offset = this.drag_start_offset - drag_delta;
 				} else {
 					this.is_dragging = false;
-					this.terminal.mouseOwner = "";
+					this.terminal.canvas.mouse_owner = "";
 				}
 			}
-		} else if (this.terminal.mouseOwner === "scrollable") {
+		} else if (this.terminal.canvas.mouse_owner === "scrollable") {
 			this.is_dragging = false;
-			this.terminal.mouseOwner = "";
+			this.terminal.canvas.mouse_owner = "";
 		}
 
 		this.row_offset = Math.max(0, Math.min(this.row_offset, max_offset));
@@ -128,7 +133,7 @@ class Scrollable {
 			const leftCols = Math.ceil((cols - hint.length) / 2);
 			const rightCols = cols - hint.length - leftCols;
 			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
-			this.terminal.drawText(text, row, col, Colour.FG, Colour.BG);
+			this.terminal.drawText(text, row, col, Colour.BG, Colour.FG);
 		}
 
 		if (inner_rows - this.row_offset > rows) {
@@ -136,7 +141,7 @@ class Scrollable {
 			const leftCols = Math.ceil((cols - hint.length) / 2);
 			const rightCols = cols - hint.length - leftCols;
 			const text = " ".repeat(leftCols) + hint + " ".repeat(rightCols);
-			this.terminal.drawText(text, row + rows - 1, col, Colour.FG, Colour.BG);
+			this.terminal.drawText(text, row + rows - 1, col, Colour.BG, Colour.FG);
 		}
 	}
 }

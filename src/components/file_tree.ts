@@ -1,4 +1,3 @@
-import { ScrollBar } from "./scroll_bar.ts";
 import { Glyph } from "../glyph.ts";
 import { Terminal } from "../terminal.ts";
 import { Colour } from "../colour.ts";
@@ -34,14 +33,11 @@ class Folder extends File {
 
 class FileTree {
 	private terminal: Terminal;
-	private scrollBar: ScrollBar;
 	private root: Folder;
 
 	constructor(terminal: Terminal, root: Folder) {
 		this.terminal = terminal;
-		this.scrollBar = new ScrollBar(terminal);
 		this.root = root;
-		this.rowOffset = 0;
 	}
 
 	treeHeight() {
@@ -90,16 +86,7 @@ class FileTree {
 		const folders = [this.root];
 		const indices = [0];
 
-		let height = this.treeHeight();
-		let surplusRows = Math.max(height - rowCount, 0);
-		let rowOffset = 0;
-
-		if (surplusRows > 0) {
-			rowOffset = Math.floor(this.scrollBar.frac * (surplusRows + 1));
-		}
-
 		let row = startRow;
-		let off = 0;
 
 		while (folders.length > 0 && row - startRow < rowCount) {
 			const folder = folders.at(folders.length - 1) as Folder;
@@ -121,12 +108,6 @@ class FileTree {
 				indices.push(0);
 			}
 
-			// don't draw anything until the offset
-			if (off < rowOffset) {
-				off++;
-				continue;
-			}
-
 			let branch = "";
 
 			for (let i = 0; i < depth - 1; i++) {
@@ -136,28 +117,25 @@ class FileTree {
 			branch += i >= folder.children.length - 1 ? "└── " : "├── ";
 			branch = branch.slice(0, colCount);
 
-			this.terminal.drawText(branch, row, col, bgColour, Colour.LIGHT_BLACK);
+			this.terminal.drawText(branch, row, col, Colour.LIGHT_BLACK, bgColour);
 
 			let fg = isFolder ? fg2Colour : fg1Colour;
 			let bg = bgColour;
 
 			if (
-				this.terminal.mouseAt(row, col + branch.length, 1, file.name.length)
+				this.terminal.canvas.mouseAt(
+					row,
+					col + branch.length,
+					1,
+					file.name.length
+				)
 			) {
 				bg = Colour.LIGHT_GREEN;
 				fg = Colour.LIGHT_BLACK;
 
-				if (this.terminal.mouseClick) {
+				if (this.terminal.canvas.mouse_click) {
 					if (isFolder) {
 						file.open = !file.open;
-						height = this.treeHeight();
-						surplusRows = Math.max(height - rowCount, 0);
-
-						if (surplusRows > 0) {
-							this.scrollBar.setFrac(rowOffset / (surplusRows + 1));
-						} else {
-							this.scrollBar.setFrac(0);
-						}
 					} else {
 						file.onclick();
 					}
@@ -171,20 +149,14 @@ class FileTree {
 					name,
 					row,
 					col + branch.length,
-					bg,
 					fg,
-					Colour.BLACK,
-					Colour.BLACK,
-					false,
+					bg,
 					isFolder ? Glyph.BOLD_FONT : Glyph.NORMAL_FONT
 				);
 			}
 
 			row++;
 		}
-
-		// TODO: gesture scrolling
-		// this.scrollBar.draw(startRow, startCol + colCount - 3, rowCount);
 	}
 }
 

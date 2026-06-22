@@ -9,8 +9,8 @@ class TableBorders {
 		trows: number,
 		heights: number[],
 		widths: number[],
-		backColour: Colour,
-		fgColour: Colour
+		fgColour: Colour,
+		bgColour: Colour = Colour.BG
 	) {
 		const hLine = (l: string, m: string, r: string) =>
 			l + widths.map((w) => "─".repeat(w)).join(m) + r;
@@ -31,7 +31,7 @@ class TableBorders {
 
 		tableStr += hLine("└", "┴", "┘");
 
-		terminal.drawText(tableStr, row, col, backColour, fgColour);
+		terminal.drawText(tableStr, row, col, fgColour, bgColour);
 	}
 }
 
@@ -205,8 +205,8 @@ class Table {
 						paddedLine,
 						currentRow,
 						currentCol,
-						backColour,
-						fgColour
+						fgColour,
+						backColour
 					);
 
 					currentCol += finalWidths[c] + 1;

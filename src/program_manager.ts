@@ -161,11 +161,6 @@ class ProgramManager {
 		const far = 100.0;
 		Mat4.perspective(this.projectionMatrix, fovy, aspect, near, far);
 
-		// resize programs
-		for (const program of this.programs) {
-			program.resize(width, height);
-		}
-
 		this.targetWidth = width;
 		this.targetHeight = height;
 	}

@@ -14,10 +14,10 @@ class Link {
 		hoverBackColour: Colour = Colour.LIGHT_BLUE,
 		hoverFgColour: Colour = Colour.BG
 	) {
-		const isHovered = terminal.mouseAt(row, col, 1, text.length);
-		const wasHovered = terminal.mouseDownAt(row, col, 1, text.length);
+		const isHovered = terminal.canvas.mouseAt(row, col, 1, text.length);
+		const wasHovered = terminal.canvas.mouseDownAt(row, col, 1, text.length);
 
-		if (isHovered && wasHovered && terminal.mouseClick) {
+		if (isHovered && wasHovered && terminal.canvas.mouse_click) {
 			if (url.startsWith("mailto:")) {
 				const a = document.createElement("a");
 				a.href = url;
@@ -38,17 +38,7 @@ class Link {
 		const bg = isHovered ? hoverBackColour : backColour;
 		const fg = isHovered ? hoverFgColour : fgColour;
 
-		terminal.drawText(
-			text,
-			row,
-			col,
-			bg,
-			fg,
-			Colour.BLACK,
-			Colour.BLACK,
-			false,
-			Glyph.ITALIC_BOLD_FONT
-		);
+		terminal.drawText(text, row, col, fg, bg, Glyph.ITALIC_FONT);
 	}
 }
 

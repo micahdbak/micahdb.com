@@ -15,26 +15,26 @@ export class Glyph {
 	static readonly ITALIC_FONT = 2 * Glyph.ASCII_COUNT;
 	static readonly ITALIC_BOLD_FONT = 3 * Glyph.ASCII_COUNT;
 
-	public bgColour: Colour;
-	public fgColour: Colour;
-	public charCode: number;
+	public bg_colour: Colour;
+	public fg_colour: Colour;
+	public char_code: number;
 
 	constructor(
-		public bgColour: Colour,
-		public fgColour: Colour,
-		public charCode: number
+		public bg_colour: Colour,
+		public fg_colour: Colour,
+		public char_code: number
 	) {
-		this.bgColour = bgColour;
-		this.fgColour = fgColour;
-		this.charCode = charCode;
+		this.bg_colour = bg_colour;
+		this.fg_colour = fg_colour;
+		this.char_code = char_code;
 	}
 
 	data(): Uint32Array {
-		// Uint32 containing bgColour (1 byte), fgColour (1 byte), charCode (2 bytes)
+		// Uint32 containing bg_colour (1 byte), fg_colour (1 byte), char_code (2 bytes)
 		const packed =
-			(this.bgColour & 0xff) |
-			((this.fgColour & 0xff) << 8) |
-			((this.charCode & 0xffff) << 16);
+			(this.bg_colour & 0xff) |
+			((this.fg_colour & 0xff) << 8) |
+			((this.char_code & 0xffff) << 16);
 		return new Uint32Array(Glyph.VERTICES).fill(packed);
 	}
 

@@ -17,9 +17,9 @@
 #define VERTICES_PER_GLYPH	6
 #define PALETTE_SIZE		18
 
-in uint a_bgColour; // 0..255
-in uint a_fgColour; // 0..255
-in uint a_charCode; // 0..65535
+in uint a_bg_colour; // 0..255
+in uint a_fg_colour; // 0..255
+in uint a_char_code; // 0..65535
 
 uniform int u_rows;
 uniform int u_cols;
@@ -27,19 +27,19 @@ uniform vec3 u_palette[PALETTE_SIZE];
 uniform sampler2D u_program;
 uniform int u_program_row, u_program_col, u_program_rows, u_program_cols;
 
-out vec3 v_bgColour;
-out vec3 v_fgColour;
-out vec2 v_uvCoord;
-out vec2 v_cellCoord;
-flat out uint v_charCode;
+out vec3 v_bg_colour;
+out vec3 v_fg_colour;
+out vec2 v_uv_coord;
+out vec2 v_cell_coord;
+flat out uint v_char_code;
 
-vec2 glyphTopLeft(uint charCode) {
+vec2 glyphTopLeft(uint char_code) {
 	uint i = 0U;
 
-	if (charCode >= ASCII_START && charCode <= ASCII_START + ASCII_GLYPHS * ASCII_STYLES) {
-		i = (charCode - ASCII_START) + 1U;
-	} else if (charCode >= BOX_START && charCode <= BOX_END) {
-		i = (charCode - BOX_START) + ASCII_GLYPHS * ASCII_STYLES + 1U;
+	if (char_code >= ASCII_START && char_code <= ASCII_START + ASCII_GLYPHS * ASCII_STYLES) {
+		i = (char_code - ASCII_START) + 1U;
+	} else if (char_code >= BOX_START && char_code <= BOX_END) {
+		i = (char_code - BOX_START) + ASCII_GLYPHS * ASCII_STYLES + 1U;
 	} else {
 		return vec2(0.0, 0.0); // empty glyph
 	}
@@ -59,11 +59,11 @@ void main() {
 	int col = cell % u_cols;
 
 	// top left / bottom right uv coordinates
-	vec2 tl = glyphTopLeft(a_charCode);
+	vec2 tl = glyphTopLeft(a_char_code);
 
 	if (tl == vec2(0.0, 0.0) &&
-		a_bgColour == 0U &&
-		a_fgColour == 0U &&
+		a_bg_colour == 0U &&
+		a_fg_colour == 0U &&
 		row >= u_program_row &&
 		col >= u_program_col &&
 		row < u_program_row + u_program_rows &&
@@ -74,29 +74,29 @@ void main() {
 		vec2 texCell = vec2(float(vcol) / float(u_program_cols), float(vrow) / float(u_program_rows));
 		vec4 texSample = texture(u_program, texCell);
 
-		uint charCode = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
+		uint char_code = (uint(round(texSample.r * 256.0)) << 8) + uint(round(texSample.g * 256.0));
 		uint bg = uint(round(texSample.b * 256.0));
 		uint fg = uint(round(texSample.a * 256.0));
 
-		if (bg == 0U && charCode < 32U) {
+		if (bg == 0U && char_code < 32U) {
 			fg = 0U;
-			charCode = 0x2588U; // █
+			char_code = 0x2588U; // █
 		}
 
-		v_charCode = charCode;
-		v_bgColour = u_palette[bg];
-		v_fgColour = u_palette[fg];
+		v_char_code = char_code;
+		v_bg_colour = u_palette[bg];
+		v_fg_colour = u_palette[fg];
 
-		tl = glyphTopLeft(v_charCode);
+		tl = glyphTopLeft(v_char_code);
 	} else {
-		v_charCode = a_charCode;
-		v_bgColour = u_palette[a_bgColour];
-		v_fgColour = u_palette[a_fgColour];
+		v_char_code = a_char_code;
+		v_bg_colour = u_palette[a_bg_colour];
+		v_fg_colour = u_palette[a_fg_colour];
 	}
 
 	vec2 br = vec2(tl.x + float(GLYPH_WIDTH), tl.y + float(GLYPH_HEIGHT));
-	vec2 uvCoord = tl;
-	v_cellCoord = vec2(0.0, 0.0);
+	vec2 uv_coord = tl;
+	v_cell_coord = vec2(0.0, 0.0);
 
 
 	// switch properties according to which vertex this is for
@@ -104,22 +104,22 @@ void main() {
 	case 1: // bottom-left
 	case 3:
 		row++;
-		uvCoord = vec2(tl.x, br.y);
-		v_cellCoord = vec2(0.0, 1.0);
+		uv_coord = vec2(tl.x, br.y);
+		v_cell_coord = vec2(0.0, 1.0);
 		break;
 
 	case 2: // top-right
 	case 5:
 		col++;
-		uvCoord = vec2(br.x, tl.y);
-		v_cellCoord = vec2(1.0, 0.0);
+		uv_coord = vec2(br.x, tl.y);
+		v_cell_coord = vec2(1.0, 0.0);
 		break;
 
 	case 4: // bottom-right
 		row++;
 		col++;
-		uvCoord = vec2(br.x, br.y);
-		v_cellCoord = vec2(1.0, 1.0);
+		uv_coord = vec2(br.x, br.y);
+		v_cell_coord = vec2(1.0, 1.0);
 		break;
 
 	default:
@@ -127,8 +127,8 @@ void main() {
 	}
 
 	// uv coordinates needs to be in [0.0, 1.0]
-	uvCoord = vec2(uvCoord.x / float(GLYPH_ATLAS_WIDTH), uvCoord.y / float(GLYPH_ATLAS_HEIGHT));
-	v_uvCoord = uvCoord;
+	uv_coord = vec2(uv_coord.x / float(GLYPH_ATLAS_WIDTH), uv_coord.y / float(GLYPH_ATLAS_HEIGHT));
+	v_uv_coord = uv_coord;
 
 	// position needs to be in [-1.0, 1.0]
 	float ndcX = 2.0 * float(col) / float(u_cols) - 1.0;
