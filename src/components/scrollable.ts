@@ -4,7 +4,6 @@ import { Colour } from "../colour.ts";
 class Scrollable {
 	private terminal: Terminal;
 
-	private wheel_px: number = 0;
 	private wheel_rows: number = 0;
 	private wheel_mouse_row: number = 0;
 	private wheel_mouse_col: number = 0;
@@ -20,38 +19,12 @@ class Scrollable {
 	constructor(terminal: Terminal) {
 		this.terminal = terminal;
 
-		this.terminal.canvas.element.addEventListener(
-			"wheel",
-			(event) => {
-				switch (event.deltaMode) {
-					case 0:
-						this.wheel_px += event.deltaY;
-
-						if (Math.abs(this.wheel_px) >= this.terminal.canvas.actual_cell_height) {
-							this.wheel_rows += Math.floor(
-								this.wheel_px / this.terminal.canvas.actual_cell_height
-							);
-							this.wheel_px %= this.terminal.canvas.actual_cell_height;
-						}
-
-						break;
-
-					case 1:
-						this.wheel_rows += event.deltaY;
-
-						break;
-
-					case 2:
-						this.wheel_rows += event.deltaY * this.terminal.canvas.rows;
-
-						break;
-				}
-
-				this.wheel_mouse_row = this.terminal.canvas.mouse_row;
-				this.wheel_mouse_col = this.terminal.canvas.mouse_col;
-			},
-			{ passive: false }
-		);
+		this.terminal.canvas.addEventListener("wheel", (event: CustomEvent) => {
+			const detail = event.detail as { rows: number };
+			this.wheel_rows += detail.rows;
+			this.wheel_mouse_row = this.terminal.canvas.mouse_row;
+			this.wheel_mouse_col = this.terminal.canvas.mouse_col;
+		});
 	}
 
 	draw(row: number, col: number, rows: number, cols: number, inner_rows: number) {

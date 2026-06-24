@@ -1,7 +1,16 @@
+enum DeltaMode {
+	PX = 0,
+	ROW = 1,
+	PAGE = 2
+}
+
 export class Canvas extends EventTarget {
 	// cell size in px at 100% zoom and DPR 1
 	static readonly CELL_WIDTH = 8;
 	static readonly CELL_HEIGHT = 16;
+
+	// mouse wheel tracking fields
+	private mouse_wheel_px: number;
 
 	public element: HTMLCanvasElement;
 	public gl: WebGL2RenderingContext;
@@ -39,6 +48,8 @@ export class Canvas extends EventTarget {
 		}
 
 		this.gl = gl;
+
+		this.mouse_wheel_px = 0;
 
 		this.mouse_owner = "";
 
@@ -79,6 +90,14 @@ export class Canvas extends EventTarget {
 		this.element.addEventListener("pointerleave", () => {
 			this.mouse_down = false;
 		});
+
+		this.element.addEventListener(
+			"wheel",
+			(e: WheelEvent) => {
+				this.mouseScroll(e.deltaMode, e.deltaY);
+			},
+			{ passive: false }
+		);
 	}
 
 	private resize() {
@@ -122,6 +141,35 @@ export class Canvas extends EventTarget {
 
 		this.mouse_row = Math.floor(actual_client_y / this.actual_cell_height);
 		this.mouse_col = Math.floor(actual_client_x / this.actual_cell_width);
+	}
+
+	private mouseScroll(delta_mode: DeltaMode, delta: number) {
+		let rows = 0;
+
+		switch (delta_mode) {
+			case DeltaMode.PX:
+				this.mouse_wheel_px += delta;
+
+				if (Math.abs(this.mouse_wheel_px) >= this.actual_cell_height) {
+					rows = Math.floor(this.mouse_wheel_px / this.actual_cell_height);
+
+					this.mouse_wheel_px %= this.actual_cell_height;
+				}
+
+				break;
+
+			case DeltaMode.ROW:
+				rows = delta;
+
+				break;
+
+			case DeltaMode.PAGE:
+				rows = delta * this.rows;
+
+				break;
+		}
+
+		this.dispatchEvent(new CustomEvent("wheel", { detail: { rows } }));
 	}
 
 	mouseAt(row: number, col: number, rows: number, cols: number): boolean {
