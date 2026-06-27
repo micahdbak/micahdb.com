@@ -1,15 +1,15 @@
 // all characters in code page 437
-// NOTE: chars at 0 and 255 are to be ignored
+// NOTE: chars at 0 and 255 are ignored
 // prettier-ignore
 export const CP437_CHARS = `\
-~☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼\
+ ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼\
  !"#$%&'()*+,-./0123456789:;<=>?\
 @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\
 \`abcdefghijklmnopqrstuvwxyz{|}~⌂\
 ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ\
 áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐\
 └┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀\
-αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■~`;
+αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ `;
 
 let max_code_point = 0;
 
@@ -21,15 +21,23 @@ for (let i = 1; i < 255; i++) {
 	}
 }
 
-export const CP437_MAX_CODE_POINT = max_code_point;
+const CP437_MAX_CODE_POINT = max_code_point;
 
 // map from any character code point <= CP437_MAX_CODE_POINT to index in CP437
-export const CP437_MAP = new Uint8Array(CP437_MAX_CODE_POINT + 1);
+const CP437_MAP = new Uint8Array(CP437_MAX_CODE_POINT + 1);
 
 // populate CP437_MAP
 for (let i = 1; i < 255; i++) {
 	const code_point = CP437_CHARS.codePointAt(i);
 	CP437_MAP[code_point] = i;
+}
+
+export function charCodeInCp437(code_point: number): number {
+	if (code_point > CP437_MAX_CODE_POINT) {
+		return 0;
+	}
+
+	return CP437_MAP[code_point];
 }
 
 export async function renderCp437(canvas: HTMLCanvasElement, font: string) {
