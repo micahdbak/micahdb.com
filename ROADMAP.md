@@ -53,3 +53,7 @@ Provide the glyph information once per glyph:
 - Call drawArraysInstanced to generate 6 vertices per attribute instance.
 - Call gl.vertexAttribDivisor with args {attrib, 1} so each attribute advances once per instance (every 6 vertices)
 - Use gl_VertexID in the vertex shader to automagically generate UV coordinates into the glyph texture for each vertex
+
+# Sharp Bilinear Filtering
+
+Do this when rendering from the bitmap font

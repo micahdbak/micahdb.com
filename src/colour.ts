@@ -1,4 +1,5 @@
 export enum Colour {
+	// palette indices
 	BLACK = 0,
 	RED = 1,
 	ORANGE = 2,
@@ -14,15 +15,13 @@ export enum Colour {
 	LIGHT_CYAN = 12,
 	LIGHT_BLUE = 13,
 	LIGHT_PURPLE = 14,
-	WHITE = 15,
-	BG = 16,
-	FG = 17
+	WHITE = 15
 }
 
 // prettier-ignore
 export const PALETTE = [
 	// dark colours
-	0x28, 0x2a, 0x2e, // Colour.BLACK
+	0x08, 0x08, 0x08, // Colour.BLACK
 	0xa5, 0x42, 0x42, // Colour.RED
 	0xde, 0x93, 0x5f, // Colour.ORANGE
 	0x8c, 0x94, 0x40, // Colour.GREEN
@@ -39,9 +38,5 @@ export const PALETTE = [
 	0x8a, 0xbe, 0xb7, // Colour.LIGHT_CYAN
 	0x81, 0xa2, 0xbe, // Colour.LIGHT_BLUE
 	0xb2, 0x94, 0xbb, // Colour.LIGHT_PURPLE
-	0xd5, 0xd8, 0xd6, // Colour.WHITE
-
-	// extra colours
-	0x08, 0x08, 0x08, // Colour.BG
-	0xcd, 0xcd, 0xcd, // Colour.FG
+	0xd5, 0xd8, 0xd6  // Colour.WHITE
 ];

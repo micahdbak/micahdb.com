@@ -1,149 +1,79 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
+import { CP437_CHARS, renderCp437 } from "./cp437.ts";
+import { textToGlyphs } from "./glyphs.ts";
 
-// components
-import { Divider } from "./components/divider.ts";
-import { Scrollable } from "./components/scrollable.ts";
-import { Markdown } from "./components/markdown.ts";
-
-// content
-import { loadContent } from "./content.macro.ts" with { type: "macro" };
-const INDEX_URL = "#";
-
-//
-//  █ ▓ ▒ ░
-//
-//  ▄ ▀ ▐ ▌ ▝ ▗ ▖ ▘ ▙ ▛ ▜ ▟ ▞ ▚
-//
-//  ┐ ┌ ┘ └ ├ ┤ ┴ ┬ │ ─
-
-const PANE_RATIO = 1.0 - 1.0 / 1.618;
-const PANE_COLS = 50;
-const PANE_ROW_PADDING = 1;
-const PANE_COL_PADDING = 2;
+/*
+ *	Character set (code page 437):
+ *
+ *	  ☺ ☻ ♥ ♦ ♣ ♠ • ◘ ○ ◙ ♂ ♀ ♪ ♫ ☼ ► ◄ ↕ ‼ ¶ § ▬ ↨ ↑ ↓ → ← ∟ ↔ ▲ ▼
+ *
+ *	  ! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ?
+ *
+ *	@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _
+ *
+ *	` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ⌂
+ *
+ *	Ç ü é â ä à å ç ê ë è ï î ì Ä Å É æ Æ ô ö ò û ù ÿ Ö Ü ¢ £ ¥ ₧ ƒ
+ *
+ *	á í ó ú ñ Ñ ª º ¿ ⌐ ¬ ½ ¼ ¡ « » ░ ▒ ▓ │ ┤ ╡ ╢ ╖ ╕ ╣ ║ ╗ ╝ ╜ ╛ ┐
+ *
+ *	└ ┴ ┬ ├ ─ ┼ ╞ ╟ ╚ ╔ ╩ ╦ ╠ ═ ╬ ╧ ╨ ╤ ╥ ╙ ╘ ╒ ╓ ╫ ╪ ┘ ┌ █ ▄ ▌ ▐ ▀
+ *
+ *	α ß Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡ ± ≥ ≤ ⌠ ⌡ ÷ ≈ ° ∙ · √ ⁿ ² ■
+ */
 
 const CARD = `\
-█▐▌▀ ▄ ▄ ▐ % ▐▀▄ ▄ ▌▄ ▄% ▄&n;
-▌▌▌▌█% ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀&n;
-▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐&n;
-&n;
-&12;**I am a**&17;: % % Software Developer&n;
-&12;**Based in**&17;: % Vancouver, BC, Canada&n;
-&12;**Currently**&17;: %Studying&n;
-&12;**Previously**&17;: Open WebUI, Improving, Brave&n;
-&12;**Education**&17;: %BSc Computing Science at SFU&n;
-&n;
-&12;**E-mail**&17;: % % [mailto:\\<micah_baker@sfu.ca\\>](mailto:<micah_baker@sfu.ca>)&n;
-&12;**GitHub**&17;: % % [](https://github.com/micahdbak)&n;
-&12;**LinkedIn**&17;: % [](https://linkedin.com/in/micahdbak)&n;
-&12;**Resume/CV**&17;: %[/resume.pdf](https://micahdb.com/resume.pdf)
+█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄
+▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀
+▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐
 
-&0;███&1;███&3;███&2;███&5;███&6;███&4;███&7;███&n;
-&8;███&9;███&11;███&10;███&13;███&14;███&12;███&15;███
+\\F3I am a\\f7:\t\tSoftware Developer
+\\F3Based in\\f7:\tVancouver, BC, Canada
+\\F3Currently\\f7:\tStudying
+\\F3Previously\\f7:\tOpen WebUI, Improving, Brave
+\\F3Education\\f7:\tBSc Computing Science at SFU
 
-----`.replaceAll("%", "&17; &17;");
+\\F3E-mail\\f7:\t\t\\F5<micah_baker@sfu.ca>
+\\F3GitHub\\f7:\t\t\\F5https://github.com/micahdbak
+\\F3LinkedIn\\f7:\t\\F5https://linkedin.com/in/micahdbak
+\\F3Résumé / CV\\f7:\t\\F5https://micahdb.com/resume.pdf
+\\F7
+\\b0   \\b1   \\b2   \\b3   \\b4   \\b5   \\b6   \\b7   \\b7
+\\B0   \\B1   \\B2   \\B3   \\B4   \\B5   \\B6   \\B7   `;
 
-async function main() {
+// cp437.html
+async function render() {
+	const canvas = document.getElementById("2d") as HTMLCanvasElement;
+	const font = "160px 'JetBrains Mono'";
+	await renderCp437(canvas, font);
+}
+
+// index.html
+function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const content = await loadContent();
 		const canvas = new Canvas(canvas_el);
 		const terminal = new Terminal(canvas);
-		await terminal.init();
 
-		// components
+		const cp437 = textToGlyphs(CP437_CHARS, 32, true);
 
-		const divider = new Divider(terminal, PANE_RATIO, false);
-		const scrollable = new Scrollable(terminal);
-		const mdcard = new Markdown(terminal, CARD);
-
-		const mdcache: Record<string, Markdown> = {};
-
-		// anchor change -> content change
-
-		let url = window.location.hash;
-		if (!content[url]) {
-			url = INDEX_URL;
-		}
-
-		let mdbody = new Markdown(terminal, content[url]);
-		mdcache[url] = mdbody;
-
-		window.addEventListener("hashchange", () => {
-			let new_url = window.location.hash;
-
-			if (new_url.length === 0) {
-				new_url = INDEX_URL;
-			}
-
-			if (!content[new_url]) {
-				window.location.hash = INDEX_URL;
-				return;
-			}
-
-			url = new_url;
-
-			if (!mdcache[url]) {
-				mdbody = new Markdown(terminal, content[url]);
-				mdcache[url] = mdbody;
-			} else {
-				mdbody = mdcache[url];
-			}
-		});
-
-		// draw loop
-
-		let row_offset = 0;
+		const card = textToGlyphs(CARD, 52, false);
 
 		const draw = () => {
-			terminal.clear();
-
-			// pane management
-
-			let pane1, pane2;
-
-			if (canvas.cols > 2 * canvas.rows) {
-				divider.setFrac(PANE_RATIO);
-				divider.draw(Divider.VERTICAL, 0, 0, canvas.rows, canvas.cols, 0, PANE_COLS);
-
-				const lcols = divider.lcols;
-				pane1 = [0, 0, canvas.rows, lcols]; // left
-				pane2 = [0, lcols + 1, canvas.rows, canvas.cols - lcols - 1]; // right
-
-				terminal.resizeProgram(...pane2);
-			} else {
-				divider.setFrac(0.5);
-				divider.draw(Divider.HORIZONTAL, 0, 0, canvas.rows, canvas.cols, 0, 0);
-
-				const trows = divider.trows;
-				pane1 = [0, 0, trows, canvas.cols]; // top
-				pane2 = [trows + 1, 0, canvas.rows - trows - 1, canvas.cols]; // bottom
-
-				terminal.resizeProgram(...pane2);
-			}
-
-			// TUI
-
-			const card_row = PANE_ROW_PADDING - row_offset;
-			mdcard.draw(
-				card_row,
-				pane1[1] + PANE_COL_PADDING,
-				pane1[2] - card_row,
-				pane1[3] - 2 * PANE_COL_PADDING
+			terminal.blit(
+				cp437,
+				{ row: 0, col: 0, rows: cp437.rows, cols: cp437.cols },
+				{ row: 1, col: 2, rows: cp437.rows, cols: cp437.cols }
 			);
 
-			const body_row = card_row + mdcard.rows + 1;
-			mdbody.draw(
-				body_row,
-				pane1[1] + PANE_COL_PADDING,
-				pane1[2] - body_row,
-				pane1[3] - 2 * PANE_COL_PADDING
+			terminal.blit(
+				card,
+				{ row: 0, col: 0, rows: card.rows, cols: card.cols },
+				{ row: 1, col: cp437.cols + 4, rows: card.rows, cols: card.cols }
 			);
 
-			const inner_rows = mdcard.rows + 1 + mdbody.rows + 2 * PANE_ROW_PADDING;
-			scrollable.draw(pane1[0], pane1[1], pane1[2], pane1[3], inner_rows);
-			row_offset = scrollable.row_offset;
 			terminal.draw();
 
 			requestAnimationFrame(draw);
@@ -155,4 +85,8 @@ async function main() {
 	}
 }
 
-await main();
+if (window.location.pathname === "/cp437.html") {
+	await render();
+} else {
+	main();
+}

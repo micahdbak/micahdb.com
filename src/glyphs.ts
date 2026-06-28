@@ -147,6 +147,7 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 		lines.push(text.slice(start));
 	}
 
+	console.log(lines);
 	return lines;
 }
 
@@ -248,12 +249,19 @@ export function textToGlyphs(text: string, cols: number, wrap: boolean): Glyphs 
 			const char_code = charCodeInCp437(line.codePointAt(i));
 
 			const colour_byte = ((fg & 0b1111) << 4) | (bg & 0b1111);
-			const attribs = (colour_byte << 8) | (char_code & 0xff);
+			const glyph = (colour_byte << 8) | (char_code & 0xff);
 
-			glyphs.data[data_idx] = attribs;
+			glyphs.data[data_idx] = glyph;
 
 			col++;
 		}
 	}
 	return glyphs;
 }
+
+export type GlyphRect = {
+	row: number;
+	col: number;
+	rows: number;
+	cols: number;
+};

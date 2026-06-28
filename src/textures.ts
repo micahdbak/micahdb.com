@@ -2,6 +2,10 @@
 
 export const TEXTURES: Record<string, WebGLTexture> = {};
 
+// terminal
+
+export const BITMAP_FONT_TEXTURE_INDEX = 0;
+
 // renderer
 
 export const GLYPH_ATLAS_TEXTURE_INDEX = 0;
