@@ -65,20 +65,26 @@ async function render() {
 }
 
 // index.html
-async function main() {
+function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
 		const canvas = new Canvas(canvas_el);
-
-		const tex = await loadTexture(canvas.gl, "dog.jpg");
 
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
 
 		const card = textGlyphs(CARD, 52, false);
 		const cols = Math.min(canvas.cols, 2 * canvas.rows);
-		let dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+
+		let tex = null;
+		let dog = null;
+
+		const load_dog = async () => {
+			tex = await loadTexture(canvas.gl, "dog.jpg");
+			dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+		};
+		load_dog();
 
 		let resized = false;
 
@@ -91,14 +97,18 @@ async function main() {
 				// can handle resize here
 				resized = false;
 
-				const cols = Math.min(canvas.cols, 2 * canvas.rows);
-				dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+				if (tex !== null) {
+					const cols = Math.min(canvas.cols, 2 * canvas.rows);
+					dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+				}
 			}
 
 			terminal.clear();
 
-			const col = canvas.cols - dog.cols;
-			renderer.draw(dog, tex, { row: 0, col, rows: dog.rows, cols: dog.cols });
+			if (tex !== null) {
+				const col = canvas.cols - dog.cols;
+				renderer.draw(dog, tex, { row: 0, col, rows: dog.rows, cols: dog.cols });
+			}
 
 			terminal.blit(
 				card,
@@ -120,5 +130,5 @@ async function main() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	await main();
+	main();
 }
