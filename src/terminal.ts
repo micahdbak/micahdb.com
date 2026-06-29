@@ -1,14 +1,11 @@
 import VERTEX_SHADER from "./shaders/terminal.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./shaders/terminal.frag" with { type: "text" };
 
-import { BITMAP_FONT_TEXTURE_INDEX } from "./textures.ts";
-import { PALETTE } from "./colour.ts";
-
 import { Canvas } from "./canvas.ts";
-import { Glyphs, GlyphRect } from "./glyphs.ts";
+import { Glyphs } from "./glyphs.ts";
+import { Rect } from "./rect.ts";
 
 import { compileProgram, getAttribLocations, getUniformLocations } from "./program.ts";
-import { loadModernDosTexture } from "./moderndos.ts";
 
 export class Terminal {
 	private gl_program: WebGLProgram;
@@ -16,15 +13,13 @@ export class Terminal {
 	private attributes: Record<string, number>;
 	private uniforms: Record<string, WebGLUniformLocation>;
 
-	private palette: Float32Array;
-
 	private vao: WebGLVertexArrayObject;
 	private vbo: WebGLBuffer;
 
 	// framebuffer of console characters
-	private fbcon: Uint32Array;
+	private fbcon: Uint16Array;
 
-	private bitmap_font: WebGLTexture;
+	private resized: boolean;
 
 	public canvas: Canvas;
 
@@ -66,44 +61,38 @@ export class Terminal {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
 
-		// every vertex in the VBO is a 32-byte integer split like so:
-		// [ (unused) |       a_colour       |   a_char_code    ]
-		// [ 16 bits  | 4 bits fg, 4 bits bg | 8 bits char code ]
+		// every vertex in the VBO is a 16-bit integer split like so:
+		// [ a_colour | a_char_code ]
+		// [ 8 bits   | 8 bits      ]
 
 		// a_colour
-		gl.vertexAttribIPointer(this.attributes.colour, 1, gl.UNSIGNED_BYTE, 4, 1);
+		gl.vertexAttribIPointer(this.attributes.colour, 1, gl.UNSIGNED_BYTE, 2, 1);
 		gl.vertexAttribDivisor(this.attributes.colour, 1);
 		gl.enableVertexAttribArray(this.attributes.colour);
 
 		// a_char_code
-		gl.vertexAttribIPointer(this.attributes.char_code, 1, gl.UNSIGNED_BYTE, 4, 0);
+		gl.vertexAttribIPointer(this.attributes.char_code, 1, gl.UNSIGNED_BYTE, 2, 0);
 		gl.vertexAttribDivisor(this.attributes.char_code, 1);
 		gl.enableVertexAttribArray(this.attributes.char_code);
 
 		gl.bindVertexArray(null);
-
-		this.palette = new Float32Array(PALETTE.map((byte) => byte / 0xff));
 
 		gl.useProgram(this.gl_program);
 		gl.uniform1i(this.uniforms.rows, this.canvas.rows);
 		gl.uniform1i(this.uniforms.cols, this.canvas.cols);
 		gl.uniform1i(this.uniforms.mouse_row, -1);
 		gl.uniform1i(this.uniforms.mouse_col, -1);
-		gl.uniform3fv(this.uniforms.palette, this.palette);
-		gl.uniform1i(this.uniforms.bitmap_font, BITMAP_FONT_TEXTURE_INDEX);
+		gl.uniform3fv(this.uniforms.palette, this.canvas.palette);
+		gl.uniform1i(this.uniforms.bitmap_font, 0);
 
-		this.fbcon = new Uint32Array(this.canvas.rows * this.canvas.cols);
+		this.resized = true;
 
 		this.canvas.addEventListener("resize", () => {
-			gl.uniform1i(this.uniforms.rows, this.canvas.rows);
-			gl.uniform1i(this.uniforms.cols, this.canvas.cols);
-			this.fbcon = new Uint32Array(this.canvas.rows * this.canvas.cols);
+			this.resized = true;
 		});
-
-		this.bitmap_font = loadModernDosTexture(gl);
 	}
 
-	blit(glyphs: Glyphs, src: GlyphRect, dst: GlyphRect) {
+	blit(glyphs: Glyphs, src: Rect, dst: Rect) {
 		// overflow rows
 		if (dst.row + dst.rows > this.canvas.rows) {
 			const extra_rows = dst.row + dst.rows - this.canvas.rows;
@@ -116,7 +105,6 @@ export class Terminal {
 			const extra_cols = dst.col + dst.cols - this.canvas.cols;
 			dst.cols -= extra_cols;
 			src.cols = dst.cols;
-			console.log("trimmed: ", dst.cols, src.cols);
 		}
 
 		// validate the input rects
@@ -132,7 +120,7 @@ export class Terminal {
 			dst.col + dst.cols > this.canvas.cols ||
 			src.cols !== dst.cols
 		) {
-			console.log("not blitting due to bad src or dst");
+			console.log("Terminal.blit: not blitting due to bad src or dst");
 			return;
 		}
 
@@ -151,17 +139,34 @@ export class Terminal {
 		}
 	}
 
+	clear() {
+		const gl = this.canvas.gl;
+
+		if (this.resized) {
+			this.resized = false;
+
+			gl.useProgram(this.gl_program);
+			gl.uniform1i(this.uniforms.rows, this.canvas.rows);
+			gl.uniform1i(this.uniforms.cols, this.canvas.cols);
+
+			this.fbcon = new Uint16Array(this.canvas.rows * this.canvas.cols);
+
+			// update viewport
+			gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+		}
+
+		this.fbcon.fill(0);
+
+		document.body.className = "";
+
+		// clear the canvas
+		gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+	}
+
 	draw() {
 		const gl = this.canvas.gl;
 		gl.useProgram(this.gl_program);
-
-		gl.bindVertexArray(this.vao);
-
-		// clear the canvas
-		gl.clearColor(this.palette[0], this.palette[1], this.palette[2], 1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-
-		gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
 		// set mouse position uniforms
 		gl.uniform1i(this.uniforms.mouse_row, this.canvas.mouse_row);
@@ -172,12 +177,12 @@ export class Terminal {
 		gl.bufferData(gl.ARRAY_BUFFER, this.fbcon, gl.DYNAMIC_DRAW);
 
 		// bind and activate the bitmap font
-		gl.activeTexture(gl.TEXTURE0 + BITMAP_FONT_TEXTURE_INDEX);
-		gl.bindTexture(gl.TEXTURE_2D, this.bitmap_font);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, this.canvas.bitmap_font);
 
 		// draw glyphs: generate 6 vertices (two triangles = one quad) per glyph instance
+		gl.bindVertexArray(this.vao);
 		gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, this.canvas.rows * this.canvas.cols);
-
 		gl.bindVertexArray(null);
 	}
 }

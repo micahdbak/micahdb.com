@@ -66,7 +66,6 @@ export async function renderCp437(canvas: HTMLCanvasElement, font: string) {
 	// don't want to draw box drawing characters;the moderndos font will be used for these
 	const box_drawing = "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀";
 	const chars = CP437_CHARS.replace(box_drawing, "@".repeat(box_drawing.length));
-	console.log(chars);
 
 	for (let i = 1; i < 255; i++) {
 		const x = (i % cols) * glyph_width;

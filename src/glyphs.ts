@@ -143,24 +143,23 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 	}
 
 	// push last line if it isn't a space
-	if (start < text.length && text[start] !== " " && text[start] !== "\t") {
+	if (start < text.length) {
 		lines.push(text.slice(start));
 	}
 
-	console.log(lines);
 	return lines;
 }
 
 export type Glyphs = {
-	data: Uint32Array;
+	data: Uint16Array;
 	rows: number;
 	cols: number;
 };
 
-export function textToGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
+export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 	if (cols <= 0) {
 		return {
-			data: new Uint32Array(),
+			data: new Uint16Array(),
 			rows: 0,
 			cols: 0
 		};
@@ -171,14 +170,14 @@ export function textToGlyphs(text: string, cols: number, wrap: boolean): Glyphs 
 
 	if (rows === 0) {
 		return {
-			data: new Uint32Array(),
+			data: new Uint16Array(),
 			rows: 0,
 			cols: 0
 		};
 	}
 
 	const glyphs = {
-		data: new Uint32Array(rows * cols),
+		data: new Uint16Array(rows * cols),
 		rows,
 		cols: cols
 	};
@@ -259,9 +258,32 @@ export function textToGlyphs(text: string, cols: number, wrap: boolean): Glyphs 
 	return glyphs;
 }
 
-export type GlyphRect = {
-	row: number;
-	col: number;
+export enum TexGlyphMode {
+	SAMPLE = 0,
+	GLYPHS = 1
+}
+
+export type TexGlyphs = {
+	data: Uint32Array;
 	rows: number;
 	cols: number;
 };
+
+export function textureGlyphs(rows: number, cols: number, mode: TexGlyphMode): TexGlyphs {
+	const tglyphs = {
+		data: new Uint32Array(rows * cols),
+		rows,
+		cols
+	};
+
+	for (let data_idx = 0; data_idx < rows * cols; data_idx++) {
+		const row = Math.floor(data_idx / cols);
+		const col = data_idx % cols;
+
+		const glyph = ((row & 0xff) << 24) | ((mode & 0xff) << 16) | (col & 0xffff);
+
+		tglyphs.data[data_idx] = glyph;
+	}
+
+	return tglyphs;
+}

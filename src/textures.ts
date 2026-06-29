@@ -117,7 +117,7 @@ function loadGlyphAtlas(gl: WebGL2RenderingContext): Promise<WebGLTexture> {
 	});
 }
 
-function loadTexture(gl: WebGL2RenderingContext, path: string): Promise<WebGLTexture> {
+export function loadTexture(gl: WebGL2RenderingContext, path: string): Promise<WebGLTexture> {
 	return new Promise((resolve, reject) => {
 		const image = new Image();
 		image.src = path;

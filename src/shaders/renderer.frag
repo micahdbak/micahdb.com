@@ -2,17 +2,25 @@
 
 precision mediump float;
 
-in vec2 v_cell_coord;
+in vec2 v_cell_coord; // f_mode == 1
+in vec2 v_uv_coord;
 
-flat in vec3 f_fg_colour;
-flat in vec3 f_bg_colour;
-flat in ivec2 f_glyph_coord;
+flat in uint f_mode;
+flat in vec3 f_fg_colour; // f_mode == 1
+flat in vec3 f_bg_colour; // f_mode == 1
+flat in ivec2 f_glyph_coord; // f_mode == 1
 
-uniform mediump usampler2D u_bitmap_font;
+uniform mediump usampler2D u_bitmap_font; // f_mode == 1
+uniform sampler2D u_texture;
 
 out vec4 frag_colour;
 
 void main() {
+	if (f_mode == 0u) {
+		frag_colour = texture(u_texture, v_uv_coord);
+		return;
+	}
+
 	// pixel coordinate within the glyph
 	int x = clamp(int(v_cell_coord.x * 8.0), 0, 7);
 	int y = clamp(int(v_cell_coord.y * 16.0), 0, 15);

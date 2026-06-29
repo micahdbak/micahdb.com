@@ -1,3 +1,6 @@
+import { loadModernDosTexture } from "./moderndos.ts";
+import { PALETTE } from "./colour.ts";
+
 enum DeltaMode {
 	PX = 0,
 	ROW = 1,
@@ -36,6 +39,10 @@ export class Canvas extends EventTarget {
 	public mouse_down_row: number;
 	public mouse_down_col: number;
 
+	public palette: Float32Array;
+
+	public bitmap_font: WebGLTexture;
+
 	constructor(element: HTMLCanvasElement) {
 		super();
 		this.element = element;
@@ -55,6 +62,10 @@ export class Canvas extends EventTarget {
 
 		this.mouse_down = false;
 		this.mouse_click = false;
+
+		this.palette = new Float32Array(PALETTE.map((byte) => byte / 0xff));
+
+		this.bitmap_font = loadModernDosTexture(gl);
 
 		this.resize();
 
@@ -108,11 +119,14 @@ export class Canvas extends EventTarget {
 		this.element.height = this.height;
 		this.element.width = this.width;
 
-		this.actual_cell_height = Math.max(Canvas.CELL_HEIGHT / 2, Canvas.CELL_HEIGHT * dpr);
-		this.actual_cell_width = Math.max(Canvas.CELL_WIDTH / 2, Canvas.CELL_WIDTH * dpr);
+		const target_cell_height = Math.max(Canvas.CELL_HEIGHT / 2, Canvas.CELL_HEIGHT * dpr);
+		const target_cell_width = Math.max(Canvas.CELL_WIDTH / 2, Canvas.CELL_WIDTH * dpr);
 
-		const rows = Math.round(Math.max(1, this.height / this.actual_cell_height));
-		const cols = Math.round(Math.max(1, this.width / this.actual_cell_width));
+		const rows = Math.round(Math.min(Math.max(1, this.height / target_cell_height), 256));
+		const cols = Math.round(Math.min(Math.max(1, this.width / target_cell_width), 1024));
+
+		this.actual_cell_height = this.height / rows;
+		this.actual_cell_width = this.width / cols;
 
 		// reset mouse related fields
 		this.mouse_owner = "";

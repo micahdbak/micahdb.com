@@ -1,7 +1,9 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
-import { CP437_CHARS, renderCp437 } from "./cp437.ts";
-import { textToGlyphs } from "./glyphs.ts";
+import { Renderer } from "./renderer.ts";
+import { renderCp437 } from "./cp437.ts";
+import { textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
+import { loadTexture } from "./textures.ts";
 
 /*
  *	Character set (code page 437):
@@ -24,11 +26,11 @@ import { textToGlyphs } from "./glyphs.ts";
  */
 
 const CARD = `\
-█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄  \\f2 ▄▄▄▄▄   ▄  \\F7
-▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀ \\f2 ≡\\f0\\b2^.^\\f2\\b0≡▄▄ ▄▀ \\F7
-▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐   \\f2   ▄▀████   \\F7
+█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄  \\f2  ▄ ▄     ▄\\F7
+▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀ \\f2 ≡\\f0\\b2■.■\\f2\\b0≡▄▄▄▀ \\F7
+▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐   \\f2   ▄▀█▀▀▀▄ \\F7
 
-\\F3I am a\\f7:\t\tSoftware Developer
+\\F3I am a\\f7:\t\t\\F7Software Developer
 \\F3Based in\\f7:\tVancouver, BC, Canada
 \\F3Currently\\f7:\tStudying
 \\F3Previously\\f7:\tOpen WebUI, Improving, Brave
@@ -38,9 +40,22 @@ const CARD = `\
 \\F3GitHub\\f7:\t\t\\F5https://github.com/micahdbak
 \\F3LinkedIn\\f7:\t\\F5https://linkedin.com/in/micahdbak
 \\F3Résumé / CV\\f7:\t\\F5https://micahdb.com/resume.pdf
-\\F7
-\\b0   \\b1   \\b2   \\b3   \\b4   \\b5   \\b6   \\b7   \\b7
-\\B0   \\B1   \\B2   \\B3   \\B4   \\B5   \\B6   \\B7   `;
+
+\\F7\\b0   \\b1   \\b2   \\b3   \\b4   \\b5   \\b6   \\b7   \\B0
+   \\B1   \\B2   \\B3   \\B4   \\B5   \\B6   \\B7\\f0   \\f7\\b0
+
+╔═══════════ \\F7Code Page 437\\f7 ══════════╗
+║                                    ║
+║  \\F7 ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼\\f7  ║
+║  \\F7 !"#$%&'()*+,-./0123456789:;<=>?\\f7  ║
+║  \\F7@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\\f7  ║
+║  \\F7\`abcdefghijklmnopqrstuvwxyz{|}~⌂\\f7  ║
+║  \\F7ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ\\f7  ║
+║  \\F7áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐\\f7  ║
+║  \\F7└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀\\f7  ║
+║  \\F7αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ \\f7  ║
+║                                    ║
+╚════════════════════════════════════╝`;
 
 // cp437.html
 async function render() {
@@ -50,28 +65,45 @@ async function render() {
 }
 
 // index.html
-function main() {
+async function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
 		const canvas = new Canvas(canvas_el);
+
+		const tex = await loadTexture(canvas.gl, "dog.jpg");
+
 		const terminal = new Terminal(canvas);
+		const renderer = new Renderer(canvas);
 
-		const cp437 = textToGlyphs(CP437_CHARS, 32, true);
+		const card = textGlyphs(CARD, 52, false);
+		const cols = Math.min(canvas.cols, 2 * canvas.rows);
+		let dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
 
-		const card = textToGlyphs(CARD, 52, false);
+		let resized = false;
+
+		canvas.addEventListener("resize", () => {
+			resized = true;
+		});
 
 		const draw = () => {
-			terminal.blit(
-				cp437,
-				{ row: 0, col: 0, rows: cp437.rows, cols: cp437.cols },
-				{ row: 1, col: 2, rows: cp437.rows, cols: cp437.cols }
-			);
+			if (resized) {
+				// can handle resize here
+				resized = false;
+
+				const cols = Math.min(canvas.cols, 2 * canvas.rows);
+				dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+			}
+
+			terminal.clear();
+
+			const col = canvas.cols - dog.cols;
+			renderer.draw(dog, tex, { row: 0, col, rows: dog.rows, cols: dog.cols });
 
 			terminal.blit(
 				card,
 				{ row: 0, col: 0, rows: card.rows, cols: card.cols },
-				{ row: 1, col: cp437.cols + 4, rows: card.rows, cols: card.cols }
+				{ row: 1, col: 2, rows: card.rows, cols: card.cols }
 			);
 
 			terminal.draw();
@@ -88,5 +120,5 @@ function main() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	main();
+	await main();
 }
