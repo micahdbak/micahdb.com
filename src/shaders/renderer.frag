@@ -1,5 +1,7 @@
 #version 300 es
 
+#define SAMPLE_MODE 0u
+
 precision mediump float;
 
 in vec2 v_cell_coord; // f_mode == 1
@@ -16,7 +18,7 @@ uniform sampler2D u_texture;
 out vec4 frag_colour;
 
 void main() {
-	if (f_mode == 0u) {
+	if (f_mode == SAMPLE_MODE) {
 		frag_colour = texture(u_texture, v_uv_coord);
 		return;
 	}

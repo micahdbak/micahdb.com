@@ -1,9 +1,12 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 import { Renderer } from "./renderer.ts";
+
 import { renderCp437 } from "./cp437.ts";
-import { textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
+import { Glyphs, textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
 import { loadTexture } from "./textures.ts";
+
+import { Scroller } from "./components/scroller.ts";
 
 /*
  *	Character set (code page 437):
@@ -77,20 +80,22 @@ function main() {
 		const card = textGlyphs(CARD, 52, false);
 		const cols = Math.min(canvas.cols, 2 * canvas.rows);
 
-		let tex = null;
-		let dog = null;
+		let tex: null | WebGLTexture = null;
+		let dog: null | Glyphs = null;
 
 		const load_dog = async () => {
 			tex = await loadTexture(canvas.gl, "dog.jpg");
 			dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
 		};
-		load_dog();
+		load_dog(); // eslint-disable-line
 
 		let resized = false;
 
 		canvas.addEventListener("resize", () => {
 			resized = true;
 		});
+
+		const scroller = new Scroller(terminal);
 
 		const draw = () => {
 			if (resized) {
@@ -104,6 +109,7 @@ function main() {
 			}
 
 			terminal.clear();
+			scroller.update(80);
 
 			if (tex !== null) {
 				const col = canvas.cols - dog.cols;
@@ -113,7 +119,13 @@ function main() {
 			terminal.blit(
 				card,
 				{ row: 0, col: 0, rows: card.rows, cols: card.cols },
-				{ row: 1, col: 2, rows: card.rows, cols: card.cols }
+				{ row: 1 - scroller.row, col: 2, rows: card.rows, cols: card.cols }
+			);
+
+			terminal.blit(
+				scroller.status_glyphs,
+				{ row: 0, col: 0, rows: 1, cols: scroller.status_glyphs.cols },
+				{ row: canvas.rows - 1, col: 0, rows: 1, cols: scroller.status_glyphs.cols }
 			);
 
 			terminal.draw();

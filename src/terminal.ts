@@ -93,35 +93,66 @@ export class Terminal {
 	}
 
 	blit(glyphs: Glyphs, src: Rect, dst: Rect) {
-		// overflow rows
+		// validate the input rects
+		if (src.rows !== dst.rows || src.cols !== dst.cols) {
+			console.log("Terminal.blit: not blitting due to bad src or dst");
+			return;
+		}
+
+		// handle negatives
+
+		if (src.row < 0) {
+			const drow = Math.abs(src.row);
+
+			src.row = 0;
+			src.rows -= drow;
+
+			dst.row += drow;
+			dst.rows -= drow;
+		}
+
+		if (src.col < 0) {
+			const dcol = Math.abs(src.col);
+
+			src.col = 0;
+			src.cols -= dcol;
+
+			dst.col += dcol;
+			dst.cols -= dcol;
+		}
+
+		if (dst.row < 0) {
+			const drow = Math.abs(dst.row);
+
+			src.row += drow;
+			src.rows -= drow;
+
+			dst.row = 0;
+			dst.rows -= drow;
+		}
+
+		if (dst.col < 0) {
+			const dcol = Math.abs(dst.col);
+
+			src.col += dcol;
+			src.cols -= dcol;
+
+			dst.col = 0;
+			dst.cols -= dcol;
+		}
+
+		// handle overflow
+
 		if (dst.row + dst.rows > this.canvas.rows) {
 			const extra_rows = dst.row + dst.rows - this.canvas.rows;
 			dst.rows -= extra_rows;
 			src.rows = dst.rows;
 		}
 
-		// overflow cols
 		if (dst.col + dst.cols > this.canvas.cols) {
 			const extra_cols = dst.col + dst.cols - this.canvas.cols;
 			dst.cols -= extra_cols;
 			src.cols = dst.cols;
-		}
-
-		// validate the input rects
-		if (
-			src.row < 0 ||
-			dst.row < 0 ||
-			src.row + src.rows > glyphs.rows ||
-			dst.row + dst.rows > this.canvas.rows ||
-			src.rows !== dst.rows ||
-			src.col < 0 ||
-			dst.col < 0 ||
-			src.col + src.cols > glyphs.cols ||
-			dst.col + dst.cols > this.canvas.cols ||
-			src.cols !== dst.cols
-		) {
-			console.log("Terminal.blit: not blitting due to bad src or dst");
-			return;
 		}
 
 		for (let row = 0; ; row++) {
