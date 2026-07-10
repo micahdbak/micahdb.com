@@ -21,7 +21,7 @@ void main() {
 	int is_cursor = int(u_mouse_row == row && u_mouse_col == col);
 	int not_is_cursor = int(is_cursor == 0);
 
-	if (a_colour == 0u && a_char_code == 0u && is_cursor == 0) {
+	if (a_colour == 0u && a_char_code == 0u) {
 		// clipped: don't cover any pixels below this glyph
 		// e.g., a previously rendered texture
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);

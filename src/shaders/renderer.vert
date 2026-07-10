@@ -12,6 +12,8 @@ uniform int u_rows;
 uniform int u_cols;
 uniform int u_canvas_rows;
 uniform int u_canvas_cols;
+uniform int u_mouse_row;
+uniform int u_mouse_col;
 uniform vec3 u_palette[16];
 uniform sampler2D u_texture;
 
@@ -19,6 +21,7 @@ out vec2 v_cell_coord; // a_mode == 1
 out vec2 v_uv_coord;
 
 flat out uint f_mode;
+flat out int f_is_cursor;
 flat out vec3 f_fg_colour; // a_mode == 1
 flat out vec3 f_bg_colour; // a_mode == 1
 flat out ivec2 f_glyph_coord; // a_mode == 1
@@ -72,6 +75,8 @@ float getLum(vec3 colour, int dim) {
 void main() {
 	int origin_row = int(a_row);
 	int origin_col = int(a_col);
+
+	f_is_cursor = int(origin_row + u_row == u_mouse_row && origin_col + u_col == u_mouse_col);
 
 	/* A glyph is made up of two triangles, six vertices:
 	 *
