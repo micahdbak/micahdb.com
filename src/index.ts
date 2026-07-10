@@ -87,16 +87,16 @@ function main() {
 		const scroller = new Scroller(terminal);
 
 		const card = textGlyphs(CARD, 52, false);
-		const cols = Math.min(canvas.cols, 2 * canvas.rows);
+		//const cols = Math.min(canvas.cols, 2 * canvas.rows);
 
 		let tex: null | WebGLTexture = null;
-		let dog: null | Glyphs = null;
+		let nebulae: null | Glyphs = null;
 
-		const load_dog = async () => {
-			tex = await loadTexture(canvas.gl, "dog.jpg");
-			dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+		const load_nebulae = async () => {
+			tex = await loadTexture(canvas.gl, "nebulae.png");
+			nebulae = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 		};
-		load_dog(); // eslint-disable-line
+		load_nebulae(); // eslint-disable-line
 
 		let resized = false;
 
@@ -116,8 +116,7 @@ function main() {
 				resized = false;
 
 				if (tex !== null) {
-					const cols = Math.min(canvas.cols, 2 * canvas.rows);
-					dog = textureGlyphs(canvas.rows, cols, TexGlyphMode.GLYPHS);
+					nebulae = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 				}
 			}
 
@@ -125,8 +124,12 @@ function main() {
 			scroller.update(80);
 
 			if (tex !== null) {
-				const col = canvas.cols - dog.cols;
-				renderer.draw(dog, tex, { row: 0, col, rows: dog.rows, cols: dog.cols });
+				renderer.draw(nebulae, tex, {
+					row: 0,
+					col: 0,
+					rows: nebulae.rows,
+					cols: nebulae.cols
+				});
 			}
 
 			const card_row = 1 - scroller.row;

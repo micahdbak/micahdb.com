@@ -87,13 +87,22 @@ export class Scroller {
 			}
 		}
 
+		if (isNaN(this.row_offset)) {
+			this.row_offset = 0;
+		}
+
 		this.row_offset = Math.max(0, Math.min(max_offset, this.row_offset));
 		this.last_row = this.row;
 		this.row = Math.round(this.row_offset);
 
 		// status text
 		if (this.last_row !== this.row || this.last_content_rows !== content_rows) {
-			const percent = Math.round((this.row / max_offset) * 100);
+			let percent = 0;
+
+			if (max_offset != 0) {
+				percent = Math.round((this.row / max_offset) * 100);
+			}
+
 			const status_text = `\\f0\\B7 Drag or use mouse wheel to scroll [${percent}%] \\F7\\b0`;
 			this.status_glyphs = textGlyphs(status_text, this.terminal.canvas.cols, false);
 		}
