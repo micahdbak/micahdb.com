@@ -4,7 +4,7 @@ import FRAGMENT_SHADER from "./shaders/renderer.frag" with { type: "text" };
 import { Canvas } from "./canvas";
 import { TexGlyphs } from "./glyphs.ts";
 import { compileProgram, getAttribLocations, getUniformLocations } from "./program.ts";
-import { Rect } from "./rect.ts";
+import { Rect } from "./area_types.ts";
 
 export class Renderer {
 	private gl_program: WebGLProgram;

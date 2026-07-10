@@ -1,5 +1,6 @@
 import { Colour } from "./colour.ts";
 import { charCodeInCp437 } from "./cp437.ts";
+import { Cell } from "./area_types.ts";
 
 const TAB_WIDTH = 8;
 
@@ -38,15 +39,16 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 		const c = text[i];
 
 		// escape sequence
-		if (c === "\\" && i + 2 < text.length && "fFbB".includes(text[i + 1])) {
+		if (c === "\\" && i + 2 < text.length && "fFbBa".includes(text[i + 1])) {
 			// the following are special sequences:
 			// \fX : set foreground to X, dark
 			// \FX : set foreground to X, bright
 			// \bX : set background to X, dark
 			// \BX : set background to X, bright
+			// \a  : anchor; gets the next cell's row/col
 
-			// therefore, skip the 3 char combo
-			i += 2;
+			// therefore, skip the 2 or 3 char combo
+			i += text[i + 1] === "a" ? 1 : 2;
 
 			continue; // i++
 		}
@@ -154,6 +156,7 @@ export type Glyphs = {
 	data: Uint16Array;
 	rows: number;
 	cols: number;
+	anchors: Cell[];
 };
 
 export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
@@ -179,7 +182,8 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 	const glyphs = {
 		data: new Uint16Array(rows * cols),
 		rows,
-		cols: cols
+		cols: cols,
+		anchors: []
 	};
 
 	let fg: number = Colour.WHITE;
@@ -191,16 +195,20 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 
 		for (let i = 0; i < line.length; i++) {
 			const c = line[i];
+
+			const seq_count = "fFbB".includes(line[i + 1]) ? 3 : 2;
+
 			// escape sequence:
 			// \fX : foreground X, dark
 			// \FX : foreground X, bright
 			// \bX : background X, dark
 			// \BX : background X, bright
+			// \a  : anchor
 			if (
 				c === "\\" &&
 				i + 2 < line.length &&
-				"fFbB".includes(line[i + 1]) &&
-				!isNaN(Number(line[i + 2]))
+				"fFbBa".includes(line[i + 1]) &&
+				(seq_count === 2 || !isNaN(Number(line[i + 2])))
 			) {
 				const num = Math.max(Math.min(Number(line[i + 2]), 7), 0); // 0..7
 
@@ -224,9 +232,15 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 						bg = num + 8;
 
 						break;
+
+					case "a":
+						const anchor_cell = { row, col };
+						glyphs.anchors.push(anchor_cell);
+
+						break;
 				}
 
-				i += 2;
+				i += seq_count - 1;
 
 				continue;
 			}

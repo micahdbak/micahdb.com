@@ -26,11 +26,11 @@ flat out ivec2 f_glyph_coord; // a_mode == 1
 const vec3 dimensions[8] = vec3[](
 	vec3(0.0, 0.0, 0.0),	// black (unused)
 	vec3(1.0, 0.8, 0.8),	// red
-	vec3(1.0, 1.0, 0.8),	// yellow
 	vec3(0.8, 1.0, 0.8),	// green
-	vec3(0.8, 1.0, 1.0),	// cyan
+	vec3(1.0, 1.0, 0.8),	// yellow
 	vec3(0.8, 0.8, 1.0),	// blue
-	vec3(1.0, 0.8, 1.0),	// purple
+	vec3(1.0, 0.8, 1.0),	// magenta
+	vec3(0.8, 1.0, 1.0),	// cyan
 	vec3(1.0, 1.0, 1.0)	// white
 );
 

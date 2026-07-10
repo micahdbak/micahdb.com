@@ -1,44 +1,62 @@
-import { Glyph } from "../glyph.ts";
+import { Glyphs, textGlyphs } from "../glyphs.ts";
 import { Terminal } from "../terminal.ts";
 import { Colour } from "../colour.ts";
 
 class Link {
-	static draw(
-		terminal: Terminal,
-		text: string,
-		url: string,
-		row: number,
-		col: number,
-		fg_col: Colour = Colour.LIGHT_BLUE,
-		bg_col: Colour = Colour.BG,
-		hover_fg: Colour = Colour.BG,
-		hover_bg: Colour = Colour.LIGHT_BLUE
-	) {
-		const is_hovered = terminal.canvas.mouseAt(row, col, 1, text.length);
-		const was_hovered = terminal.canvas.mouseDownAt(row, col, 1, text.length);
+	private terminal: Terminal;
+	private text: string;
+	private url: string;
 
-		if (is_hovered && was_hovered && terminal.canvas.mouse_click) {
-			if (url.startsWith("mailto:")) {
+	private glyphs_are_hovered: null | boolean;
+
+	public glyphs: Glyphs;
+
+	constructor(terminal: Terminal, text: string, url: string) {
+		this.terminal = terminal;
+		this.text = text;
+		this.url = url;
+
+		// null guarantees that glyphs will be compiled on first frame
+		this.glyphs_are_hovered = null;
+	}
+
+	update(row: number, col: number) {
+		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length);
+		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length);
+
+		if (is_hovered && was_hovered && this.terminal.canvas.mouse_click) {
+			if (this.url.startsWith("mailto:")) {
 				const a = document.createElement("a");
-				a.href = url;
+				a.href = this.url;
 				a.click();
-			} else if (url.startsWith("#")) {
-				window.location.hash = url;
+			} else if (this.url.startsWith("#")) {
+				window.location.hash = this.url;
 			} else {
 				// opens in new tab
-				window.open(url, "_blank");
+				window.open(this.url, "_blank");
 			}
 		} else if (is_hovered) {
 			document.body.className = "pointer";
 
-			const detail = url.startsWith("#") ? window.location.origin + url : url;
-			terminal.detailText = " " + detail + " ";
+			const detail = this.url.startsWith("#") ? window.location.origin + this.url : this.url;
+			this.terminal.detail_text = " Link: " + detail + " ";
 		}
 
-		const bg = is_hovered ? hover_bg : bg_col;
-		const fg = is_hovered ? hover_fg : fg_col;
+		if (is_hovered !== this.glyphs_are_hovered) {
+			this.glyphs_are_hovered = is_hovered;
 
-		terminal.drawText(text, row, col, fg, bg, Glyph.ITALIC_FONT);
+			const fg = is_hovered ? Colour.BLACK : Colour.BRIGHT_BLUE;
+			const bg = is_hovered ? Colour.BRIGHT_BLUE : Colour.BLACK;
+
+			const fgv = fg % 8;
+			const bgv = bg % 8;
+
+			const fgc = fg > Colour.GREY ? "F" : "f";
+			const bgc = bg > Colour.GREY ? "B" : "b";
+
+			const text = `\\${fgc}${fgv}\\${bgc}${bgv}${this.text}`;
+			this.glyphs = textGlyphs(text, this.text.length, false);
+		}
 	}
 }
 

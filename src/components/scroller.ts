@@ -51,6 +51,7 @@ export class Scroller {
 			}
 
 			this.wheel_rows = 0;
+			this.drag_velocity = 0;
 		}
 
 		if (this.terminal.canvas.mouse_down) {
@@ -73,10 +74,6 @@ export class Scroller {
 
 				const drag_delta = mouse_row - this.drag_start_row;
 				this.row_offset = this.drag_start_row_offset - drag_delta;
-
-				if (isNaN(this.row_offset)) {
-					console.log("HERE");
-				}
 			}
 		} else {
 			if (this.terminal.canvas.mouse_owner === Scroller.NAME) {

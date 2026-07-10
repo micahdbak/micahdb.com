@@ -2,8 +2,8 @@ import VERTEX_SHADER from "./shaders/terminal.vert" with { type: "text" };
 import FRAGMENT_SHADER from "./shaders/terminal.frag" with { type: "text" };
 
 import { Canvas } from "./canvas.ts";
-import { Glyphs } from "./glyphs.ts";
-import { Rect } from "./rect.ts";
+import { Glyphs, textGlyphs } from "./glyphs.ts";
+import { Rect } from "./area_types.ts";
 
 import { compileProgram, getAttribLocations, getUniformLocations } from "./program.ts";
 
@@ -21,7 +21,12 @@ export class Terminal {
 
 	private resized: boolean;
 
+	private last_detail_text: string;
+	private detail_glyphs: Glyphs;
+
 	public canvas: Canvas;
+
+	public detail_text: string;
 
 	constructor(canvas: Canvas) {
 		this.canvas = canvas;
@@ -193,9 +198,33 @@ export class Terminal {
 		// clear the canvas
 		gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		this.detail_text = "";
 	}
 
 	draw() {
+		if (this.last_detail_text !== this.detail_text) {
+			this.last_detail_text = this.detail_text;
+
+			if (this.detail_text.length > 0) {
+				this.detail_glyphs = textGlyphs(
+					"\\B0\\f0" + this.detail_text,
+					this.detail_text.length,
+					false
+				);
+			} else {
+				this.detail_glyphs = null;
+			}
+		}
+
+		if (this.detail_text.length > 0 && this.detail_glyphs !== null) {
+			this.blit(
+				this.detail_glyphs,
+				{ row: 0, col: 0, rows: 1, cols: this.detail_glyphs.cols },
+				{ row: this.canvas.rows - 1, col: 0, rows: 1, cols: this.detail_glyphs.cols }
+			);
+		}
+
 		const gl = this.canvas.gl;
 		gl.useProgram(this.gl_program);
 

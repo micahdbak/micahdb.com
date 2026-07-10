@@ -1,12 +1,13 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 import { Renderer } from "./renderer.ts";
+import { Scroller } from "./components/scroller.ts";
+
+import { Link } from "./components/link.ts";
 
 import { renderCp437 } from "./cp437.ts";
 import { Glyphs, textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
 import { loadTexture } from "./textures.ts";
-
-import { Scroller } from "./components/scroller.ts";
 
 /*
  *	Character set (code page 437):
@@ -28,10 +29,17 @@ import { Scroller } from "./components/scroller.ts";
  *	α ß Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡ ± ≥ ≤ ⌠ ⌡ ÷ ≈ ° ∙ · √ ⁿ ² ■
  */
 
+const LINKS = [
+	"mailto:micah_baker@sfu.ca",
+	"https://github.com/micahdbak",
+	"https://linkedin.com/in/micahdbak",
+	"https://micahdb.com/resume.pdf"
+];
+
 const CARD = `\
-█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄  \\f2  ▄ ▄     ▄\\F7
-▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀ \\f2 ≡\\f0\\b2■.■\\f2\\b0≡▄▄▄▀ \\F7
-▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐   \\f2   ▄▀█▀▀▀▄ \\F7
+█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄  \\f3  ▄ ▄     ▄\\F7
+▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀ \\f3 ≡\\f0\\b3■.■\\f3\\b0≡▄▄▄▀ \\F7
+▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐   \\f3   ▄▀█▀▀▀▄ \\F7
 
 \\F3I am a\\f7:\t\t\\F7Software Developer
 \\F3Based in\\f7:\tVancouver, BC, Canada
@@ -39,10 +47,10 @@ const CARD = `\
 \\F3Previously\\f7:\tOpen WebUI, Improving, Brave
 \\F3Education\\f7:\tBSc Computing Science at SFU
 
-\\F3E-mail\\f7:\t\t\\F5<micah_baker@sfu.ca>
-\\F3GitHub\\f7:\t\t\\F5https://github.com/micahdbak
-\\F3LinkedIn\\f7:\t\\F5https://linkedin.com/in/micahdbak
-\\F3Résumé / CV\\f7:\t\\F5https://micahdb.com/resume.pdf
+\\F3E-mail\\f7:\t\t\\a${LINKS[0]}
+\\F3GitHub\\f7:\t\t\\a${LINKS[1]}
+\\F3LinkedIn\\f7:\t\\a${LINKS[2]}
+\\F3Résumé / CV\\f7:\t\\a${LINKS[3]}
 
 \\F7\\b0   \\b1   \\b2   \\b3   \\b4   \\b5   \\b6   \\b7   \\B0
    \\B1   \\B2   \\B3   \\B4   \\B5   \\B6   \\B7\\f0   \\f7\\b0
@@ -76,6 +84,7 @@ function main() {
 
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
+		const scroller = new Scroller(terminal);
 
 		const card = textGlyphs(CARD, 52, false);
 		const cols = Math.min(canvas.cols, 2 * canvas.rows);
@@ -95,7 +104,11 @@ function main() {
 			resized = true;
 		});
 
-		const scroller = new Scroller(terminal);
+		const links: Link[] = [];
+
+		for (let i = 0; i < LINKS.length; i++) {
+			links.push(new Link(terminal, LINKS[i], LINKS[i]));
+		}
 
 		const draw = () => {
 			if (resized) {
@@ -116,19 +129,37 @@ function main() {
 				renderer.draw(dog, tex, { row: 0, col, rows: dog.rows, cols: dog.cols });
 			}
 
+			const card_row = 1 - scroller.row;
+			const card_col = 2;
+
 			terminal.blit(
 				card,
 				{ row: 0, col: 0, rows: card.rows, cols: card.cols },
-				{ row: 1 - scroller.row, col: 2, rows: card.rows, cols: card.cols }
+				{ row: card_row, col: card_col, rows: card.rows, cols: card.cols }
 			);
 
+			for (let i = 0; i < LINKS.length; i++) {
+				const link_row = card_row + card.anchors[i].row;
+				const link_col = card_col + card.anchors[i].col;
+
+				links[i].update(link_row, link_col);
+				terminal.blit(
+					links[i].glyphs,
+					{ row: 0, col: 0, rows: 1, cols: links[i].glyphs.cols },
+					{ row: link_row, col: link_col, rows: 1, cols: links[i].glyphs.cols }
+				);
+			}
+
+			const status_row = canvas.rows - 1 - (terminal.detail_text.length > 0 ? 1 : 0);
 			terminal.blit(
 				scroller.status_glyphs,
 				{ row: 0, col: 0, rows: 1, cols: scroller.status_glyphs.cols },
-				{ row: canvas.rows - 1, col: 0, rows: 1, cols: scroller.status_glyphs.cols }
+				{ row: status_row, col: 0, rows: 1, cols: scroller.status_glyphs.cols }
 			);
 
 			terminal.draw();
+
+			canvas.mouse_click = false;
 
 			requestAnimationFrame(draw);
 		};
