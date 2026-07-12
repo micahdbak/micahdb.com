@@ -1,3 +1,4 @@
+import { Canvas } from "./canvas.ts";
 import { Mat4 } from "./math.ts";
 import { Program } from "./program.ts";
 import { CubeProgram } from "./programs/cube";
@@ -5,7 +6,7 @@ import { EarthProgram } from "./programs/earth";
 import { SkyboxProgram } from "./programs/skybox";
 
 class ProgramManager {
-	private gl: WebGL2RenderingContext;
+	private canvas: Canvas;
 
 	// width/height of framebuffer object
 	private target_width: number;
@@ -23,11 +24,12 @@ class ProgramManager {
 
 	public which: string;
 
-	// to be used by renderer.ts; each pixel is a glyph
+	// to be used with Renderer.draw
 	public texture: WebGLTexture;
 
-	constructor(gl: WebGL2RenderingContext) {
-		this.gl = gl;
+	constructor(canvas: Canvas) {
+		this.canvas = canvas;
+		const gl = canvas.gl;
 
 		this.initializeTexture();
 		this.initializeDBO();
@@ -41,97 +43,105 @@ class ProgramManager {
 
 		this.programs = [this.cube, this.earth, this.skybox];
 		this.which = "";
-	}
 
-	init() {
 		for (const program of this.programs) {
 			program.init();
+			void program.load();
 		}
+
+		this.resize(canvas.rows, canvas.cols);
 	}
 
 	initializeTexture() {
-		this.target_width = 32;
-		this.target_height = 32;
+		this.target_width = 1024;
+		this.target_height = 1024;
 
-		this.texture = this.gl.createTexture();
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-		this.gl.texImage2D(
-			this.gl.TEXTURE_2D,
+		const gl = this.canvas.gl;
+
+		this.texture = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
 			0,
-			this.gl.RGBA,
-			32,
-			32,
+			gl.RGBA,
+			this.target_width,
+			this.target_height,
 			0,
-			this.gl.RGBA,
-			this.gl.UNSIGNED_BYTE,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
 			null
 		);
 
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	}
 
 	initializeDBO() {
-		this.dbo = this.gl.createRenderbuffer();
+		const gl = this.canvas.gl;
+
+		this.dbo = gl.createRenderbuffer();
 		if (!this.dbo) {
 			throw new Error("When creating depth render buffer");
 		}
 
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
-		this.gl.renderbufferStorage(
-			this.gl.RENDERBUFFER,
-			this.gl.DEPTH_COMPONENT16,
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this.dbo);
+		gl.renderbufferStorage(
+			gl.RENDERBUFFER,
+			gl.DEPTH_COMPONENT16,
 			this.target_width,
 			this.target_height
 		);
+
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 	}
 
 	initializeFBO() {
-		this.fbo = this.gl.createFramebuffer();
+		const gl = this.canvas.gl;
+
+		this.fbo = gl.createFramebuffer();
 		if (!this.fbo) {
 			throw new Error("When creating frame buffer");
 		}
 
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
-		this.gl.framebufferTexture2D(
-			this.gl.FRAMEBUFFER,
-			this.gl.COLOR_ATTACHMENT0,
-			this.gl.TEXTURE_2D,
-			this.texture,
-			0
-		);
-		this.gl.framebufferRenderbuffer(
-			this.gl.FRAMEBUFFER,
-			this.gl.DEPTH_ATTACHMENT,
-			this.gl.RENDERBUFFER,
-			this.dbo
-		);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.dbo);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
-	resize(width: number, height: number) {
-		width = isFinite(width) ? Math.max(1, width) : 1;
-		height = isFinite(height) ? Math.max(1, height) : 1;
+	resize(rows: number, cols: number) {
+		const width = isFinite(cols) ? Math.max(1, cols) : 1;
+		const height = isFinite(rows) ? Math.max(1, rows) : 1;
 
 		// update texture size
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-		this.gl.texImage2D(
-			this.gl.TEXTURE_2D,
+		/*
+		this.target_width = width;
+		this.target_height = height;
+
+		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.texImage2D(
+			gl.TEXTURE_2D,
 			0,
-			this.gl.RGBA,
-			width,
-			height,
+			gl.RGBA,
+			this.target_width,
+			this.target_height,
 			0,
-			this.gl.RGBA,
-			this.gl.UNSIGNED_BYTE,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
 			null
 		);
 
 		// update depth buffer size to match texture
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.dbo);
-		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, width, height);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this.dbo);
+		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.target_width, this.target_height);
+		*/
 
 		// update projection matrix
 		const fovy = Math.PI / 4;
@@ -139,26 +149,33 @@ class ProgramManager {
 		const near = 0.1;
 		const far = 100.0;
 		Mat4.perspective(this.projection_matrix, fovy, aspect, near, far);
-
-		this.target_width = width;
-		this.target_height = height;
 	}
 
 	draw() {
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fbo);
-		this.gl.enable(this.gl.DEPTH_TEST);
+		const gl = this.canvas.gl;
 
-		this.gl.viewport(0, 0, this.target_width, this.target_height);
-		this.gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
+		gl.viewport(0, 0, this.target_width, this.target_height);
+		gl.enable(gl.DEPTH_TEST);
+
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		switch (this.which) {
 			case "cube":
+				if (!this.cube.is_ready) {
+					break;
+				}
+
 				this.cube.draw(this.projection_matrix);
 
 				break;
 
 			case "earth":
+				if (!this.skybox.is_ready || !this.earth.is_ready) {
+					break;
+				}
+
 				const view_x = 5.0 * Math.cos((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
 				const view_z = 5.0 * Math.sin((2.0 * Math.PI * (Date.now() % 77777)) / 77777);
 
@@ -174,7 +191,9 @@ class ProgramManager {
 				break;
 		}
 
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+		gl.disable(gl.DEPTH_TEST);
 	}
 }
 

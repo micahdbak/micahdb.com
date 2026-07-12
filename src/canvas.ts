@@ -206,4 +206,12 @@ export class Canvas extends EventTarget {
 			this.mouse_down_col < col + cols
 		);
 	}
+
+	clear() {
+		const gl = this.gl;
+
+		// clear the canvas
+		gl.clearColor(this.palette[0], this.palette[1], this.palette[2], 1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+	}
 }

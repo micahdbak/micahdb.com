@@ -1,13 +1,14 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 import { Renderer } from "./renderer.ts";
+import { ProgramManager } from "./program_manager.ts";
+
 import { Scroller } from "./components/scroller.ts";
 
 import { Link } from "./components/link.ts";
 
 import { renderCp437 } from "./cp437.ts";
-import { Glyphs, textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
-import { loadTexture } from "./textures.ts";
+import { textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
 
 /*
  *	Character set (code page 437):
@@ -80,29 +81,24 @@ function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = new Canvas(canvas_el);
+		// initialize
 
+		const canvas = new Canvas(canvas_el);
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
+
+		// programs/visuals
+
+		const program = new ProgramManager(canvas);
+		program.which = "earth";
+
+		let program_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+
+		// scroller
+
 		const scroller = new Scroller(terminal);
 
-		const card = textGlyphs(CARD, 52, false);
-		//const cols = Math.min(canvas.cols, 2 * canvas.rows);
-
-		let tex: null | WebGLTexture = null;
-		let vancouver: null | Glyphs = null;
-
-		const load_vancouver = async () => {
-			tex = await loadTexture(canvas.gl, "/images/vancouver.jpg");
-			vancouver = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
-		};
-		load_vancouver(); // eslint-disable-line
-
-		let resized = false;
-
-		canvas.addEventListener("resize", () => {
-			resized = true;
-		});
+		// card/content
 
 		const links: Link[] = [];
 
@@ -110,27 +106,35 @@ function main() {
 			links.push(new Link(terminal, LINKS[i], LINKS[i]));
 		}
 
+		const card = textGlyphs(CARD, 52, false);
+
+		// main draw loop
+
+		let resized = false;
+
+		canvas.addEventListener("resize", () => {
+			resized = true;
+		});
+
 		const draw = () => {
 			if (resized) {
-				// can handle resize here
 				resized = false;
-
-				if (tex !== null) {
-					vancouver = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
-				}
+				program.resize(canvas.rows, canvas.cols);
+				program_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 			}
+
+			canvas.clear();
+
+			program.draw();
+			renderer.draw(program_glyphs, program.texture, {
+				row: 0,
+				col: 0,
+				rows: program_glyphs.rows,
+				cols: program_glyphs.cols
+			});
 
 			terminal.clear();
 			scroller.update(80);
-
-			if (tex !== null) {
-				renderer.draw(vancouver, tex, {
-					row: 0,
-					col: 0,
-					rows: vancouver.rows,
-					cols: vancouver.cols
-				});
-			}
 
 			const card_row = 1 - scroller.row;
 			const card_col = 2;
