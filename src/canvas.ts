@@ -119,6 +119,9 @@ export class Canvas extends EventTarget {
 		this.element.height = this.height;
 		this.element.width = this.width;
 
+		// update viewport
+		this.gl.viewport(0, 0, this.width, this.height);
+
 		const target_cell_height = Math.max(Canvas.CELL_HEIGHT / 2, Canvas.CELL_HEIGHT * dpr);
 		const target_cell_width = Math.max(Canvas.CELL_WIDTH / 2, Canvas.CELL_WIDTH * dpr);
 

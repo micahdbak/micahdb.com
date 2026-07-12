@@ -186,9 +186,6 @@ export class Terminal {
 			gl.uniform1i(this.uniforms.cols, this.canvas.cols);
 
 			this.fbcon = new Uint16Array(this.canvas.rows * this.canvas.cols);
-
-			// update viewport
-			gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 		}
 
 		this.fbcon.fill(0);

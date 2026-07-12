@@ -90,13 +90,13 @@ function main() {
 		//const cols = Math.min(canvas.cols, 2 * canvas.rows);
 
 		let tex: null | WebGLTexture = null;
-		let nebulae: null | Glyphs = null;
+		let vancouver: null | Glyphs = null;
 
-		const load_nebulae = async () => {
-			tex = await loadTexture(canvas.gl, "nebulae.png");
-			nebulae = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		const load_vancouver = async () => {
+			tex = await loadTexture(canvas.gl, "/images/vancouver.jpg");
+			vancouver = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 		};
-		load_nebulae(); // eslint-disable-line
+		load_vancouver(); // eslint-disable-line
 
 		let resized = false;
 
@@ -116,7 +116,7 @@ function main() {
 				resized = false;
 
 				if (tex !== null) {
-					nebulae = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+					vancouver = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 				}
 			}
 
@@ -124,11 +124,11 @@ function main() {
 			scroller.update(80);
 
 			if (tex !== null) {
-				renderer.draw(nebulae, tex, {
+				renderer.draw(vancouver, tex, {
 					row: 0,
 					col: 0,
-					rows: nebulae.rows,
-					cols: nebulae.cols
+					rows: vancouver.rows,
+					cols: vancouver.cols
 				});
 			}
 

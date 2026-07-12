@@ -1,7 +1,23 @@
 {
   "name": "micahdb.com",
   "module": "src/index.ts",
-  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "eslint": "^10.4.1",
+    "gh-pages": "^6.3.0",
+    "globals": "^17.6.0",
+    "jiti": "^2.7.0",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.60.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "prettier": {
+    "useTabs": true,
+    "trailingComma": "none",
+    "printWidth": 100
+  },
   "private": true,
   "scripts": {
     "copy-public": "mkdir -p build && cp -r ./public/* ./build",
@@ -11,20 +27,5 @@
     "format": "prettier --write src",
     "deploy": "bun run build && gh-pages -d build --clean"
   },
-  "prettier": {
-    "useTabs": true,
-    "trailingComma": "none",
-    "printWidth": 100
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "eslint": "^10.4.1",
-    "gh-pages": "^6.3.0",
-    "globals": "^17.6.0",
-    "prettier": "^3.8.3",
-    "typescript-eslint": "^8.60.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5.9.3"
-  }
+  "type": "module"
 }
