@@ -2,8 +2,7 @@ import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 import { Renderer } from "./renderer.ts";
 import { ProgramManager } from "./program_manager.ts";
-
-import { Scroller } from "./components/scroller.ts";
+import { Scroller } from "./scroller.ts";
 
 import { Link } from "./components/link.ts";
 
@@ -90,7 +89,7 @@ function main() {
 		// programs/visuals
 
 		const program = new ProgramManager(canvas);
-		program.which = "earth";
+		program.which = "nebulae";
 
 		let program_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 

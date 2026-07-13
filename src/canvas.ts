@@ -15,6 +15,11 @@ export class Canvas extends EventTarget {
 	// mouse wheel tracking fields
 	private mouse_wheel_px: number;
 
+	// keyboard scroll tracking fields (for i/j, dn/up)
+	private scroll_keys_held: Set<string>;
+	private scroll_delay: ReturnType<typeof setTimeout> | undefined;
+	private scroll_timer: ReturnType<typeof setInterval> | undefined;
+
 	public element: HTMLCanvasElement;
 	public gl: WebGL2RenderingContext;
 
@@ -31,13 +36,13 @@ export class Canvas extends EventTarget {
 	// to be set by a component which "claims" the mouse
 	public mouse_owner: string;
 
-	public mouse_row: number;
-	public mouse_col: number;
+	public mouse_row: number | undefined;
+	public mouse_col: number | undefined;
 
 	public mouse_down: boolean;
 	public mouse_click: boolean;
-	public mouse_down_row: number;
-	public mouse_down_col: number;
+	public mouse_down_row: number | undefined;
+	public mouse_down_col: number | undefined;
 
 	public palette: Float32Array;
 
@@ -57,6 +62,10 @@ export class Canvas extends EventTarget {
 		this.gl = gl;
 
 		this.mouse_wheel_px = 0;
+
+		this.scroll_keys_held = new Set();
+		this.scroll_delay = undefined;
+		this.scroll_timer = undefined;
 
 		this.mouse_owner = "";
 
@@ -80,6 +89,8 @@ export class Canvas extends EventTarget {
 		});
 
 		this.element.addEventListener("pointerdown", (e: PointerEvent) => {
+			e.preventDefault();
+
 			this.mouseMove(e.clientX, e.clientY);
 
 			this.mouse_down = true;
@@ -105,10 +116,62 @@ export class Canvas extends EventTarget {
 		this.element.addEventListener(
 			"wheel",
 			(e: WheelEvent) => {
+				e.preventDefault();
 				this.mouseScroll(e.deltaMode, e.deltaY);
 			},
 			{ passive: false }
 		);
+
+		this.element.addEventListener("contextmenu", (e: MouseEvent) => {
+			e.preventDefault();
+		});
+
+		window.addEventListener("keydown", (e: KeyboardEvent) => {
+			const target = e.target as HTMLElement | null;
+			if (
+				target &&
+				(target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)
+			) {
+				return;
+			}
+
+			if (this.scrollDeltaForKey(e.key) === 0) {
+				return;
+			}
+
+			// stop the page from scrolling when using arrow keys
+			e.preventDefault();
+
+			if (e.repeat) {
+				return;
+			}
+
+			this.startKeyScroll(e.key);
+		});
+
+		window.addEventListener("keyup", (e: KeyboardEvent) => {
+			if (this.scrollDeltaForKey(e.key) === 0) {
+				return;
+			}
+
+			this.stopKeyScroll(e.key);
+		});
+
+		window.addEventListener("blur", () => {
+			this.scroll_keys_held.clear();
+
+			if (this.scroll_delay !== undefined) {
+				clearTimeout(this.scroll_delay);
+				this.scroll_delay = undefined;
+			}
+			if (this.scroll_timer !== undefined) {
+				clearInterval(this.scroll_timer);
+				this.scroll_timer = undefined;
+			}
+
+			this.mouse_down = false;
+			this.mouse_click = false;
+		});
 	}
 
 	private resize() {
@@ -187,6 +250,63 @@ export class Canvas extends EventTarget {
 		}
 
 		this.dispatchEvent(new CustomEvent("wheel", { detail: { rows } }));
+	}
+
+	private scrollDeltaForKey(key: string): number {
+		switch (key) {
+			case "j":
+			case "ArrowDown":
+				return 1;
+			case "k":
+			case "ArrowUp":
+				return -1;
+			default:
+				return 0;
+		}
+	}
+
+	private startKeyScroll(key: string) {
+		if (this.scroll_keys_held.has(key)) {
+			return;
+		}
+
+		this.scroll_keys_held.add(key);
+
+		// immediate first scroll for responsiveness
+		this.mouseScroll(DeltaMode.ROW, this.scrollDeltaForKey(key));
+
+		// key repeats after held for a full second
+		if (this.scroll_delay === undefined && this.scroll_timer === undefined) {
+			this.scroll_delay = setTimeout(() => {
+				this.scroll_delay = undefined;
+				this.scroll_timer = setInterval(() => {
+					let delta = 0;
+					for (const k of this.scroll_keys_held) {
+						delta += this.scrollDeltaForKey(k);
+					}
+
+					if (delta !== 0) {
+						this.mouseScroll(DeltaMode.ROW, delta);
+					}
+				}, 50); // repeat every 50ms
+			}, 333); // wait 333ms
+		}
+	}
+
+	private stopKeyScroll(key: string) {
+		this.scroll_keys_held.delete(key);
+
+		if (this.scroll_keys_held.size === 0) {
+			if (this.scroll_delay !== undefined) {
+				clearTimeout(this.scroll_delay);
+				this.scroll_delay = undefined;
+			}
+
+			if (this.scroll_timer !== undefined) {
+				clearInterval(this.scroll_timer);
+				this.scroll_timer = undefined;
+			}
+		}
 	}
 
 	mouseAt(row: number, col: number, rows: number, cols: number): boolean {

@@ -1,7 +1,6 @@
 import VERTEX_SHADER from "../shaders/skybox.vert" with { type: "text" };
 import FRAGMENT_SHADER from "../shaders/skybox.frag" with { type: "text" };
 
-import { loadCubeMap } from "../textures.ts";
 import { compileProgram, getAttribLocations, getUniformLocations, Program } from "../program.ts";
 import { CubeMesh } from "../meshes/cube.ts";
 
@@ -11,8 +10,6 @@ export class SkyboxProgram extends Program {
 
 	private vbo: WebGLBuffer;
 	private cube: CubeMesh;
-
-	private texture: WebGLTexture;
 
 	init() {
 		const gl = this.gl;
@@ -41,22 +38,12 @@ export class SkyboxProgram extends Program {
 		gl.bufferData(gl.ARRAY_BUFFER, this.cube.data(), gl.STATIC_DRAW);
 	}
 
-	async load() {
-		const gl = this.gl;
-
-		this.texture = await loadCubeMap(gl, [
-			"/images/earth/right.png",
-			"/images/earth/left.png",
-			"/images/earth/top.png",
-			"/images/earth/bottom.png",
-			"/images/earth/front.png",
-			"/images/earth/back.png"
-		]);
-
+	load(): Promise<void> {
 		this.is_ready = true;
+		return Promise.resolve();
 	}
 
-	draw(projection_matrix: Float32Array, view_matrix: Float32Array) {
+	draw(texture: WebGLTexture, projection_matrix: Float32Array, view_matrix: Float32Array) {
 		const gl = this.gl;
 		gl.useProgram(this.gl_program);
 
@@ -66,7 +53,7 @@ export class SkyboxProgram extends Program {
 		gl.uniformMatrix4fv(this.uniforms.view_matrix, false, view_matrix);
 
 		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
+		gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 		gl.uniform1i(this.uniforms.skybox_texture, 0);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);

@@ -1,5 +1,5 @@
-import { Terminal } from "../terminal.ts";
-import { Glyphs, textGlyphs } from "../glyphs.ts";
+import { Terminal } from "./terminal.ts";
+import { Glyphs, textGlyphs } from "./glyphs.ts";
 
 export class Scroller {
 	private static readonly NAME = "scroller"; // for mouse_owner
@@ -103,7 +103,7 @@ export class Scroller {
 				percent = Math.round((this.row / max_offset) * 100);
 			}
 
-			const status_text = `\\f0\\B7 Drag or use mouse wheel to scroll [${percent}%] \\F7\\b0`;
+			const status_text = `\\f0\\B7 Drag, use mouse, or press [j/k], [↓/↑] to scroll [${percent}%] \\F7\\b0`;
 			this.status_glyphs = textGlyphs(status_text, this.terminal.canvas.cols, false);
 		}
 
