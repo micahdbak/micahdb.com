@@ -201,7 +201,7 @@ export class Terminal {
 
 			if (this.detail_text.length > 0) {
 				this.detail_glyphs = textGlyphs(
-					"\\B0\\f0" + this.detail_text,
+					"\\B0\\F7" + this.detail_text,
 					this.detail_text.length,
 					false
 				);

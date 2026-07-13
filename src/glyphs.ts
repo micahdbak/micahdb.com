@@ -247,7 +247,20 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 
 			// tab
 			if (c === "\t") {
-				col += TAB_WIDTH - (col % TAB_WIDTH);
+				const tab_chars = TAB_WIDTH - (col % TAB_WIDTH);
+
+				for (let i = 0; i < tab_chars; i++) {
+					// fill tab width with spaces
+					const data_idx = row * cols + col;
+					const char_code = charCodeInCp437(" ".codePointAt(0));
+
+					const colour_byte = ((fg & 0b1111) << 4) | (bg & 0b1111);
+					const glyph = (colour_byte << 8) | (char_code & 0xff);
+
+					glyphs.data[data_idx] = glyph;
+
+					col++;
+				}
 
 				continue;
 			}
@@ -274,7 +287,10 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 
 export enum TexGlyphMode {
 	SAMPLE = 0,
-	GLYPHS = 1
+	GLYPHS = 1,
+	MIX = 2,
+	ROWS = 3,
+	COLS = 4
 }
 
 export type TexGlyphs = {
@@ -290,9 +306,19 @@ export function textureGlyphs(rows: number, cols: number, mode: TexGlyphMode): T
 		cols
 	};
 
+	const global_mode = mode;
+
 	for (let data_idx = 0; data_idx < rows * cols; data_idx++) {
 		const row = Math.floor(data_idx / cols);
 		const col = data_idx % cols;
+
+		if (global_mode == TexGlyphMode.MIX) {
+			mode = (row + col) % 2 == 0 ? TexGlyphMode.SAMPLE : TexGlyphMode.GLYPHS;
+		} else if (global_mode == TexGlyphMode.ROWS) {
+			mode = row % 2 == 0 ? TexGlyphMode.SAMPLE : TexGlyphMode.GLYPHS;
+		} else if (global_mode == TexGlyphMode.COLS) {
+			mode = col % 2 == 0 ? TexGlyphMode.SAMPLE : TexGlyphMode.GLYPHS;
+		}
 
 		const glyph = ((row & 0xff) << 24) | ((mode & 0xff) << 16) | (col & 0xffff);
 

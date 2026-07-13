@@ -66,7 +66,13 @@ const CARD = `\
 ║  \\F7└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀\\f7  ║
 ║  \\F7αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ \\f7  ║
 ║                                    ║
-╚════════════════════════════════════╝`;
+╚════════════════════════════════════╝
+
+\\f7\tGreat. Regardless, welcome to my site.\t\\f7
+This is an example of some sort of paragraph.\t\\f7
+\\F7micahdb.com\\f7 will contain all sorts of info about\t\\f7
+me.\t\t\t\t\t\t\\f7
+`;
 
 // cp437.html
 async function render() {

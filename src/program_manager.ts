@@ -264,14 +264,14 @@ class ProgramManager {
 				const view_matrix = Mat4.create();
 				Mat4.lookAt(view_matrix, [view_x, 0.5, view_z], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 
-				const yaw_matrix = Mat4.rotation("y", -this.nebulae_yaw);
-				const pitch_matrix = Mat4.rotation("x", this.nebulae_pitch);
+				const yaw_matrix = Mat4.rotation("y", this.nebulae_yaw);
+				const pitch_matrix = Mat4.rotation("x", -this.nebulae_pitch);
 
 				const offset_matrix = Mat4.create();
 				Mat4.multiply(offset_matrix, yaw_matrix, pitch_matrix);
 
 				const final_view_matrix = Mat4.create();
-				Mat4.multiply(final_view_matrix, view_matrix, offset_matrix);
+				Mat4.multiply(final_view_matrix, offset_matrix, view_matrix);
 
 				this.skybox.draw(this.nebulae_cubemap, this.projection_matrix, final_view_matrix);
 
