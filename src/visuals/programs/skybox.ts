@@ -1,7 +1,8 @@
-import VERTEX_SHADER from "../shaders/skybox.vert" with { type: "text" };
-import FRAGMENT_SHADER from "../shaders/skybox.frag" with { type: "text" };
+import VERTEX_SHADER from "../../shaders/skybox.vert" with { type: "text" };
+import FRAGMENT_SHADER from "../../shaders/skybox.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations, Program } from "../program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "../../program.ts";
+import { Program } from "./program.ts";
 import { CubeMesh } from "../meshes/cube.ts";
 
 export class SkyboxProgram extends Program {
@@ -36,11 +37,6 @@ export class SkyboxProgram extends Program {
 		this.cube = new CubeMesh();
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
 		gl.bufferData(gl.ARRAY_BUFFER, this.cube.data(), gl.STATIC_DRAW);
-	}
-
-	load(): Promise<void> {
-		this.is_ready = true;
-		return Promise.resolve();
 	}
 
 	draw(texture: WebGLTexture, projection_matrix: Float32Array, view_matrix: Float32Array) {

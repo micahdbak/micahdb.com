@@ -116,11 +116,15 @@ void main() {
 	// use textureGrad to treat the glyph cell as a full screen pixel and
 	// therefore use the proper mipmap level / filtering for the area covered
 	vec2 full_uv_cell = vec2(1.0 / float(u_cols), 1.0 / float(u_rows));
+	/*
 	vec2 br = origin_uv_coord + full_uv_cell; // bottom-right uv coord of cell
 	vec4 samp = textureGrad(u_texture,
 		origin_uv_coord + 0.5 * full_uv_cell,
 		vec2(br.x - origin_uv_coord.x, 0.0),
 		vec2(0.0, br.y - origin_uv_coord.y));
+	vec3 colour = samp.rgb;
+	*/
+	vec4 samp = texture(u_texture, origin_uv_coord + 0.5 * full_uv_cell);
 	vec3 colour = samp.rgb;
 
 	// dithering

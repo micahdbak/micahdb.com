@@ -1,8 +1,11 @@
 import { Canvas } from "./canvas.ts";
 import { Terminal } from "./terminal.ts";
 import { Renderer } from "./renderer.ts";
-import { ProgramManager } from "./program_manager.ts";
 import { Scroller } from "./scroller.ts";
+
+import { NebulaeVisuals } from "./visuals/nebulae.ts";
+//import { CubeVisuals } from "./visuals/cube.ts";
+//import { EarthVisuals } from "./visuals/earth.ts";
 
 import { Link } from "./components/link.ts";
 
@@ -68,10 +71,10 @@ const CARD = `\
 ║                                    ║
 ╚════════════════════════════════════╝
 
-\\f7\tGreat. Regardless, welcome to my site.\t\\f7
-This is an example of some sort of paragraph.\t\\f7
-\\F7micahdb.com\\f7 will contain all sorts of info about\t\\f7
-me.\t\t\t\t\t\t\\f7
+\t\\f7Great. Regardless, welcome to my site.
+This is an example of some sort of paragraph.
+\\F7micahdb.com\\f7 will contain all sorts of info about
+me.
 `;
 
 // cp437.html
@@ -92,12 +95,12 @@ function main() {
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
 
-		// programs/visuals
+		// visuals
 
-		const program = new ProgramManager(canvas);
-		program.which = "nebulae";
+		const visuals = new NebulaeVisuals(canvas);
+		void visuals.init();
 
-		let program_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 
 		// scroller
 
@@ -124,18 +127,18 @@ function main() {
 		const draw = () => {
 			if (resized) {
 				resized = false;
-				program.resize(canvas.rows, canvas.cols);
-				program_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+				visuals.resize(canvas.rows, canvas.cols);
+				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 			}
 
 			canvas.clear();
 
-			program.draw();
-			renderer.draw(program_glyphs, program.texture, {
+			visuals.render();
+			renderer.draw(visuals_glyphs, visuals.texture, {
 				row: 0,
 				col: 0,
-				rows: program_glyphs.rows,
-				cols: program_glyphs.cols
+				rows: visuals_glyphs.rows,
+				cols: visuals_glyphs.cols
 			});
 
 			terminal.clear();

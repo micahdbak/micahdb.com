@@ -249,6 +249,7 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 			if (c === "\t") {
 				const tab_chars = TAB_WIDTH - (col % TAB_WIDTH);
 
+				/*
 				for (let i = 0; i < tab_chars; i++) {
 					// fill tab width with spaces
 					const data_idx = row * cols + col;
@@ -261,6 +262,9 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 
 					col++;
 				}
+				*/
+
+				col += tab_chars;
 
 				continue;
 			}

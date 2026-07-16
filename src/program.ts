@@ -81,21 +81,3 @@ export function getUniformLocations(
 
 	return uniforms;
 }
-
-export abstract class Program {
-	protected gl: WebGL2RenderingContext;
-	protected gl_program: WebGLProgram;
-	protected is_ready: boolean;
-
-	constructor(gl: WebGL2RenderingContext) {
-		this.gl = gl;
-		this.gl_program = null;
-		this.is_ready = false;
-	}
-
-	abstract init(): void;
-
-	abstract async load(): Promise<void>;
-
-	abstract draw(): void;
-}
