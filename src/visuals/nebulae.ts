@@ -2,7 +2,7 @@ import { Mat4 } from "./math.ts";
 import { SkyboxProgram } from "./programs/skybox.ts";
 import { loadCubeMap } from "./textures.ts";
 import { Visuals } from "./visuals.ts";
-import { Canvas } from "../canvas.ts";
+import { Canvas } from "@/canvas.ts";
 
 export class NebulaeVisuals extends Visuals {
 	static readonly ORBIT_PERIOD = 150;

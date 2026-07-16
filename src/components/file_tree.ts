@@ -1,6 +1,6 @@
-import { Glyph } from "../glyph.ts";
-import { Terminal } from "../terminal.ts";
-import { Colour } from "../colour.ts";
+import { Glyph } from "@/glyph.ts";
+import { Terminal } from "@/terminal.ts";
+import { Colour } from "@/colour.ts";
 
 type FileClickFunction = (file: File) => void;
 

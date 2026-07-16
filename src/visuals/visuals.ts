@@ -1,4 +1,4 @@
-import { Canvas } from "../canvas.ts";
+import { Canvas } from "@/canvas.ts";
 import { Mat4 } from "./math.ts";
 
 export abstract class Visuals {

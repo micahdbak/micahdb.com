@@ -1,5 +1,5 @@
-import { Terminal } from "../terminal.ts";
-import { Colour } from "../colour.ts";
+import { Terminal } from "@/terminal.ts";
+import { Colour } from "@/colour.ts";
 
 class TableBorders {
 	static draw(

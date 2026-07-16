@@ -1,6 +1,6 @@
-import { Glyphs, textGlyphs } from "../glyphs.ts";
-import { Terminal } from "../terminal.ts";
-import { Colour } from "../colour.ts";
+import { Glyphs, textGlyphs } from "@/glyphs.ts";
+import { Terminal } from "@/terminal.ts";
+import { Colour } from "@/colour.ts";
 
 class Link {
 	private terminal: Terminal;

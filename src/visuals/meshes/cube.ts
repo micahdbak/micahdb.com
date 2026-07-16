@@ -1,4 +1,4 @@
-import { TriangleMesh } from "../mesh.ts";
+import { TriangleMesh } from "@/visuals/mesh.ts";
 
 function repeat(arr: number[], n: number): number[] {
 	const ret = [];

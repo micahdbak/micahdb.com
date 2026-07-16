@@ -1,4 +1,4 @@
-import { TriangleMesh } from "../mesh.ts";
+import { TriangleMesh } from "@/visuals/mesh.ts";
 
 export class SphereMesh extends TriangleMesh {
 	public indices: number[];

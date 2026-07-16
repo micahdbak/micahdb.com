@@ -1,9 +1,9 @@
-import VERTEX_SHADER from "../../shaders/skybox.vert" with { type: "text" };
-import FRAGMENT_SHADER from "../../shaders/skybox.frag" with { type: "text" };
+import VERTEX_SHADER from "@/shaders/skybox.vert" with { type: "text" };
+import FRAGMENT_SHADER from "@/shaders/skybox.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "../../program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "@/program.ts";
 import { Program } from "./program.ts";
-import { CubeMesh } from "../meshes/cube.ts";
+import { CubeMesh } from "@/visuals/meshes/cube.ts";
 
 export class SkyboxProgram extends Program {
 	private attributes: Record<string, number>;
