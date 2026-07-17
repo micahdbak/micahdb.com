@@ -190,8 +190,6 @@ export class Terminal {
 
 		this.fbcon.fill(0);
 
-		document.body.className = "";
-
 		this.detail_text = "";
 	}
 

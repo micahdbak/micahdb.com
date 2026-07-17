@@ -2,7 +2,7 @@ import { Glyphs, textGlyphs } from "@/glyphs.ts";
 import { Terminal } from "@/terminal.ts";
 import { Colour } from "@/colour.ts";
 
-class Link {
+export class Link {
 	private terminal: Terminal;
 	private text: string;
 	private url: string;
@@ -36,7 +36,7 @@ class Link {
 				window.open(this.url, "_blank");
 			}
 		} else if (is_hovered) {
-			document.body.className = "pointer";
+			this.terminal.canvas.class_name = "pointer";
 
 			const detail = this.url.startsWith("#") ? window.location.origin + this.url : this.url;
 			this.terminal.detail_text = " Link: " + detail + " ";
@@ -59,5 +59,3 @@ class Link {
 		}
 	}
 }
-
-export { Link };

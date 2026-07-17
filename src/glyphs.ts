@@ -2,7 +2,7 @@ import { Colour } from "./colour.ts";
 import { charCodeInCp437 } from "./cp437.ts";
 import { Cell } from "./area_types.ts";
 
-const TAB_WIDTH = 8;
+const TAB_WIDTH = 4;
 
 function finalSpaceIdx(text: string, start: number): number {
 	// skip remaining white space
@@ -45,10 +45,10 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 			// \FX : set foreground to X, bright
 			// \bX : set background to X, dark
 			// \BX : set background to X, bright
-			// \a  : anchor; gets the next cell's row/col
+			// \aX : anchor in group X; to get current row/col
 
-			// therefore, skip the 2 or 3 char combo
-			i += text[i + 1] === "a" ? 1 : 2;
+			// therefore, skip the 3 char combo
+			i += 2;
 
 			continue; // i++
 		}
@@ -156,7 +156,7 @@ export type Glyphs = {
 	data: Uint16Array;
 	rows: number;
 	cols: number;
-	anchors: Cell[];
+	anchors: Record<number, Cell[]>;
 };
 
 export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
@@ -183,7 +183,7 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 		data: new Uint16Array(rows * cols),
 		rows,
 		cols: cols,
-		anchors: []
+		anchors: {}
 	};
 
 	let fg: number = Colour.WHITE;
@@ -196,21 +196,19 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 		for (let i = 0; i < line.length; i++) {
 			const c = line[i];
 
-			const seq_count = "fFbB".includes(line[i + 1]) ? 3 : 2;
-
 			// escape sequence:
 			// \fX : foreground X, dark
 			// \FX : foreground X, bright
 			// \bX : background X, dark
 			// \BX : background X, bright
-			// \a  : anchor
+			// \aX : anchor in group X
 			if (
 				c === "\\" &&
 				i + 2 < line.length &&
 				"fFbBa".includes(line[i + 1]) &&
-				(seq_count === 2 || !isNaN(Number(line[i + 2])))
+				!isNaN(Number(line[i + 2]))
 			) {
-				const num = Math.max(Math.min(Number(line[i + 2]), 7), 0); // 0..7
+				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0); // 0..9
 
 				switch (line[i + 1]) {
 					case "f":
@@ -234,13 +232,19 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 						break;
 
 					case "a":
-						const anchor_cell = { row, col };
-						glyphs.anchors.push(anchor_cell);
+						let anchors: Cell[] | null = null;
+
+						if (glyphs.anchors[num] === undefined) {
+							glyphs.anchors[num] = [];
+						}
+
+						anchors = glyphs.anchors[num] as Cell[];
+						anchors.push({ row, col });
 
 						break;
 				}
 
-				i += seq_count - 1;
+				i += 2;
 
 				continue;
 			}

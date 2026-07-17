@@ -42,6 +42,31 @@ export class Scroller {
 		});
 	}
 
+	scrollToRow(row: number, content_rows: number) {
+		if (row < 0 || row >= content_rows) {
+			return;
+		}
+
+		this.wheel_rows = 0;
+		this.is_dragging = false;
+		this.drag_velocity = 0;
+
+		this.row_offset = row;
+		this.last_row = this.row;
+		this.row = row;
+		this.last_content_rows = content_rows;
+
+		if (this.last_row !== this.row) {
+			const max_offset = Math.max(0, content_rows - this.terminal.canvas.rows);
+			let percent = 0;
+			if (max_offset != 0) {
+				percent = Math.round((this.row / max_offset) * 100);
+			}
+			const status_text = `\\f0\\B7 Drag, use mouse, or press [j/k], [↓/↑] to scroll [${percent}%] \\F7\\b0`;
+			this.status_glyphs = textGlyphs(status_text, this.terminal.canvas.cols, false);
+		}
+	}
+
 	update(content_rows: number) {
 		const max_offset = Math.max(0, content_rows - this.terminal.canvas.rows);
 

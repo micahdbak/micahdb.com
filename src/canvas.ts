@@ -48,6 +48,8 @@ export class Canvas extends EventTarget {
 
 	public bitmap_font: WebGLTexture;
 
+	public class_name: string;
+
 	constructor(element: HTMLCanvasElement) {
 		super();
 		this.element = element;
@@ -75,6 +77,8 @@ export class Canvas extends EventTarget {
 		this.palette = new Float32Array(PALETTE.map((byte) => byte / 0xff));
 
 		this.bitmap_font = loadModernDosTexture(gl);
+
+		this.class_name = "";
 
 		this.resize();
 
@@ -333,5 +337,7 @@ export class Canvas extends EventTarget {
 		// clear the canvas
 		gl.clearColor(this.palette[0], this.palette[1], this.palette[2], 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		this.class_name = "";
 	}
 }
