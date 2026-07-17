@@ -1,6 +1,6 @@
 import { Mat4 } from "./math.ts";
 import { CubeProgram } from "./programs/cube";
-import { loadTexture } from "./textures.ts";
+import { loadTexture } from "@/texture.ts";
 import { Visuals } from "./visuals.ts";
 import { Canvas } from "@/canvas.ts";
 
@@ -40,11 +40,18 @@ export class CubeVisuals extends Visuals {
 	draw(projection_matrix: Float32Array, elapsed: number, delta: number) {
 		void elapsed; // unused
 
+		const default_col = this.canvas.cols / 2;
+		const default_row = this.canvas.rows / 2;
+
 		// map cursor position to a target yaw/pitch, then smoothly track it
 		const target_yaw =
-			((this.canvas.mouse_col ?? 0) / this.canvas.cols - 0.5) * 2.0 * CubeVisuals.YAW_HALF_RANGE;
+			((this.canvas.mouse_col ?? default_col) / this.canvas.cols - 0.5) *
+			2.0 *
+			CubeVisuals.YAW_HALF_RANGE;
 		const target_pitch =
-			((this.canvas.mouse_row ?? 0) / this.canvas.rows - 0.5) * 2.0 * CubeVisuals.PITCH_HALF_RANGE;
+			((this.canvas.mouse_row ?? default_row) / this.canvas.rows - 0.5) *
+			2.0 *
+			CubeVisuals.PITCH_HALF_RANGE;
 
 		const alpha = 1 - Math.exp(-CubeVisuals.TRACKING_K * delta);
 		this.yaw += (target_yaw - this.yaw) * alpha;

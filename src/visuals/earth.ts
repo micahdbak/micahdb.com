@@ -1,7 +1,7 @@
 import { Mat4 } from "./math.ts";
 import { SphereProgram } from "./programs/sphere";
 import { SkyboxProgram } from "./programs/skybox";
-import { loadCubeMap, loadTexture } from "./textures.ts";
+import { loadCubeMap, loadTexture } from "@/texture.ts";
 import { Visuals } from "./visuals.ts";
 
 export class EarthVisuals extends Visuals {

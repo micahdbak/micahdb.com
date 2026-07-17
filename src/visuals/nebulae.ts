@@ -1,6 +1,6 @@
 import { Mat4 } from "./math.ts";
 import { SkyboxProgram } from "./programs/skybox.ts";
-import { loadCubeMap } from "./textures.ts";
+import { loadCubeMap } from "@/texture.ts";
 import { Visuals } from "./visuals.ts";
 import { Canvas } from "@/canvas.ts";
 

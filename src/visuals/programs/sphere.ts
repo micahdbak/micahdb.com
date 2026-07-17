@@ -1,7 +1,7 @@
 import VERTEX_SHADER from "@/shaders/sphere.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/sphere.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "@/program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "@/shader.ts";
 import { Program } from "./program.ts";
 import { Mat4 } from "@/visuals/math.ts";
 import { SphereMesh } from "@/visuals/meshes/sphere.ts";

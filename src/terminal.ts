@@ -5,7 +5,7 @@ import { Canvas } from "./canvas.ts";
 import { Glyphs, textGlyphs } from "./glyphs.ts";
 import { Rect } from "./area_types.ts";
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "./program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "./shader.ts";
 
 export class Terminal {
 	private gl_program: WebGLProgram;

@@ -1,7 +1,7 @@
 import VERTEX_SHADER from "@/shaders/skybox.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/skybox.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "@/program.ts";
+import { compileProgram, getAttribLocations, getUniformLocations } from "@/shader.ts";
 import { Program } from "./program.ts";
 import { CubeMesh } from "@/visuals/meshes/cube.ts";
 

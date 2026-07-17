@@ -4,78 +4,36 @@ import { Renderer } from "./renderer.ts";
 import { Scroller } from "./scroller.ts";
 
 import { NebulaeVisuals } from "./visuals/nebulae.ts";
-//import { CubeVisuals } from "./visuals/cube.ts";
-//import { EarthVisuals } from "./visuals/earth.ts";
+import { CubeVisuals } from "./visuals/cube.ts";
+import { EarthVisuals } from "./visuals/earth.ts";
+
+import { loadTexture } from "./texture.ts";
+
+import INDEX from "./text/INDEX" with { type: "text" };
 
 import { Link } from "./components/link.ts";
 
 import { renderCp437 } from "./cp437.ts";
 import { textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
 
-/*
- *	Character set (code page 437):
- *
- *	  ☺ ☻ ♥ ♦ ♣ ♠ • ◘ ○ ◙ ♂ ♀ ♪ ♫ ☼ ► ◄ ↕ ‼ ¶ § ▬ ↨ ↑ ↓ → ← ∟ ↔ ▲ ▼
- *
- *	  ! " # $ % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ?
- *
- *	@ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _
- *
- *	` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~ ⌂
- *
- *	Ç ü é â ä à å ç ê ë è ï î ì Ä Å É æ Æ ô ö ò û ù ÿ Ö Ü ¢ £ ¥ ₧ ƒ
- *
- *	á í ó ú ñ Ñ ª º ¿ ⌐ ¬ ½ ¼ ¡ « » ░ ▒ ▓ │ ┤ ╡ ╢ ╖ ╕ ╣ ║ ╗ ╝ ╜ ╛ ┐
- *
- *	└ ┴ ┬ ├ ─ ┼ ╞ ╟ ╚ ╔ ╩ ╦ ╠ ═ ╬ ╧ ╨ ╤ ╥ ╙ ╘ ╒ ╓ ╫ ╪ ┘ ┌ █ ▄ ▌ ▐ ▀
- *
- *	α ß Γ π Σ σ µ τ Φ Θ Ω δ ∞ φ ε ∩ ≡ ± ≥ ≤ ⌠ ⌡ ÷ ≈ ° ∙ · √ ⁿ ² ■
- */
+const PADDING_ROWS = 1;
+const PADDING_COLS = 2;
 
-const LINKS = [
-	"mailto:micah_baker@sfu.ca",
-	"https://github.com/micahdbak",
-	"https://linkedin.com/in/micahdbak",
-	"https://micahdb.com/resume.pdf"
-];
+const BANNER_ROW = 1;
+const BANNER_ROWS = 3;
 
-const CARD = `\
-█▐▌▀ ▄ ▄ ▐   ▐▀▄ ▄ ▌▄ ▄  ▄  \\f3  ▄ ▄     ▄\\F7
-▌▌▌▌█  ▄█▐▀▄ ▐▀▄ ▄▌█ ▐▄▀▐ ▀ \\f3 ≡\\f0\\b3■.■\\f3\\b0≡▄▄▄▀ \\F7
-▌ ▌▌▀▄▐▄█▐ █ ▐▄▀▐▄▌▌█▐▄▄▐   \\f3   ▄▀█▀▀▀▄ \\F7
+function makeBanner(file: string, title: string, cols: number) {
+	const slack = cols - file.length * 2 - title.length;
 
-\\F3I am a\\f7:\t\t\\F7Software Developer
-\\F3Based in\\f7:\tVancouver, BC, Canada
-\\F3Currently\\f7:\tStudying
-\\F3Previously\\f7:\tOpen WebUI, Improving, Brave
-\\F3Education\\f7:\tBSc Computing Science at SFU
+	if (slack < 0) {
+		return file;
+	}
 
-\\F3E-mail\\f7:\t\t\\a${LINKS[0]}
-\\F3GitHub\\f7:\t\t\\a${LINKS[1]}
-\\F3LinkedIn\\f7:\t\\a${LINKS[2]}
-\\F3Résumé / CV\\f7:\t\\a${LINKS[3]}
+	const lpad = " ".repeat(Math.floor(slack / 2));
+	const rpad = " ".repeat(Math.ceil(slack / 2));
 
-\\F7\\b0   \\b1   \\b2   \\b3   \\b4   \\b5   \\b6   \\b7   \\B0
-   \\B1   \\B2   \\B3   \\B4   \\B5   \\B6   \\B7\\f0   \\f7\\b0
-
-╔═══════════ \\F7Code Page 437\\f7 ══════════╗
-║                                    ║
-║  \\F7 ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼\\f7  ║
-║  \\F7 !"#$%&'()*+,-./0123456789:;<=>?\\f7  ║
-║  \\F7@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\\f7  ║
-║  \\F7\`abcdefghijklmnopqrstuvwxyz{|}~⌂\\f7  ║
-║  \\F7ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒ\\f7  ║
-║  \\F7áíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐\\f7  ║
-║  \\F7└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀\\f7  ║
-║  \\F7αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ \\f7  ║
-║                                    ║
-╚════════════════════════════════════╝
-
-\t\\f7Great. Regardless, welcome to my site.
-This is an example of some sort of paragraph.
-\\F7micahdb.com\\f7 will contain all sorts of info about
-me.
-`;
+	return file + lpad + title + rpad + file;
+}
 
 // cp437.html
 async function render() {
@@ -97,7 +55,7 @@ function main() {
 
 		// visuals
 
-		const visuals = new NebulaeVisuals(canvas);
+		const visuals = new EarthVisuals(canvas);
 		void visuals.init();
 
 		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
@@ -106,15 +64,43 @@ function main() {
 
 		const scroller = new Scroller(terminal);
 
-		// card/content
+		// content
 
+		// banner
+		let banner = textGlyphs(
+			makeBanner("INDEX(1)", "micahdb.com", canvas.cols - PADDING_COLS * 2),
+			canvas.cols - PADDING_COLS * 2,
+			false
+		);
+
+		// portrait
+		let portrait: WebGLTexture | null = null;
+		const portrait_glyphs = textureGlyphs(4, 8, TexGlyphMode.SAMPLE);
+
+		const load_portrait = async () => {
+			portrait = await loadTexture(canvas.gl, "/images/portrait.jpeg");
+		};
+		void load_portrait();
+
+		// links
 		const links: Link[] = [];
+		const link_args = [
+			["Simon Fraser University", "https://sfu.ca"],
+			["Open WebUI", "https://openwebui.com"],
+			["Improving", "https://improving.com"],
+			["Brave Technology Coop", "https://brave.coop"],
+			["<micah_baker@sfu.ca>", "mailto:micah_baker@sfu.ca"],
+			["@micahdbak", "https://github.com/micahdbak"],
+			["/in/micahdbak", "https://linkedin.com/in/micahdbak"],
+			["/resume.pdf", "/resume.pdf"]
+		];
 
-		for (let i = 0; i < LINKS.length; i++) {
-			links.push(new Link(terminal, LINKS[i], LINKS[i]));
+		for (let i = 0; i < link_args.length; i++) {
+			links.push(new Link(terminal, link_args[i][0], link_args[i][1]));
 		}
 
-		const card = textGlyphs(CARD, 52, false);
+		// actual content
+		let content = textGlyphs(INDEX as string, canvas.cols - PADDING_COLS * 2, true);
 
 		// main draw loop
 
@@ -127,11 +113,21 @@ function main() {
 		const draw = () => {
 			if (resized) {
 				resized = false;
+
 				visuals.resize(canvas.rows, canvas.cols);
 				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+
+				banner = textGlyphs(
+					makeBanner("INDEX(1)", "micahdb.com", canvas.cols - PADDING_COLS * 2),
+					canvas.cols - PADDING_COLS * 2,
+					false
+				);
+				content = textGlyphs(INDEX as string, canvas.cols - PADDING_COLS * 2, true);
 			}
 
 			canvas.clear();
+
+			// visuals
 
 			visuals.render();
 			renderer.draw(visuals_glyphs, visuals.texture, {
@@ -141,36 +137,69 @@ function main() {
 				cols: visuals_glyphs.cols
 			});
 
+			// content
+
 			terminal.clear();
-			scroller.update(80);
 
-			const card_row = 1 - scroller.row;
-			const card_col = 2;
+			const total_rows = BANNER_ROWS + content.rows + 2;
 
-			terminal.blit(
-				card,
-				{ row: 0, col: 0, rows: card.rows, cols: card.cols },
-				{ row: card_row, col: card_col, rows: card.rows, cols: card.cols }
+			scroller.update(total_rows);
+
+			const content_row = BANNER_ROWS - scroller.row;
+			const content_col = PADDING_COLS;
+			const content_rows = Math.min(
+				canvas.rows - PADDING_ROWS,
+				content.rows + BANNER_ROWS - scroller.row
 			);
 
-			for (let i = 0; i < LINKS.length; i++) {
-				const link_row = card_row + card.anchors[i].row;
-				const link_col = card_col + card.anchors[i].col;
+			terminal.blit(
+				banner,
+				{ row: 0, col: 0, rows: 1, cols: banner.cols },
+				{ row: BANNER_ROW - scroller.row, col: PADDING_COLS, rows: 1, cols: banner.cols }
+			);
 
-				links[i].update(link_row, link_col);
+			if (portrait !== null) {
+				renderer.draw(portrait_glyphs, portrait, {
+					row: content_row,
+					col: content_col,
+					rows: portrait_glyphs.rows,
+					cols: portrait_glyphs.cols
+				});
+			}
+
+			terminal.blit(
+				content,
+				{ row: scroller.row - BANNER_ROWS, col: 0, rows: content_rows, cols: content.cols },
+				{ row: 0, col: content_col, rows: content_rows, cols: content.cols }
+			);
+
+			for (let i = 0; i < content.anchors.length; i++) {
+				const { row, col } = content.anchors[i] as { row: number; col: number };
+				const anchor_row = content_row + row;
+				const anchor_col = content_col + col;
+
+				if (anchor_row < PADDING_ROWS || anchor_row >= canvas.rows - PADDING_ROWS * 2) {
+					continue;
+				}
+
+				const link = links[i];
+				link.update(anchor_row, anchor_col);
+
 				terminal.blit(
-					links[i].glyphs,
-					{ row: 0, col: 0, rows: 1, cols: links[i].glyphs.cols },
-					{ row: link_row, col: link_col, rows: 1, cols: links[i].glyphs.cols }
+					link.glyphs,
+					{ row: 0, col: 0, rows: 1, cols: link.glyphs.cols },
+					{ row: anchor_row, col: anchor_col, rows: 1, cols: link.glyphs.cols }
 				);
 			}
 
-			const status_row = canvas.rows - 1 - (terminal.detail_text.length > 0 ? 1 : 0);
-			terminal.blit(
-				scroller.status_glyphs,
-				{ row: 0, col: 0, rows: 1, cols: scroller.status_glyphs.cols },
-				{ row: status_row, col: 0, rows: 1, cols: scroller.status_glyphs.cols }
-			);
+			if (total_rows > canvas.rows) {
+				const status_row = canvas.rows - 1 - (terminal.detail_text.length > 0 ? 1 : 0);
+				terminal.blit(
+					scroller.status_glyphs,
+					{ row: 0, col: 0, rows: 1, cols: scroller.status_glyphs.cols },
+					{ row: status_row, col: 0, rows: 1, cols: scroller.status_glyphs.cols }
+				);
+			}
 
 			terminal.draw();
 
