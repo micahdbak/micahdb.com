@@ -1,7 +1,7 @@
-import { Terminal } from "./terminal.ts";
-import { Glyphs, textGlyphs } from "./glyphs.ts";
+import { Terminal } from "@/terminal.ts";
+import { Glyphs, textGlyphs } from "@/glyphs.ts";
 
-export class Scroller {
+export class Pager {
 	private static readonly NAME = "scroller"; // for mouse_owner
 
 	private terminal: Terminal;
@@ -81,7 +81,7 @@ export class Scroller {
 
 		if (this.terminal.canvas.mouse_down) {
 			if (this.terminal.canvas.mouse_owner === "") {
-				this.terminal.canvas.mouse_owner = Scroller.NAME;
+				this.terminal.canvas.mouse_owner = Pager.NAME;
 
 				this.is_dragging = true;
 				this.drag_start_row = this.terminal.canvas.mouse_row;
@@ -90,7 +90,7 @@ export class Scroller {
 				this.drag_velocity = 0;
 			}
 
-			if (this.terminal.canvas.mouse_owner === Scroller.NAME) {
+			if (this.terminal.canvas.mouse_owner === Pager.NAME) {
 				const mouse_row = this.terminal.canvas.mouse_row;
 
 				const row_delta = mouse_row - this.drag_last_row;
@@ -101,7 +101,7 @@ export class Scroller {
 				this.row_offset = this.drag_start_row_offset - drag_delta;
 			}
 		} else {
-			if (this.terminal.canvas.mouse_owner === Scroller.NAME) {
+			if (this.terminal.canvas.mouse_owner === Pager.NAME) {
 				this.is_dragging = false;
 				this.terminal.canvas.mouse_owner = "";
 			}

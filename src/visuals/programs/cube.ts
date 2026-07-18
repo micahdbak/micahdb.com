@@ -2,9 +2,10 @@ import VERTEX_SHADER from "@/shaders/cube.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/cube.frag" with { type: "text" };
 
 import { compileProgram, getAttribLocations, getUniformLocations } from "@/shader.ts";
+import { Mat4 } from "@/math.ts";
+
 import { Program } from "./program.ts";
-import { Mat4 } from "@/visuals/math.ts";
-import { CubeMesh } from "@/visuals/meshes/cube.ts";
+import { CubeMesh } from "./meshes/cube.ts";
 
 class CubeProgram extends Program {
 	private attributes: Record<string, number>;

@@ -3,7 +3,7 @@ import FRAGMENT_SHADER from "./shaders/terminal.frag" with { type: "text" };
 
 import { Canvas } from "./canvas.ts";
 import { Glyphs, textGlyphs } from "./glyphs.ts";
-import { Rect } from "./area_types.ts";
+import { Rect } from "./rect.ts";
 
 import { compileProgram, getAttribLocations, getUniformLocations } from "./shader.ts";
 

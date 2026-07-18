@@ -1,8 +1,9 @@
-import { Mat4 } from "./math.ts";
-import { SkyboxProgram } from "./programs/skybox.ts";
-import { loadCubeMap } from "@/texture.ts";
-import { Visuals } from "./visuals.ts";
 import { Canvas } from "@/canvas.ts";
+import { loadCubeMap } from "@/texture.ts";
+import { Mat4 } from "@/math.ts";
+
+import { Visuals } from "./visuals.ts";
+import { SkyboxProgram } from "./programs/skybox.ts";
 
 export class NebulaeVisuals extends Visuals {
 	static readonly ORBIT_PERIOD = 150;

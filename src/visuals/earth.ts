@@ -1,8 +1,9 @@
-import { Mat4 } from "./math.ts";
+import { loadCubeMap, loadTexture } from "@/texture.ts";
+import { Mat4 } from "@/math.ts";
+
+import { Visuals } from "./visuals.ts";
 import { SphereProgram } from "./programs/sphere";
 import { SkyboxProgram } from "./programs/skybox";
-import { loadCubeMap, loadTexture } from "@/texture.ts";
-import { Visuals } from "./visuals.ts";
 
 export class EarthVisuals extends Visuals {
 	static readonly ORBIT_PERIOD = 150;

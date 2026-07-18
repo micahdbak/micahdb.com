@@ -2,9 +2,10 @@ import VERTEX_SHADER from "@/shaders/sphere.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/sphere.frag" with { type: "text" };
 
 import { compileProgram, getAttribLocations, getUniformLocations } from "@/shader.ts";
+import { Mat4 } from "@/math.ts";
+
 import { Program } from "./program.ts";
-import { Mat4 } from "@/visuals/math.ts";
-import { SphereMesh } from "@/visuals/meshes/sphere.ts";
+import { SphereMesh } from "./meshes/sphere.ts";
 
 export class SphereProgram extends Program {
 	private attributes: Record<string, number>;

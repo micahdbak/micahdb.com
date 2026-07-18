@@ -1,8 +1,9 @@
-import { Mat4 } from "./math.ts";
-import { CubeProgram } from "./programs/cube";
-import { loadTexture } from "@/texture.ts";
-import { Visuals } from "./visuals.ts";
 import { Canvas } from "@/canvas.ts";
+import { loadTexture } from "@/texture.ts";
+import { Mat4 } from "@/math.ts";
+
+import { Visuals } from "./visuals.ts";
+import { CubeProgram } from "./programs/cube";
 
 export class CubeVisuals extends Visuals {
 	static readonly YAW_HALF_RANGE = Math.PI / 3;

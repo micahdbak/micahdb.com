@@ -325,9 +325,8 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 				continue;
 			}
 
-			// shouldn't happen
 			if (col + 1 > cols) {
-				console.log("textToLines generated a line that exceeds cols: ", line);
+				// in theory, shouldn't happen; but be safe if it does
 				break;
 			}
 
