@@ -11,39 +11,45 @@ enum SectionState {
 export class Section {
 	private terminal: Terminal;
 	private text: string;
-	private anchor: string;
 
 	private state: null | SectionState;
-	private anchored_when: number;
+	private anchored_when: null | number;
+	private anchored_by_click: boolean;
+
+	public hash: string;
 
 	public glyphs: Glyphs;
 
-	constructor(terminal: Terminal, text: string, anchor: string) {
+	constructor(terminal: Terminal, text: string, hash: string) {
 		this.terminal = terminal;
 		this.text = text;
-		this.anchor = anchor;
+		this.hash = hash;
 
 		this.state = null;
-		this.anchored_when = -1000;
+		this.anchored_when = null;
+		this.anchored_by_click = false;
 	}
 
 	update(row: number, col: number) {
 		// note: + 2 is for the string " ¶" to be included in the hover
 		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length + 2);
 		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length + 2);
-		let is_anchored = window.location.hash === this.anchor;
+		let is_anchored = window.location.hash === this.hash;
 
 		if (is_hovered && was_hovered && this.terminal.canvas.mouse_click) {
 			if (is_anchored) {
-				// click again clears the anchor
+				// click again clears the hash
 				window.location.hash = "";
 				is_anchored = false;
+				this.anchored_by_click = false;
 			} else {
-				window.location.hash = this.anchor;
+				window.location.hash = this.hash;
+				is_anchored = true;
+				this.anchored_by_click = true;
 
 				try {
 					// copy URL to this section
-					void navigator.clipboard.writeText(window.location.origin + this.anchor);
+					void navigator.clipboard.writeText(window.location.origin + this.hash);
 				} catch {
 					// ignore
 				}
@@ -51,28 +57,33 @@ export class Section {
 		} else if (is_hovered) {
 			this.terminal.canvas.class_name = "pointer";
 
-			const detail = window.location.origin + this.anchor;
+			const detail = window.location.origin + this.hash;
 			this.terminal.detail_text = " Link: " + detail + " ";
 		}
 
 		let anchor_state = SectionState.ANCHORED;
 
 		if (is_anchored) {
-			const now = performance.now();
-			anchor_state = SectionState.ANCHORED;
+			if (this.anchored_by_click) {
+				// anchored via direct click: briefly show "COPIED URL".
+				// persists even if the resulting scroll moves the mouse off the section.
+				const now = performance.now();
 
-			if (this.anchored_when === null) {
-				this.anchored_when = now;
-				anchor_state = SectionState.JUST_ANCHORED;
-			} else {
+				if (this.anchored_when === null) {
+					this.anchored_when = now;
+				}
+
 				const delta = now - this.anchored_when;
 
-				if (delta < 1000) {
-					anchor_state = SectionState.JUST_ANCHORED;
-				}
+				anchor_state = delta < 1000 ? SectionState.JUST_ANCHORED : SectionState.ANCHORED;
+			} else {
+				// anchored externally (link / hashchange / load): steady, no flash
+				anchor_state = SectionState.ANCHORED;
+				this.anchored_when = null;
 			}
-		} else if (this.anchored_when !== null) {
+		} else {
 			this.anchored_when = null;
+			this.anchored_by_click = false;
 		}
 
 		const new_state = is_anchored

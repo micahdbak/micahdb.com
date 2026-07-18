@@ -15,7 +15,7 @@ import { Link } from "./components/link.ts";
 import { Section } from "./components/section.ts";
 
 import { renderCp437 } from "./cp437.ts";
-import { textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
+import { Anchor, textGlyphs, TexGlyphMode, textureGlyphs } from "./glyphs.ts";
 
 const PADDING_ROWS = 1;
 const PADDING_COLS = 2;
@@ -83,36 +83,38 @@ function main() {
 		};
 		void load_portrait();
 
-		// links
-		const link_args = [
-			["Simon Fraser University", "https://sfu.ca"],
-			["Open WebUI", "https://openwebui.com"],
-			["Improving", "https://improving.com"],
-			["Brave Technology Coop", "https://brave.coop"],
-			["<micah_baker@sfu.ca>", "mailto:micah_baker@sfu.ca"],
-			["@micahdbak", "https://github.com/micahdbak"],
-			["/in/micahdbak", "https://linkedin.com/in/micahdbak"],
-			["/resume.pdf", "/resume.pdf"]
-		];
+		// actual content
+		let content = textGlyphs(INDEX as string, canvas.cols - PADDING_COLS * 2, true);
 
+		// links
 		const links: Link[] = [];
 
-		for (let i = 0; i < link_args.length; i++) {
-			links.push(new Link(terminal, link_args[i][0], link_args[i][1]));
+		for (let i = 0; i < content.anchors[0].length; i++) {
+			const anchor = content.anchors[0][i] as Anchor;
+
+			// \a0{Link Text|https://example.com}Link_Text
+			const split = (anchor.options || "Missing Link|#").split("|");
+
+			const text = split[0];
+			const url = split.length > 1 ? split[1] : split[0];
+
+			links.push(new Link(terminal, text, url));
 		}
 
 		// sections
-		const section_args = ["NAME", "SYNOPSIS", "DESCRIPTION", "EDUCATION", "EXPERIENCE", "PROJECTS"];
-
 		const sections: Section[] = [];
 
-		for (let i = 0; i < section_args.length; i++) {
-			const anchor = "#" + section_args[i].toLowerCase(0);
-			sections.push(new Section(terminal, section_args[i], anchor));
-		}
+		for (let i = 0; i < content.anchors[9].length; i++) {
+			const anchor = content.anchors[9][i] as Anchor;
 
-		// actual content
-		let content = textGlyphs(INDEX as string, canvas.cols - PADDING_COLS * 2, true);
+			// \a0{Section Text|#section_hash}Section_Text
+			const split = (anchor.options || "Missing Section").split("|");
+
+			const text = split[0];
+			const hash = split.length > 1 ? split[1] : "#";
+
+			sections.push(new Section(terminal, text, hash));
+		}
 
 		// main draw loop
 
@@ -122,19 +124,30 @@ function main() {
 			resized = true;
 		});
 
-		// scroll to anchor on load
-		if (window.location.hash !== "") {
-			const section_text = window.location.hash.slice(1).toUpperCase();
-			const i = section_args.indexOf(section_text);
+		// scroll to the section matching the current location hash
+		function scrollToSection(hash: string) {
+			if (hash === "") {
+				return;
+			}
+
+			const i = sections.findIndex((section) => section.hash === hash);
 
 			if (i >= 0) {
-				console.log(`scrolling to section ${section_text}`);
+				console.log(`scrolling to section ${sections[i].hash}`);
 				scroller.scrollToRow(
 					BANNER_ROWS + content.anchors[9][i].row - 1,
 					BANNER_ROWS + content.rows + 2
 				);
 			}
 		}
+
+		// scroll to anchor on load
+		scrollToSection(window.location.hash);
+
+		// scroll to anchor when the hash changes (e.g. clicking a TOC link)
+		window.addEventListener("hashchange", () => {
+			scrollToSection(window.location.hash);
+		});
 
 		const draw = () => {
 			if (resized) {
@@ -178,18 +191,22 @@ function main() {
 				content.rows + BANNER_ROWS - scroller.row
 			);
 
+			// banner
+
 			terminal.blit(
 				banner,
 				{ row: 0, col: 0, rows: 1, cols: banner.cols },
 				{ row: BANNER_ROW - scroller.row, col: PADDING_COLS, rows: 1, cols: banner.cols }
 			);
 
-			const panchors = content.anchors[1];
+			// portrait
+
+			const portrait_anchors = content.anchors[1];
 
 			if (portrait !== null) {
 				renderer.draw(portrait_glyphs, portrait, {
-					row: content_row + panchors[0].row,
-					col: content_col + panchors[0].col,
+					row: content_row + portrait_anchors[0].row,
+					col: content_col + portrait_anchors[0].col,
 					rows: portrait_glyphs.rows,
 					cols: portrait_glyphs.cols
 				});
@@ -201,10 +218,12 @@ function main() {
 				{ row: 0, col: content_col, rows: content_rows, cols: content.cols }
 			);
 
-			const lanchors = content.anchors[0];
+			// links
 
-			for (let i = 0; i < lanchors.length && i < links.length; i++) {
-				const { row, col } = lanchors[i] as { row: number; col: number };
+			const link_anchors = content.anchors[0];
+
+			for (let i = 0; i < link_anchors.length && i < links.length; i++) {
+				const { row, col } = link_anchors[i] as Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 
@@ -222,10 +241,12 @@ function main() {
 				);
 			}
 
-			const sanchors = content.anchors[9];
+			// sections
 
-			for (let i = 0; i < sanchors.length && i < sections.length; i++) {
-				const { row, col } = sanchors[i] as { row: number; col: number };
+			const section_anchors = content.anchors[9];
+
+			for (let i = 0; i < section_anchors.length && i < sections.length; i++) {
+				const { row, col } = section_anchors[i] as Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 

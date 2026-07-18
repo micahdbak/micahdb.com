@@ -4,8 +4,3 @@ export type Rect = {
 	rows: number;
 	cols: number;
 };
-
-export type Cell = {
-	row: number;
-	col: number;
-};

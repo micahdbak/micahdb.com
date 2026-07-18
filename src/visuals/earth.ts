@@ -39,9 +39,9 @@ export class EarthVisuals extends Visuals {
 					"/images/earth/back.png"
 				]),
 				loadTexture(gl, "/images/earth/texture.jpg"),
-				loadTexture(gl, "/images/earth/normal.jpg"),
+				loadTexture(gl, "/images/smooth.png"),
 				loadTexture(gl, "/images/earth/moon_texture.jpg"),
-				loadTexture(gl, "/images/earth/moon_normal.jpg")
+				loadTexture(gl, "/images/smooth.png")
 			]);
 
 		if (this.cubemap !== null) {

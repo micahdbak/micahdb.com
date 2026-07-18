@@ -1,8 +1,7 @@
 import { Colour } from "./colour.ts";
 import { charCodeInCp437 } from "./cp437.ts";
-import { Cell } from "./area_types.ts";
 
-const TAB_WIDTH = 4;
+const TAB_WIDTH = 8;
 
 function finalSpaceIdx(text: string, start: number): number {
 	// skip remaining white space
@@ -37,17 +36,47 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 
 	for (let i = 0; i < text.length; i++) {
 		const c = text[i];
+		let escape = c === "\\";
 
-		// escape sequence
-		if (c === "\\" && i + 2 < text.length && "fFbBa".includes(text[i + 1])) {
-			// the following are special sequences:
-			// \fX : set foreground to X, dark
-			// \FX : set foreground to X, bright
-			// \bX : set background to X, dark
-			// \BX : set background to X, bright
-			// \aX : anchor in group X; to get current row/col
+		// single back slash
+		if (escape && i + 1 < text.length && text[i + 1] === "\\") {
+			i++; // skip one character
+			escape = false;
+		}
 
-			// therefore, skip the 3 char combo
+		// anchor escape sequence
+		// \aX                 : anchor in group X, no options
+		// \aX{options string} : anchor in group X, with options
+		if (escape && i + 2 < text.length && text[i + 1] === "a" && !isNaN(Number(text[i + 2]))) {
+			let skip_chars = 2;
+
+			// options string
+			if (i + 3 < text.length && text[i + 3] === "{") {
+				const closing_brace = text.indexOf("}", i + 3);
+
+				if (closing_brace > i + 3) {
+					// skip right until the closing brace
+					skip_chars = closing_brace - i;
+				} // else, no matching closing brace, ignore "{"
+			}
+
+			i += skip_chars;
+
+			continue; // i++
+		}
+
+		// colours escape sequence
+		// \fX : set foreground to X, dark
+		// \FX : set foreground to X, bright
+		// \bX : set background to X, dark
+		// \BX : set background to X, bright
+		if (
+			escape &&
+			i + 2 < text.length &&
+			"fFbB".includes(text[i + 1]) &&
+			!isNaN(Number(text[i + 2]))
+		) {
+			// skip the 3 char combo
 			i += 2;
 
 			continue; // i++
@@ -152,11 +181,17 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 	return lines;
 }
 
+export type Anchor = {
+	options: string | null;
+	row: number;
+	col: number;
+};
+
 export type Glyphs = {
 	data: Uint16Array;
 	rows: number;
 	cols: number;
-	anchors: Record<number, Cell[]>;
+	anchors: Record<number, Anchor[]>;
 };
 
 export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
@@ -195,20 +230,65 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 
 		for (let i = 0; i < line.length; i++) {
 			const c = line[i];
+			let escape = c === "\\";
 
-			// escape sequence:
+			// \\ : display a single back slash
+			if (escape && i + 1 < line.length && line[i + 1] === "\\") {
+				i++; // this will be displayed as a single character
+				escape = false; // skip below checks
+			}
+
+			// anchor escape sequence
+			// \aX                 : anchor in group X, no options
+			// \aX{options string} : anchor in group X, with options
+			if (escape && i + 2 < line.length && line[i + 1] === "a" && !isNaN(Number(line[i + 2]))) {
+				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0); // 0..9
+				let skip_chars = 2;
+
+				if (glyphs.anchors[num] === undefined) {
+					glyphs.anchors[num] = [];
+				}
+
+				const anchors = glyphs.anchors[num] as Anchor[];
+				let options = null;
+
+				// options string
+				if (i + 4 <= line.length && line[i + 3] === "{") {
+					const closing_brace = line.indexOf("}", i + 3);
+
+					if (closing_brace > i + 3) {
+						// \aX{options} <- take text from inner braces
+						options = line.slice(i + 4, closing_brace);
+
+						// skip right until the closing brace
+						skip_chars = closing_brace - i;
+					} // else, options = null
+				}
+
+				// empty string should be null
+				if (options === "") {
+					options = null;
+				}
+
+				anchors.push({ options, row, col });
+
+				i += skip_chars;
+
+				continue; // i++
+			}
+
+			// colour escape sequence:
 			// \fX : foreground X, dark
 			// \FX : foreground X, bright
 			// \bX : background X, dark
 			// \BX : background X, bright
-			// \aX : anchor in group X
 			if (
-				c === "\\" &&
+				escape &&
 				i + 2 < line.length &&
-				"fFbBa".includes(line[i + 1]) &&
+				"fFbB".includes(line[i + 1]) &&
 				!isNaN(Number(line[i + 2]))
 			) {
-				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0); // 0..9
+				const num = Math.max(Math.min(Number(line[i + 2]), 7), 0); // 0..7
 
 				switch (line[i + 1]) {
 					case "f":
@@ -230,18 +310,6 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 						bg = num + 8;
 
 						break;
-
-					case "a":
-						let anchors: Cell[] | null = null;
-
-						if (glyphs.anchors[num] === undefined) {
-							glyphs.anchors[num] = [];
-						}
-
-						anchors = glyphs.anchors[num] as Cell[];
-						anchors.push({ row, col });
-
-						break;
 				}
 
 				i += 2;
@@ -252,22 +320,6 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 			// tab
 			if (c === "\t") {
 				const tab_chars = TAB_WIDTH - (col % TAB_WIDTH);
-
-				/*
-				for (let i = 0; i < tab_chars; i++) {
-					// fill tab width with spaces
-					const data_idx = row * cols + col;
-					const char_code = charCodeInCp437(" ".codePointAt(0));
-
-					const colour_byte = ((fg & 0b1111) << 4) | (bg & 0b1111);
-					const glyph = (colour_byte << 8) | (char_code & 0xff);
-
-					glyphs.data[data_idx] = glyph;
-
-					col++;
-				}
-				*/
-
 				col += tab_chars;
 
 				continue;
@@ -290,6 +342,7 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 			col++;
 		}
 	}
+
 	return glyphs;
 }
 
