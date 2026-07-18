@@ -25,7 +25,7 @@
     "dev": "bun run copy-public && bun build ./src/index.ts --outdir ./build --watch",
     "lint": "eslint src",
     "format": "prettier --write src",
-    "deploy": "bun run build && gh-pages -d build --clean"
+    "deploy": "bun run build && gh-pages -d build"
   },
   "type": "module"
 }
