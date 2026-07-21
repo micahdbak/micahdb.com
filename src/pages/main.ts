@@ -149,10 +149,25 @@ export function main() {
 
 			// visuals
 
+			const torus_row = Math.max(
+				Math.min(
+					canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
+					canvas.rows - visuals_glyphs.rows
+				),
+				0
+			);
+			const torus_col = Math.max(
+				Math.min(
+					canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
+					canvas.cols - visuals_glyphs.cols
+				),
+				0
+			);
+
 			visuals.render();
 			renderer.draw(visuals_glyphs, visuals.texture, {
-				row: terminal.canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
-				col: terminal.canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
+				row: torus_row,
+				col: torus_col,
 				rows: visuals_glyphs.rows,
 				cols: visuals_glyphs.cols
 			});
