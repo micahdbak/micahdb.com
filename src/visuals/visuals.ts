@@ -125,7 +125,7 @@ export abstract class Visuals {
 		gl.viewport(0, 0, this.target_width, this.target_height);
 		gl.enable(gl.DEPTH_TEST);
 
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		if (this.is_ready) {

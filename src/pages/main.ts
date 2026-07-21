@@ -3,8 +3,9 @@ import { Terminal } from "@/terminal.ts";
 import { Renderer } from "@/renderer.ts";
 
 //import { EarthVisuals } from "@/visuals/earth.ts";
-import { CubeVisuals } from "@/visuals/cube.ts";
+//import { CubeVisuals } from "@/visuals/cube.ts";
 //import { NebulaeVisuals } from "@/visuals/nebulae.ts";
+import { TorusVisuals } from "@/visuals/torus.ts";
 
 import { Anchor, textGlyphs } from "@/glyphs.ts";
 import { TexGlyphMode, textureGlyphs } from "@/glyphs.ts";
@@ -33,10 +34,12 @@ export function main() {
 
 		// visuals
 
-		const visuals = new CubeVisuals(canvas);
+		const visuals = new TorusVisuals(canvas);
 		void visuals.init();
 
-		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		let torus_size = Math.ceil(Math.min(canvas.rows, canvas.cols / 2) / 4);
+		let visuals_glyphs = textureGlyphs(torus_size, torus_size * 2, TexGlyphMode.SAMPLE);
+		visuals.resize(torus_size, torus_size * 2);
 
 		// pager
 
@@ -130,8 +133,9 @@ export function main() {
 			if (resized) {
 				resized = false;
 
-				visuals.resize(canvas.rows, canvas.cols);
-				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+				torus_size = Math.ceil(Math.min(canvas.rows, canvas.cols / 2) / 4);
+				visuals_glyphs = textureGlyphs(torus_size, torus_size * 2, TexGlyphMode.SAMPLE);
+				visuals.resize(torus_size, torus_size * 2);
 
 				banner = textGlyphs(
 					makeBanner("INDEX", "micahdb.com", canvas.cols - PADDING_COLS * 2),
@@ -147,8 +151,8 @@ export function main() {
 
 			visuals.render();
 			renderer.draw(visuals_glyphs, visuals.texture, {
-				row: 0,
-				col: 0,
+				row: terminal.canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
+				col: terminal.canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
 				rows: visuals_glyphs.rows,
 				cols: visuals_glyphs.cols
 			});
