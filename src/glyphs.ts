@@ -34,6 +34,12 @@ function textToLines(text: string, cols: number, wrap: boolean): string[] {
 	let running_cols = 0;
 	let last_space = -1;
 
+	// "text that breaks \
+	// a line into two"
+	// ->
+	// "text that breaks a line into two"
+	text = text.replaceAll("\\\n", "");
+
 	for (let i = 0; i < text.length; i++) {
 		const c = text[i];
 		let escape = c === "\\";

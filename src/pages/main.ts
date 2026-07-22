@@ -66,7 +66,8 @@ export function main() {
 		void load_portrait();
 
 		// actual content
-		let content = textGlyphs(CONTENT as string, canvas.cols - PADDING_COLS * 2, true);
+		const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
+		let content = textGlyphs(CONTENT as string, content_cols, true);
 
 		// links
 		const links: Link[] = [];
@@ -161,7 +162,9 @@ export function main() {
 					canvas.cols - PADDING_COLS * 2,
 					false
 				);
-				content = textGlyphs(CONTENT as string, canvas.cols - PADDING_COLS * 2, true);
+
+				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
+				content = textGlyphs(CONTENT as string, content_cols, true);
 			}
 
 			canvas.clear();
