@@ -264,6 +264,8 @@ export class Canvas extends EventTarget {
 			case "k":
 			case "ArrowUp":
 				return -1;
+			case "0":
+				return -999999; // full 'scend to top
 			default:
 				return 0;
 		}

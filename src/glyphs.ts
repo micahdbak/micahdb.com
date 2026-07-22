@@ -1,7 +1,7 @@
 import { Colour } from "./colour.ts";
 import { charCodeInCp437 } from "./cp437.ts";
 
-const TAB_WIDTH = 8;
+const TAB_WIDTH = 4;
 
 function finalSpaceIdx(text: string, start: number): number {
 	// skip remaining white space
@@ -330,13 +330,16 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 				break;
 			}
 
-			const data_idx = row * cols + col;
 			const char_code = charCodeInCp437(line.codePointAt(i));
-
 			const colour_byte = ((fg & 0b1111) << 4) | (bg & 0b1111);
-			const glyph = (colour_byte << 8) | (char_code & 0xff);
 
-			glyphs.data[data_idx] = glyph;
+			if (char_code !== " ".codePointAt(0) || colour_byte !== 0) {
+				const data_idx = row * cols + col;
+
+				const glyph = (colour_byte << 8) | (char_code & 0xff);
+
+				glyphs.data[data_idx] = glyph;
+			}
 
 			col++;
 		}

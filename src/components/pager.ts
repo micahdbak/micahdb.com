@@ -2,7 +2,8 @@ import { Terminal } from "@/terminal.ts";
 import { Glyphs, textGlyphs } from "@/glyphs.ts";
 
 export class Pager {
-	private static readonly NAME = "scroller"; // for mouse_owner
+	private static readonly NAME = "pager"; // for mouse_owner
+	private static readonly STATUS_HELP = "Wheel, drag, [jk|↓↑] to scroll";
 
 	private terminal: Terminal;
 
@@ -21,7 +22,7 @@ export class Pager {
 
 	public row: number;
 
-	public status_glyphs: Glyphs;
+	public status_glyphs: Glyphs | null;
 
 	constructor(terminal: Terminal) {
 		this.terminal = terminal;
@@ -35,6 +36,8 @@ export class Pager {
 		this.last_row = 0;
 
 		this.row = 0;
+
+		this.status_glyphs = null;
 
 		this.terminal.canvas.addEventListener("wheel", (event: CustomEvent) => {
 			const detail = event.detail as { rows: number };
@@ -56,14 +59,19 @@ export class Pager {
 		this.row = row;
 		this.last_content_rows = content_rows;
 
-		if (this.last_row !== this.row) {
+		if (
+			this.last_row !== this.row ||
+			this.last_content_rows !== content_rows ||
+			this.status_glyphs === null
+		) {
 			const max_offset = Math.max(0, content_rows - this.terminal.canvas.rows);
 			let percent = 0;
 			if (max_offset != 0) {
 				percent = Math.round((this.row / max_offset) * 100);
 			}
-			const status_text = `\\f0\\B7 Drag, use mouse, or press [j/k], [↓/↑] to scroll [${percent}%] \\F7\\b0`;
-			this.status_glyphs = textGlyphs(status_text, this.terminal.canvas.cols, false);
+			const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
+			const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
+			this.status_glyphs = textGlyphs(status_text, cols, false);
 		}
 	}
 
@@ -121,15 +129,20 @@ export class Pager {
 		this.row = Math.round(this.row_offset);
 
 		// status text
-		if (this.last_row !== this.row || this.last_content_rows !== content_rows) {
+		if (
+			this.last_row !== this.row ||
+			this.last_content_rows !== content_rows ||
+			this.status_glyphs === null
+		) {
 			let percent = 0;
 
 			if (max_offset != 0) {
 				percent = Math.round((this.row / max_offset) * 100);
 			}
 
-			const status_text = `\\f0\\B7 Drag, use mouse, or press [j/k], [↓/↑] to scroll [${percent}%] \\F7\\b0`;
-			this.status_glyphs = textGlyphs(status_text, this.terminal.canvas.cols, false);
+			const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
+			const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
+			this.status_glyphs = textGlyphs(status_text, cols, false);
 		}
 
 		this.last_content_rows = content_rows;

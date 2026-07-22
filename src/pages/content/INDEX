@@ -1,105 +1,128 @@
-\a9{NAME|#name}NAME
-	\a1
+\F0/*
+\F0 * \F7micahdb.com - \F2Micah Baker\f7's website.
+\F0 *
+\F0 * \f0\a1        \f7
+\F0 * \f0        \f7
+\F0 * \f0        \f7
+\F0 * \f0        \f7
+\F0 *   \F7(Me)\F0
+\F0 */\f7
 
 
+1. \a0{Synopsis|#synopsis}Synopsis
+2. \a0{Education|#education}Education
+3. \a0{Experience|#experience}Experience
+4. \a0{Projects|#projects}Projects
 
 
-	micahdb.com - \F7Micah Baker\f7's website.
+\F0/*
+\F0 * ================
+\F0 * \a9{Synopsis|#synopsis}Synopsis
+\F0 * ================
+\F0 */\f7
 
-\a9{SYNOPSIS|#synopsis}SYNOPSIS
-	\F3I am a\f7:		\F7Software Developer
-	\F3Based in\f7:	Vancouver, BC, Canada
-	\F3Education\f7:	BSc Computing Science at \a0{Simon Fraser University|https://sfu.ca}Simon_Fraser_University
-	\F3Previously\f7:	\a0{Open WebUI|https://openwebui.com}Open_WebUI, \a0{Improving|https://improving.com}Improving, \a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
-	\F3Currently\f7:	Studying
+	\F0I am a\f7:		\F7Software Developer
+	\F0Based in\f7:	Vancouver, BC, Canada
+	\F0Education\f7:	BSc Computing Science at \a0{SFU|https://www.sfu.ca/fas/computing.html}SFU
+	\F0Previously\f7:	\a0{Open WebUI|https://openwebui.com}Open_WebUI, \a0{Improving|https://improving.com}Improving, \a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
 
-	\F3E-mail\f7:		\a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
-	\F3GitHub\f7:		\a0{@micahdbak|https://github.com/micahdbak}@micahdbak
-	\F3LinkedIn\f7:	\a0{/in/micahdbak|https://linkedin.com/in/micahdbak}/in/micahdbak
-	\F3Résumé / CV\f7:	\a0{/resume.pdf}/resume.pdf
+	\F0E-mail\f7:		\a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
+	\F0GitHub\f7:		\a0{@micahdbak|https://github.com/micahdbak}@micahdbak
+	\F0LinkedIn\f7:	\a0{/in/micahdbak|https://linkedin.com/in/micahdbak}/in/micahdbak
+	\F0Résumé\f7:		\a0{/resume.pdf}/resume.pdf
 
-\a9{DESCRIPTION|#description}DESCRIPTION
-	I am currently finishing a Bachelor of Science in Computing Science at Simon Fraser University.
 
-	Previously, I've worked at Open WebUI, Improving, and Brave Technology Coop.
+\F0/*
+\F0 * ================
+\F0 * \a9{Education|#education}Education
+\F0 * ================
+\F0 */\f7
 
-\a9{EDUCATION|#education}EDUCATION
-	\F7BSc Computing Science\f7
-
-	I'm working towards a Bachelor of Science in Computing Science at Simon Fraser University.
+	I'm working towards a \F7Bachelor of Science\f7 in \F7Computing Science\f7 at \a0{Simon Fraser University|https://www.sfu.ca/fas/computing.html}Simon_Fraser_University.
 
 	I've completed coursework in:
 
-	\F3Systems programming\f7 (CMPT 201, 454)
-	\F3Databases & DBMS implementation\f7 (CMPT 354, 454, 496)
-	\F3Machine learning\f7 (CMPT 310, 410)
-	\F3Computer vision\f7 (CMPT 361, 415, 416)
-	\F3Computer graphics\f7 (CMPT 361)
-
-	\F7Research\f7
+	- \F7Systems programming\f7 (CMPT 201, 454)
+	- \F7Databases & DBMS implementation\f7 (CMPT 354, 454, 496)
+	- \F7Machine learning\f7 (CMPT 310, 410)
+	- \F7Computer vision\f7 (CMPT 361, 415, 416)
+	- \F7Computer graphics\f7 (CMPT 361)
 
 	I've also been involved with research labs at SFU. For more details regarding the following projects, see the \F7Projects\f7 page.
 
-	\a0{Data-Intensive Systems (DIS) Lab|https://github.com/sfu-dis}Data-Intensive_Systems_(DIS)_Lab
+
+	\F0// \a0{Data-Intensive Systems (DIS) Lab|https://github.com/sfu-dis}Data-Intensive_Systems_(DIS)_Lab\f7
 
 	(TBD): working on a project for optimizing DBMS data structures on high-performance modern hardware.
 
-	\a0{Tangent Lab|https://tangent.cs.sfu.ca/}Tangent_Lab
+
+	\F0// \a0{Tangent Lab|https://tangent.cs.sfu.ca/}Tangent_Lab\f7
 
 	Isaac ROS Gestures: built a computer vision system for recognizing motion gestures, for use in a robotic guide dog.
 
-\a9{EXPERIENCE|#experience}EXPERIENCE
-	\a0{Open WebUI|https://openwebui.com}Open_WebUI
 
-	\F3Position\f7: Software Developer
-	\F3Contract\f7: \F7Part-time\f7
-	\F3Location\f7: Austin, TX, USA (Remote)
-	\F3Duration\f7: Jan 2026 - Apr 2026 (\F74 months\f7)
+\F0/*
+\F0 * ================
+\F0 * \a9{Experience|#experience}Experience
+\F0 * ================
+\F0 */\f7
 
-	\a0{Improving|https://improving.com}Improving
+	\F0// \a0{Open WebUI|https://openwebui.com}Open_WebUI
 
-	\F3Position\f7: Software Developer 1
-	\F3Contract\f7: \F7Internship\f7, Full-time
-	\F3Location\f7: Vancouver, BC, Canada (Hybrid)
-	\F3Duration\f7: Sep 2024 - Aug 2025 (\F71 year\f7)
+	\F0Position\f7: Software Developer
+	\F0Contract\f7: \F7Part-time\f7
+	\F0Location\f7: Austin, TX, USA (Remote)
+	\F0Duration\f7: Jan 2026 - Apr 2026 (\F74 months\f7)
 
-	\a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
 
-	\F3Position\f7: Firmware and Software Developer
-	\F3Contract\f7: \F7Internship\f7, Full-time
-	\F3Location\f7: Vancouver, BC, Canada (On-site)
-	\F3Duration\f7: Sep 2023 - Apr 2024 (\F78 months\f7)
+	\F0// \a0{Improving|https://improving.com}Improving
 
-\a9{PROJECTS|#projects}PROJECTS
-	\a0{Isaac ROS Gestures|#isaac_ros_gestures}Isaac_ROS_Gestures:	CV system for motion gestures
-	\a0{Cheddar and Feta|#cheddar_and_feta}Cheddar_and_Feta:	2D game engine & RPG published to Steam
-	\a0{GleebleGlob|#gleebleglob}GleebleGlob:		ASCII video streaming service
-	\a0{Droppr|#droppr}Droppr:			Peer-to-peer file transfer service
-	\a0{PacMacro|#pacmacro}PacMacro:		IRL PacMan mobile web application
-	\a0{Yell P2P Library|#yell}Yell_P2P_Library:	C library for P2P applications
-	\a0{EXEIRUS ARG|#exeirus}EXEIRUS_ARG:		Cryptographic puzzle ARG
+	\F0Position\f7: Software Developer 1
+	\F0Contract\f7: \F7Internship\f7
+	\F0Location\f7: Vancouver, BC, Canada (Hybrid)
+	\F0Duration\f7: Sep 2024 - Aug 2025 (\F71 year\f7)
 
-\a9{ISAAC ROS GESTURES|#isaac_ros_gestures}ISAAC_ROS_GESTURES
-	\F3Date\f7:	2025 Sep - 2026 Apr
-	\F3Repo\f7:	\a0{https://github.com/micahdbak/isaac_ros_gestures}https://github.com/micahdbak/isaac_ros_gestures
+
+	\F0// \a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
+
+	\F0Position\f7: Firmware and Software Developer
+	\F0Contract\f7: \F7Internship\f7
+	\F0Location\f7: Vancouver, BC, Canada (On-site)
+	\F0Duration\f7: Sep 2023 - Apr 2024 (\F78 months\f7)
+
+
+\F0/*
+\F0 * ================
+\F0 * \a9{Projects|#projects}Projects
+\F0 * ================
+\F0 */
+
+	\F0// \F7Gestures for a Robotic Guide Dog\f7
+
+	\F0Date\f7:	2025 Sep - 2026 Apr
+	\F0Repo\f7:	\a0{https://github.com/micahdbak/isaac_ros_gestures}https://github.com/micahdbak/isaac_ros_gestures
 
 	Computer vision system for recognizing motion gestures.
 
 	Used online learning model for personalized interaction.
 
-\a9{CHEDDAR AND FETA|#cheddar_and_feta}CHEDDAR_AND_FETA
-	\F3Date\f7:	2025 Jan - 2026 Feb
-	\F3Repo\f7:	\a0{https://github.com/micahdbak/cheddar-and-feta}https://github.com/micahdbak/cheddar-and-feta
-	\F3Links\f7:	\a0{Steam|https://store.steampowered.com/app/4266860/Cheddar_and_Feta/}Steam
+
+	\F0// \F7Cheddar and Feta\f7
+
+	\F0Date\f7:	2025 Jan - 2026 Feb
+	\F0Repo\f7:	\a0{https://github.com/micahdbak/cheddar-and-feta}https://github.com/micahdbak/cheddar-and-feta
+	\F0Links\f7:	\a0{Steam Page|https://store.steampowered.com/app/4266860/Cheddar_and_Feta/}Steam_Page
 
 	A short two-player cooperative adventure where you must save Cheddar and Feta from the perils of a militarized fire ant colony.
 
 	Game and engine built using \a0{SDL3|https://libsdl.org/}SDL3 and \a0{libdatachannel|https://libdatachannel.org/}libdatachannel in C++.
 
-\a9{GLEEBLEGLOB|#gleebleglob}GLEEBLEGLOB
-	\F3Date\f7:	2024 May - 2024 June
-	\F3Repo\f7:	\a0{https://github.com/Vixlump/GG}https://github.com/Vixlump/GG
-	\F3Links\f7:	\a0{Archived Website|https://web.archive.org/web/20250315161759/http://gleebleglob.club/}Archived_Website
+
+	\F0// \F7Gleebleglob\f7
+
+	\F0Date\f7:	2024 May - 2024 June
+	\F0Repo\f7:	\a0{https://github.com/Vixlump/GG}https://github.com/Vixlump/GG
+	\F0Links\f7:	\a0{Archived Website|https://web.archive.org/web/20250315161759/http://gleebleglob.club/}Archived_Website
 
 	Video streaming service on your terminal written in C++.
 
@@ -107,10 +130,12 @@
 
 	Video storage and authentication facilitated by remote server.
 
-\a9{DROPPR|#droppr}DROPPR
-	\F3Date\f7:	2024 Mar - 2025 Jun
-	\F3Repo\f7:	\a0{https://github.com/micahdbak/droppr}https://github.com/micahdbak/droppr
-	\F3Links\f7:	\a0{Website|https://droppr.net}Website
+
+	\F0// \F7droppr\f7
+
+	\F0Date\f7:	2024 Mar - 2025 Jun
+	\F0Repo\f7:	\a0{https://github.com/micahdbak/droppr}https://github.com/micahdbak/droppr
+	\F0Links\f7:	\a0{Website|https://droppr.net}Website
 
 	Send files over the internet using the peer-to-peer \a0{WebRTC API|https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API}WebRTC_API.
 
@@ -118,9 +143,11 @@
 
 	Signal channel written in Go uses six-letter codes for peer discovery.
 
-\a9{PACMACRO|#pacmacro}PACMACRO
-	\F3Date\f7:	2023 Jun - 2023 Sep
-	\F3Repo\f7:	\a0{https://github.com/CSSS/pacmacro2}https://github.com/CSSS/pacmacro2
+
+	\F0// \F7PacMacro\f7
+
+	\F0Date\f7:	2023 Jun - 2023 Sep
+	\F0Repo\f7:	\a0{https://github.com/CSSS/pacmacro2}https://github.com/CSSS/pacmacro2
 
 	PacMan played in real life with a mobile web application.
 
@@ -128,16 +155,20 @@
 
 	Synchronizes players with a WebSocket server written in Go.
 
-\a9{YELL|#yell}YELL
-	\F3Date\f7:	2023 Feb - 2023 Apr
-	\F3Repo\f7:	\a0{https://github.com/micahdbak/yell}https://github.com/micahdbak/yell
+
+	\F0// \F7Yell\f7
+
+	\F0Date\f7:	2023 Feb - 2023 Apr
+	\F0Repo\f7:	\a0{https://github.com/micahdbak/yell}https://github.com/micahdbak/yell
 
 	C library for P2P applications and example chat program.
 
 	Built using BSD sockets for POSIX-compliant systems.
 
-\a9{EXEIRUS|#exeirus}EXEIRUS
-	\F3Date\f7:	2022 Dec - 2023 Feb
-	\F3Repo\f7:	\a0{https://github.com/micahdbak/exeirus}https://github.com/micahdbak/exeirus
+
+	\F0// \F7Exeirus\f7
+
+	\F0Date\f7:	2022 Dec - 2023 Feb
+	\F0Repo\f7:	\a0{https://github.com/micahdbak/exeirus}https://github.com/micahdbak/exeirus
 
 	ARG where players compete by solving cryptographic puzzles.

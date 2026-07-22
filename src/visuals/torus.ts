@@ -40,9 +40,7 @@ export class TorusVisuals extends Visuals {
 
 	draw(projection_matrix: Float32Array, elapsed: number, delta: number) {
 		void elapsed; // unused
-
-		const default_col = this.canvas.cols / 2;
-		const default_row = this.canvas.rows / 2;
+		void delta; // unused
 
 		// camera placed in front of the origin, looking at the torus's front face
 		const view_matrix = Mat4.create();

@@ -2,9 +2,6 @@ import { Canvas } from "@/canvas.ts";
 import { Terminal } from "@/terminal.ts";
 import { Renderer } from "@/renderer.ts";
 
-//import { EarthVisuals } from "@/visuals/earth.ts";
-//import { CubeVisuals } from "@/visuals/cube.ts";
-//import { NebulaeVisuals } from "@/visuals/nebulae.ts";
 import { TorusVisuals } from "@/visuals/torus.ts";
 
 import { Anchor, textGlyphs } from "@/glyphs.ts";
@@ -15,12 +12,17 @@ import { loadTexture } from "@/texture.ts";
 import { Pager } from "@/components/pager.ts";
 import { Link } from "@/components/link.ts";
 import { Section } from "@/components/section.ts";
-import { BANNER_ROW, BANNER_ROWS, makeBanner } from "@/components/banner.ts";
+import { makeBanner } from "@/components/banner.ts";
 
 import CONTENT from "./content/INDEX" with { type: "text" };
 
-const PADDING_ROWS = 1;
-const PADDING_COLS = 2;
+const PADDING_ROWS = 2;
+const PADDING_COLS = 4;
+
+const BANNER_ROW = PADDING_ROWS;
+const BANNER_ROWS = 1 + PADDING_ROWS * 2;
+
+const TRAILING_ROWS = PADDING_ROWS * 2;
 
 export function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
@@ -96,6 +98,10 @@ export function main() {
 			sections.push(new Section(terminal, text, hash));
 		}
 
+		// top button
+
+		const to_top = new Link(terminal, " [ ↑ ] ", "#top");
+
 		// main draw loop
 
 		let resized = false;
@@ -110,14 +116,18 @@ export function main() {
 				return;
 			}
 
+			const total_rows = BANNER_ROWS + content.rows + TRAILING_ROWS;
+
+			if (hash === "#top") {
+				pager.scrollToRow(0, total_rows);
+				window.location.hash = "";
+				return;
+			}
+
 			const i = sections.findIndex((section) => section.hash === hash);
 
 			if (i >= 0) {
-				//console.log(`scrolling to section ${sections[i].hash}`);
-				pager.scrollToRow(
-					BANNER_ROWS + content.anchors[9][i].row - 1,
-					BANNER_ROWS + content.rows + 2
-				);
+				pager.scrollToRow(BANNER_ROWS + content.anchors[9][i].row - 3, total_rows);
 			}
 		}
 
@@ -130,6 +140,15 @@ export function main() {
 		});
 
 		const draw = () => {
+			// too small to render; just clear and return
+			if (canvas.rows < 8 || canvas.cols < 16) {
+				canvas.clear();
+				terminal.clear();
+				terminal.draw();
+				requestAnimationFrame(draw);
+				return;
+			}
+
 			if (resized) {
 				resized = false;
 
@@ -149,43 +168,42 @@ export function main() {
 
 			// visuals
 
-			const torus_row = Math.max(
-				Math.min(
-					canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
-					canvas.rows - visuals_glyphs.rows
-				),
-				0
-			);
-			const torus_col = Math.max(
-				Math.min(
-					canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
-					canvas.cols - visuals_glyphs.cols
-				),
-				0
-			);
+			if (canvas.mouse_row !== undefined && canvas.mouse_col !== undefined) {
+				const torus_row = Math.max(
+					Math.min(
+						canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
+						canvas.rows - visuals_glyphs.rows
+					),
+					0
+				);
+				const torus_col = Math.max(
+					Math.min(
+						canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
+						canvas.cols - visuals_glyphs.cols
+					),
+					0
+				);
 
-			visuals.render();
-			renderer.draw(visuals_glyphs, visuals.texture, {
-				row: torus_row,
-				col: torus_col,
-				rows: visuals_glyphs.rows,
-				cols: visuals_glyphs.cols
-			});
+				visuals.render();
+				renderer.draw(visuals_glyphs, visuals.texture, {
+					row: torus_row,
+					col: torus_col,
+					rows: visuals_glyphs.rows,
+					cols: visuals_glyphs.cols
+				});
+			}
 
 			// content
 
 			terminal.clear();
 
-			const total_rows = BANNER_ROWS + content.rows + 2;
+			const total_rows = BANNER_ROWS + content.rows + TRAILING_ROWS;
 
 			pager.update(total_rows);
 
 			const content_row = BANNER_ROWS - pager.row;
 			const content_col = PADDING_COLS;
-			const content_rows = Math.min(
-				canvas.rows - PADDING_ROWS,
-				content.rows + BANNER_ROWS - pager.row
-			);
+			const content_rows = Math.min(canvas.rows, content.rows + BANNER_ROWS - pager.row);
 
 			// banner
 
@@ -223,7 +241,7 @@ export function main() {
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 
-				if (anchor_row < PADDING_ROWS || anchor_row >= canvas.rows - PADDING_ROWS * 2) {
+				if (anchor_row < 0 || anchor_row >= canvas.rows - 1) {
 					continue;
 				}
 
@@ -246,7 +264,7 @@ export function main() {
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 
-				if (anchor_row < PADDING_ROWS || anchor_row >= canvas.rows - PADDING_ROWS * 2) {
+				if (anchor_row < 0 || anchor_row >= canvas.rows) {
 					continue;
 				}
 
@@ -260,7 +278,20 @@ export function main() {
 				);
 			}
 
+			// bottom row / status row / to top button
 			if (total_rows > canvas.rows) {
+				if (pager.row > 0) {
+					const row = 0;
+					const col = canvas.cols - to_top.text.length;
+					to_top.update(row, col);
+
+					terminal.blit(
+						to_top.glyphs,
+						{ row: 0, col: 0, rows: 1, cols: to_top.glyphs.cols },
+						{ row, col, rows: 1, cols: to_top.glyphs.cols }
+					);
+				}
+
 				const status_row = canvas.rows - 1 - (terminal.detail_text.length > 0 ? 1 : 0);
 				terminal.blit(
 					pager.status_glyphs,
