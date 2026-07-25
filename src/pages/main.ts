@@ -188,7 +188,7 @@ export function main() {
 				);
 
 				visuals.render();
-				renderer.draw(visuals_glyphs, visuals.texture, {
+				renderer.draw(visuals_glyphs, visuals.render_target, {
 					row: torus_row,
 					col: torus_col,
 					rows: visuals_glyphs.rows,

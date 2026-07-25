@@ -1,4 +1,4 @@
-export abstract class TriangleMesh {
+export class TriangleMesh {
 	static readonly STRIDE = 44;
 
 	public positions: number[];
@@ -66,5 +66,14 @@ export abstract class TriangleMesh {
 		// UV coordinate
 		gl.vertexAttribPointer(attributes.uv_coord, 2, gl.FLOAT, false, TriangleMesh.STRIDE, 36);
 		gl.enableVertexAttribArray(attributes.uv_coord);
+	}
+}
+
+export class TriangleIndicesMesh extends TriangleMesh {
+	public indices: number[];
+
+	constructor() {
+		super();
+		this.indices = [];
 	}
 }

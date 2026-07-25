@@ -10,6 +10,7 @@ export class NebulaeVisuals extends Visuals {
 
 	private yaw: number;
 	private pitch: number;
+
 	private skybox: SkyboxProgram;
 
 	private cubemap: WebGLTexture;

@@ -19,12 +19,12 @@ export abstract class Visuals {
 	protected is_ready: boolean;
 
 	// to be used with Renderer.draw
-	public texture: WebGLTexture;
+	public render_target: WebGLTexture;
 
 	constructor(canvas: Canvas) {
 		this.canvas = canvas;
 
-		this.initializeTexture();
+		this.initializeRenderTarget();
 		this.initializeDBO();
 		this.initializeFBO();
 
@@ -37,15 +37,15 @@ export abstract class Visuals {
 		this.is_ready = false;
 	}
 
-	private initializeTexture() {
+	private initializeRenderTarget() {
 		this.target_width = 1024;
 		this.target_height = 1024;
 
 		const gl = this.canvas.gl;
 
-		this.texture = gl.createTexture();
+		this.render_target = gl.createTexture();
 
-		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		gl.bindTexture(gl.TEXTURE_2D, this.render_target);
 		gl.texImage2D(
 			gl.TEXTURE_2D,
 			0,
@@ -93,7 +93,13 @@ export abstract class Visuals {
 		}
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
-		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+		gl.framebufferTexture2D(
+			gl.FRAMEBUFFER,
+			gl.COLOR_ATTACHMENT0,
+			gl.TEXTURE_2D,
+			this.render_target,
+			0
+		);
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.dbo);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -132,7 +138,7 @@ export abstract class Visuals {
 			this.draw(this.projection_matrix, this.elapsed, delta);
 		}
 
-		gl.bindTexture(gl.TEXTURE_2D, this.texture);
+		//gl.bindTexture(gl.TEXTURE_2D, this.render_target);
 		//gl.generateMipmap(gl.TEXTURE_2D);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);

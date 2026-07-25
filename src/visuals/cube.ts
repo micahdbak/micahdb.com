@@ -3,17 +3,19 @@ import { loadTexture } from "@/texture.ts";
 import { Mat4 } from "@/math.ts";
 
 import { Visuals } from "./visuals.ts";
-import { CubeProgram } from "./programs/cube";
+import { BlinnPhongProgram } from "./programs/blinn_phong.ts";
+import { cubeMesh } from "./meshes/cube.ts";
 
 export class CubeVisuals extends Visuals {
 	static readonly YAW_HALF_RANGE = Math.PI / 3;
 	static readonly PITCH_HALF_RANGE = Math.PI / 3;
 	static readonly TRACKING_K = 4;
 
-	private cube: CubeProgram;
+	private blinn_phong: BlinnPhongProgram;
 
-	private cube_texture: WebGLTexture;
-	private cube_normal: WebGLTexture;
+	private texture: WebGLTexture;
+	private normal: WebGLTexture;
+	private roughness: WebGLTexture;
 
 	private yaw: number;
 	private pitch: number;
@@ -27,12 +29,13 @@ export class CubeVisuals extends Visuals {
 	async init() {
 		const gl = this.canvas.gl;
 
-		this.cube = new CubeProgram(gl);
-		this.cube.init();
+		this.blinn_phong = new BlinnPhongProgram(gl);
+		this.blinn_phong.init(cubeMesh());
 
-		[this.cube_texture, this.cube_normal] = await Promise.all([
-			loadTexture(gl, "/images/white.png"),
-			loadTexture(gl, "/images/smooth.png")
+		[this.texture, this.normal, this.roughness] = await Promise.all([
+			loadTexture(gl, "/images/texture.png"),
+			loadTexture(gl, "/images/normal.png"),
+			loadTexture(gl, "/images/roughness.png")
 		]);
 
 		this.is_ready = true;
@@ -68,12 +71,14 @@ export class CubeVisuals extends Visuals {
 		const model_matrix = Mat4.create();
 		Mat4.multiply(model_matrix, yaw_matrix, pitch_matrix);
 
-		this.cube.draw(
-			this.cube_texture,
-			this.cube_normal,
+		this.blinn_phong.draw(
+			this.texture,
+			this.normal,
+			this.roughness,
 			model_matrix,
 			view_matrix,
-			projection_matrix
+			projection_matrix,
+			[0.0, 0.5, 1.0]
 		);
 	}
 }

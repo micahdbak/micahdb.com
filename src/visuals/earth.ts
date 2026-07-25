@@ -2,34 +2,36 @@ import { loadCubeMap, loadTexture } from "@/texture.ts";
 import { Mat4 } from "@/math.ts";
 
 import { Visuals } from "./visuals.ts";
-import { SphereProgram } from "./programs/sphere";
-import { SkyboxProgram } from "./programs/skybox";
+import { sphereMesh } from "./meshes/sphere.ts";
+import { BlinnPhongIndicesProgram } from "./programs/blinn_phong_indices.ts";
+import { SkyboxProgram } from "./programs/skybox.ts";
 
 export class EarthVisuals extends Visuals {
 	static readonly ORBIT_PERIOD = 150;
 	static readonly EARTH_SPIN_PERIOD = 30;
 	static readonly MOON_ORBIT_PERIOD = 25;
 
-	private sphere: SphereProgram;
+	private blinn_phong: BlinnPhongIndicesProgram;
+
 	private skybox: SkyboxProgram;
 
 	private cubemap: WebGLTexture | null;
 
 	private earth_texture: WebGLTexture;
-	private earth_normal: WebGLTexture;
 	private moon_texture: WebGLTexture;
-	private moon_normal: WebGLTexture;
+	private normal: WebGLTexture;
+	private roughness: WebGLTexture;
 
 	async init() {
 		const gl = this.canvas.gl;
 
-		this.sphere = new SphereProgram(gl);
-		this.skybox = new SkyboxProgram(gl);
+		this.blinn_phong = new BlinnPhongIndicesProgram(gl);
+		this.blinn_phong.init(sphereMesh(8, 16));
 
-		this.sphere.init();
+		this.skybox = new SkyboxProgram(gl);
 		this.skybox.init();
 
-		[this.cubemap, this.earth_texture, this.earth_normal, this.moon_texture, this.moon_normal] =
+		[this.cubemap, this.earth_texture, this.moon_texture, this.normal, this.roughness] =
 			await Promise.all([
 				loadCubeMap(gl, [
 					"/images/earth/right.png",
@@ -40,9 +42,9 @@ export class EarthVisuals extends Visuals {
 					"/images/earth/back.png"
 				]),
 				loadTexture(gl, "/images/earth/texture.jpg"),
-				loadTexture(gl, "/images/smooth.png"),
 				loadTexture(gl, "/images/earth/moon_texture.jpg"),
-				loadTexture(gl, "/images/smooth.png")
+				loadTexture(gl, "/images/normal.png"),
+				loadTexture(gl, "/images/roughness.png")
 			]);
 
 		if (this.cubemap !== null) {
@@ -77,9 +79,10 @@ export class EarthVisuals extends Visuals {
 		);
 		Mat4.multiply(earth_model, earth_spin, upright);
 
-		this.sphere.draw(
+		this.blinn_phong.draw(
 			this.earth_texture,
-			this.earth_normal,
+			this.normal,
+			this.roughness,
 			earth_model,
 			view_matrix,
 			projection_matrix,
@@ -101,9 +104,10 @@ export class EarthVisuals extends Visuals {
 		);
 		Mat4.multiply(moon_model, moon_model, Mat4.scale(0.27, 0.27, 0.27));
 
-		this.sphere.draw(
+		this.blinn_phong.draw(
 			this.moon_texture,
-			this.moon_normal,
+			this.normal,
+			this.roughness,
 			moon_model,
 			view_matrix,
 			projection_matrix,
