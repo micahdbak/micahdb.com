@@ -27,16 +27,16 @@ void main() {
 	vec3 light = normalize(v_light);
 
 	// ambient lighting
-	float amb = 1.0 / 12.0;
+	float amb = 2.0 / 12.0;
 
 	// lambertian diffuse component
-	float lam = 0.2 + 0.8 * max(1.5 * dot(normal, light), 0.0);
+	float lam = max(dot(normal, light), 0.0);
 
 	// blinn-phong specular component
 	vec3 L = normalize(v_light - v_position);
 	vec3 V = normalize(-v_position);
 	vec3 H = normalize(L + V);
-	float spec = pow(max(dot(normal, H), 0.0), shininess);
+	float spec = lam * pow(max(dot(normal, H), 0.0), shininess);
 
 	frag_colour = vec4((amb + lam + spec) * col, 1.0);
 }
