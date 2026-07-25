@@ -112,8 +112,10 @@ export abstract class Visuals {
 		const height = isFinite(rows) ? Math.max(1, rows) : 1;
 
 		// update projection matrix
-		const fovy = Math.PI / 4;
 		const aspect = (0.5 * width) / height;
+		const base = Math.PI / 4;
+		const t = Math.tan(base / 2);
+		const fovy = aspect >= 1 ? base : 2 * Math.atan(t / aspect);
 		const near = 0.1;
 		const far = 100.0;
 		Mat4.perspective(this.projection_matrix, fovy, aspect, near, far);
@@ -131,7 +133,8 @@ export abstract class Visuals {
 		gl.viewport(0, 0, this.target_width, this.target_height);
 		gl.enable(gl.DEPTH_TEST);
 
-		gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
+		//gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		if (this.is_ready) {

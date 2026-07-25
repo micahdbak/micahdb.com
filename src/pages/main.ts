@@ -39,9 +39,8 @@ export function main() {
 		const visuals = new TorusVisuals(canvas);
 		void visuals.init();
 
-		let torus_size = Math.ceil(Math.min(canvas.rows, canvas.cols / 2) / 4);
-		let visuals_glyphs = textureGlyphs(torus_size, torus_size * 2, TexGlyphMode.SAMPLE);
-		visuals.resize(torus_size, torus_size * 2);
+		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		visuals.resize(canvas.rows, canvas.cols);
 
 		// pager
 
@@ -153,9 +152,8 @@ export function main() {
 			if (resized) {
 				resized = false;
 
-				torus_size = Math.ceil(Math.min(canvas.rows, canvas.cols / 2) / 4);
-				visuals_glyphs = textureGlyphs(torus_size, torus_size * 2, TexGlyphMode.SAMPLE);
-				visuals.resize(torus_size, torus_size * 2);
+				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+				visuals.resize(canvas.rows, canvas.cols);
 
 				banner = textGlyphs(
 					makeBanner("INDEX", "micahdb.com", canvas.cols - PADDING_COLS * 2),
@@ -171,30 +169,13 @@ export function main() {
 
 			// visuals
 
-			if (canvas.mouse_row !== undefined && canvas.mouse_col !== undefined) {
-				const torus_row = Math.max(
-					Math.min(
-						canvas.mouse_row - Math.floor(visuals_glyphs.rows / 2),
-						canvas.rows - visuals_glyphs.rows
-					),
-					0
-				);
-				const torus_col = Math.max(
-					Math.min(
-						canvas.mouse_col - Math.floor(visuals_glyphs.cols / 2),
-						canvas.cols - visuals_glyphs.cols
-					),
-					0
-				);
-
-				visuals.render();
-				renderer.draw(visuals_glyphs, visuals.render_target, {
-					row: torus_row,
-					col: torus_col,
-					rows: visuals_glyphs.rows,
-					cols: visuals_glyphs.cols
-				});
-			}
+			visuals.render();
+			renderer.draw(visuals_glyphs, visuals.render_target, {
+				row: 0,
+				col: 0,
+				rows: visuals_glyphs.rows,
+				cols: visuals_glyphs.cols
+			});
 
 			// content
 

@@ -1,5 +1,9 @@
 #version 300 es
 
+#define SAMPLE_MODE	0u
+#define GLYPHS_MODE	1u
+#define BG_GLYPHS_MODE	2u
+
 precision mediump float;
 
 in uint a_row;
@@ -17,14 +21,14 @@ uniform int u_mouse_col;
 uniform vec3 u_palette[16];
 uniform sampler2D u_texture;
 
-out vec2 v_cell_coord; // a_mode == 1
+out vec2 v_cell_coord; // f_mode > 0
 out vec2 v_uv_coord;
 
 flat out uint f_mode;
 flat out int f_is_cursor;
-flat out vec3 f_fg_colour; // a_mode == 1
-flat out vec3 f_bg_colour; // a_mode == 1
-flat out ivec2 f_glyph_coord; // a_mode == 1
+flat out vec3 f_fg_colour; // f_mode > 0
+flat out vec3 f_bg_colour; // f_mode > 0
+flat out ivec2 f_glyph_coord; // f_mode > 0
 
 const vec3 dimensions[8] = vec3[](
 	vec3(0.0, 0.0, 0.0),	// black (unused)
@@ -72,6 +76,60 @@ float getLum(vec3 colour, int dim) {
 	return dot(colour, dcolour) / dot(dcolour, dcolour);
 }
 
+struct Glyph {
+	int char_code;
+	int fg_idx;
+	int bg_idx;
+};
+
+Glyph getGlyph(int dim, float lum) {
+	//                        .   ,   -   :   ;   =   !   *   #   $   @
+	int glyphs[12] = int[](0, 46, 44, 45, 58, 59, 61, 33, 42, 35, 36, 64);
+
+	int fgs[2] = int[](dim, dim + 8);
+
+	int layer = clamp(int(lum * 2.0), 0, 2);
+
+	Glyph glyph;
+
+	int glyph_idx = clamp(int(12.0 * lum), 0, 11);
+	glyph.char_code = glyphs[glyph_idx];
+	glyph.fg_idx = fgs[layer];
+	glyph.bg_idx = 0;
+
+	return glyph;
+}
+
+Glyph getBgGlyph(int dim, float lum) {
+	//                        .   -   ,   :   ;   =   !   *   #   $   @
+	int glyphs[12] = int[](0, 46, 45, 44, 58, 59, 61, 33, 42, 35, 36, 64);
+
+	int fgs[3] = int[](dim, dim + 8, 15);
+	int bgs[3] = int[](0, dim, dim + 8);
+
+	int layer = clamp(int(lum * 3.0), 0, 2);
+
+	// check if dimension is white
+	if (dim == 7) {
+		if (layer > 0) {
+			// reverse the order of the glyphs
+			glyphs = int[](64, 36, 35, 42, 33, 61, 59, 58, 44, 45, 46, 0);
+		}
+
+		fgs = int[](7, 0, 8);
+		bgs = int[](0, 7, 15);
+	}
+
+	Glyph glyph;
+
+	int glyph_idx = clamp(int(12.0 * (3.0 * lum - float(layer))), 0, 11);
+	glyph.char_code = glyphs[glyph_idx];
+	glyph.fg_idx = fgs[layer];
+	glyph.bg_idx = bgs[layer];
+
+	return glyph;
+}
+
 void main() {
 	int origin_row = int(a_row);
 	int origin_col = int(a_col);
@@ -104,7 +162,7 @@ void main() {
 	f_mode = a_mode;
 
 	// sample mode
-	if (a_mode == 0u) {
+	if (f_mode == SAMPLE_MODE) {
 		// no more work to do
 		return;
 	}
@@ -113,10 +171,9 @@ void main() {
 
 	vec2 origin_uv_coord = vec2(float(origin_col) / float(u_cols), float(origin_row) / float(u_rows));
 
-	// use textureGrad to treat the glyph cell as a full screen pixel and
-	// therefore use the proper mipmap level / filtering for the area covered
 	vec2 full_uv_cell = vec2(1.0 / float(u_cols), 1.0 / float(u_rows));
 	/*
+	// sample across cell's texel using mipmaps when available
 	vec2 br = origin_uv_coord + full_uv_cell; // bottom-right uv coord of cell
 	vec4 samp = textureGrad(u_texture,
 		origin_uv_coord + 0.5 * full_uv_cell,
@@ -142,35 +199,26 @@ void main() {
 
 	float dither = (bayer_val - 0.5) / 12.0;
 	lum = clamp(lum + dither, 0.0, 1.0);
-	int layer = clamp(int(lum * 3.0), 0, 2);
 
-	//                        .   -   ,   :   ;   =   !   *   #   $   @
-	int glyphs[12] = int[](0, 46, 45, 44, 58, 59, 61, 33, 42, 35, 36, 64);
+	Glyph glyph;
 
-	int fgs[3] = int[](dim, dim + 8, 15);
-	int bgs[3] = int[](0, dim, dim + 8);
-
-	if (dim == 7) {
-		if (layer > 0) {
-			// reverse the order of the glyphs
-			glyphs = int[](64, 36, 35, 42, 33, 61, 59, 58, 44, 45, 46, 0);
-		}
-
-		fgs = int[](7, 0, 8);
-		bgs = int[](0, 7, 15);
+	if (f_mode == BG_GLYPHS_MODE) {
+		glyph = getBgGlyph(dim, lum);
+	} else {
+		glyph = getGlyph(dim, lum);
 	}
 
-	int glyph_idx = clamp(int(12.0 * (3.0 * lum - float(layer))), 0, 11);
-	int char_code = glyphs[glyph_idx];
-	int fg_idx = fgs[layer];
-	int bg_idx = bgs[layer];
+	if (glyph.fg_idx == glyph.bg_idx && f_is_cursor == 1) {
+		glyph.fg_idx = 15;
+		glyph.bg_idx = 0;
+	}
 
-	f_fg_colour = u_palette[fg_idx];
-	f_bg_colour = u_palette[bg_idx];
+	f_fg_colour = u_palette[glyph.fg_idx];
+	f_bg_colour = u_palette[glyph.bg_idx];
 
 	// 32 glyph columns, 8 glyph rows
-	int glyph_row = int(char_code / 32);
-	int glyph_col = int(char_code % 32);
+	int glyph_row = int(glyph.char_code / 32);
+	int glyph_col = int(glyph.char_code % 32);
 
 	// coordinate of char_code in u_bitmap_font
 	f_glyph_coord = ivec2(glyph_col, glyph_row << 2);

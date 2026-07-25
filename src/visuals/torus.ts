@@ -30,7 +30,7 @@ export class TorusVisuals extends Visuals {
 		const gl = this.canvas.gl;
 
 		this.blinn_phong = new BlinnPhongIndicesProgram(gl);
-		this.blinn_phong.init(torusMesh(32, 24, 1, 0.5));
+		this.blinn_phong.init(torusMesh(32, 24, 2, 1));
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
 			loadTexture(gl, "/images/torus/texture.jpg"),
@@ -47,7 +47,7 @@ export class TorusVisuals extends Visuals {
 
 		// camera placed in front of the origin, looking at the torus's front face
 		const view_matrix = Mat4.create();
-		Mat4.lookAt(view_matrix, [0.0, 0.0, 4.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(view_matrix, [0.0, 0.0, 12.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
 
 		// rotate the torus so its front face tracks the cursor
 		const ry = Mat4.rotation("y", elapsed / 1.7);

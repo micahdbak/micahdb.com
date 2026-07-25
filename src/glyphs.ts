@@ -357,9 +357,10 @@ export function textGlyphs(text: string, cols: number, wrap: boolean): Glyphs {
 export enum TexGlyphMode {
 	SAMPLE = 0,
 	GLYPHS = 1,
-	MIX = 2,
-	ROWS = 3,
-	COLS = 4
+	BG_GLYPHS = 2,
+	MIX = 3,
+	ROWS = 4,
+	COLS = 5
 }
 
 export type TexGlyphs = {
