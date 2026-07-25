@@ -18,6 +18,17 @@ uniform sampler2D u_texture;
 
 out vec4 frag_colour;
 
+// sharp(ish) bilinear filtering helper
+vec2 sharp(float coord) {
+	float center_dist = fract(coord) - 0.5;
+	float sample_pos = floor(coord) + (center_dist - clamp(center_dist, -0.25, 0.25)) * 2.0;
+	return vec2(floor(sample_pos), sample_pos - floor(sample_pos));
+}
+
+float bit_at(uvec4 texel, int x, int y) {
+	return float((texel[y] >> (7 - x)) & 1u);
+}
+
 void main() {
 	if (f_mode == SAMPLE_MODE) {
 		frag_colour = texture(u_texture, v_uv_coord);
@@ -39,20 +50,19 @@ void main() {
 		bg = tmp;
 	}
 
-	// pixel coordinate within the glyph
-	int x = clamp(int(v_cell_coord.x * 8.0), 0, 7);
-	int y = clamp(int(v_cell_coord.y * 16.0), 0, 15);
+	int block = clamp(int(floor(v_cell_coord.y * 4.0)), 0, 3);
+	uvec4 texel = texelFetch(u_bitmap_font, ivec2(f_glyph_coord.x, f_glyph_coord.y + block), 0);
 
-	ivec2 texel_coord = ivec2(f_glyph_coord.x, f_glyph_coord.y + y / 4);
-	uvec4 texel_sample = texelFetch(u_bitmap_font, texel_coord, 0);
+	vec2 sharp_x = sharp(v_cell_coord.x * 8.0);
+	vec2 sharp_y = sharp(v_cell_coord.y * 16.0 - float(block) * 4.0);
 
-	// 1 byte
-	uint glyph_row = texel_sample[y % 4];
+	int x0 = int(clamp(sharp_x.x,       0.0, 7.0));
+	int x1 = int(clamp(sharp_x.x + 1.0, 0.0, 7.0));
+	int y0 = int(clamp(sharp_y.x,       0.0, 3.0));
+	int y1 = int(clamp(sharp_y.x + 1.0, 0.0, 3.0));
 
-	int bit_pos = 7 - x;
-	int on = int(glyph_row >> bit_pos & 1u);
-	int off = on ^ 1;
+	float on = mix(mix(bit_at(texel, x0, y0), bit_at(texel, x1, y0), sharp_x.y),
+	           mix(bit_at(texel, x0, y1), bit_at(texel, x1, y1), sharp_x.y), sharp_y.y);
 
-	vec3 colour = float(on) * fg + float(off) * bg;
-	frag_colour = vec4(colour, 1.0);
+	frag_colour = vec4(mix(f_bg_colour, f_fg_colour, on), 1.0);
 }
