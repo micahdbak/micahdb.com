@@ -1,10 +1,10 @@
 \F0/*
 \F0 * \F7micahdb.com - \F2Micah Baker\f7's website.
 \F0 *
-\F0 * \f0\a1        \f7
-\F0 * \f0        \f7
-\F0 * \f0        \f7
-\F0 * \f0        \f7
+\F0 * \a1╔══════╗
+\F0 * Portrait
+\F0 * ║ Here ║
+\F0 * ╚══════╝
 \F0 *   \F7(Me)\F0
 \F0 */\f7
 
@@ -16,9 +16,7 @@
 
 
 \F0/*
-\F0 * ================
 \F0 * \a9{Synopsis|#synopsis}Synopsis
-\F0 * ================
 \F0 */\f7
 
 	\F0I am a\f7:		\F7Software Developer
@@ -40,9 +38,7 @@ https://linkedin.com/in/micahdbak}/in/micahdbak
 
 
 \F0/*
-\F0 * ================
 \F0 * \a9{Education|#education}Education
-\F0 * ================
 \F0 */\f7
 
 	I'm working towards a \F7Bachelor of Science\f7 in \F7Computing \
@@ -81,58 +77,63 @@ through memory access abstraction.
 
 
 \F0/*
-\F0 * ================
 \F0 * \a9{Experience|#experience}Experience
-\F0 * ================
 \F0 */\f7
 
 	\F0// \a0{Open WebUI|https://openwebui.com}Open_WebUI
 
-	\F0Position\f7: Software Developer
-	\F0Contract\f7: \F7Part-time\f7
-	\F0Location\f7: Austin, TX, USA (Remote)
-	\F0Duration\f7: Jan 2026 - Apr 2026 (\F74 months\f7)
+	\F0What\f7:	Software Developer (\F7Part-time\f7)
+	\F0Where\f7:	Austin, TX, USA (Remote)
+	\F0When\f7:	Jan 2026 - Apr 2026 (\F74 months\f7)
+	\F0Stack\f7:	\F3JavaScript\f7 (Svelte), \f4Python\f7 (FastAPI)
 
 	Maintained and implemented quality-of-life upgrades to a Reddit-like \
-community platform with >300k users.
+community platform with nearly half a million users.
 
-	Built an email microservice to reliably receive and queue events from \
-the community platform for processing in AWS Simple Email Service (SES).
+	Led end-to-end development of an email microservice which receives and \
+processes thousands of events from the community platform daily for mailing \
+through AWS Simple Email Service (SES).
 
-	Extended the email microservice to distribute newsletters to \
-thousands of subscribers with exponential backoff on congestion-related \
-failures.
+	Built a newsletter pipeline to reliably distribute emails with care \
+given to prevent congestion and throttling, as well as gracefully handle \
+errors.
 
 
 	\F0// \a0{Improving|https://improving.com}Improving
 
-	\F0Position\f7: Software Developer 1
-	\F0Contract\f7: \F7Internship\f7
-	\F0Location\f7: Vancouver, BC, Canada (Hybrid)
-	\F0Duration\f7: Sep 2024 - Aug 2025 (\F71 year\f7)
+	\F0What\f7:	Software Developer 1 (\F7Internship\f7)
+	\F0Where\f7:	Vancouver, BC, Canada (Hybrid)
+	\F0When\f7:	Sep 2024 - Aug 2025 (\F71 year\f7)
+	\F0Stack\f7:	\f4C++\f7 (CMake, Visual Studio), \f4C#\f7
 
-	Engineered AWS PostgreSQL ODBC Driver and AWS Advanced .NET Data \
-Provider Wrapper.
+	Contributed 27 pull requests to open-source database connection \
+wrappers, providing client-side support for a variety of AWS Aurora/RDS \
+features.
 
-	Designed Aurora Limitless implementation, reducing latency of \
-topology information to milliseconds.
+	Designed and implemented Aurora Limitless support in \
+\a0{AWS PostgreSQL ODBC|https://github.com/aws/aws-pgsql-odbc}\
+AWS_PostgreSQL_ODBC driver, allowing an application to react to cluster \
+topology changes in milliseconds.
 
 	Integrated AWS IAM, Secrets Manager, and federated SSO (ADFS, OKTA) \
-to harden connection security.
-
-	Accelerated the ODBC Driver's delivery by two weeks, allowing for \
-greater QA coverage, and a bug-free release.
+as authentication methods for \
+\a0{AWS PostgreSQL ODBC|https://github.com/aws/aws-pgsql-odbc}\
+AWS_PostgreSQL_ODBC driver and \
+\a0{AWS Advanced .NET Data Provider Wrapper|\
+https://github.com/aws/aws-advanced-dotnet-data-provider-wrapper}\
+AWS_Advanced_.NET_Data_Provider_Wrapper.
 
 
 	\F0// \a0{Brave Technology Coop|\
 https://brave.coop}Brave_Technology_Coop
 
-	\F0Position\f7: Firmware and Software Developer
-	\F0Contract\f7: \F7Internship\f7
-	\F0Location\f7: Vancouver, BC, Canada (On-site)
-	\F0Duration\f7: Sep 2023 - Apr 2024 (\F78 months\f7)
+	\F0What\f7:	Firmware and Software Developer (\F7Internship\f7)
+	\F0Where\f7:	Vancouver, BC, Canada (On-site)
+	\F0When\f7:	Sep 2023 - Apr 2024 (\F78 months\f7)
+	\F0Stack\f7:	\F3JavaScript\f7 (Node, Express, React), \f4C++\f7 \
+(\a0{Particle|https://www.particle.io/}Particle Device OS)
 
-	Built embedded systems for IoT devices equipped with radar sensors.
+	Built IoT firmware and infrastructure equipped with radar sensors.
 
 	Redesigned backend architecture for readability, security, and \
 efficiency.
@@ -145,25 +146,23 @@ knowledge transfer.
 
 
 \F0/*
-\F0 * ================
 \F0 * \a9{Projects|#projects}Projects
-\F0 * ================
 \F0 */
 
 	\F0// \F7micahdb.com\f7
 
-	\F0Date\f7:	Beginning of Time - Present
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/micahdb.com}\
 https://github.com/micahdbak/micahdb.com
-	\F0Langs\f7:	\f4TypeScript\f7, \f3GLSL\f7
+	\F0When\f7:	Beginning of Time - Present
+	\F0Stack\f7:	\f4TypeScript\f7, \f3GLSL\f7
 
 
 	\F0// \F7Gestures for a Robotic Guide Dog\f7
 
-	\F0Date\f7:	2025 Sep - 2026 Apr
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/isaac_ros_gestures}\
 https://github.com/micahdbak/isaac_ros_gestures
-	\F0Langs\f7:	\f4Python\f7
+	\F0When\f7:	2025 Sep - 2026 Apr
+	\F0Stack\f7:	\f4Python\f7
 
 	Computer vision system for recognizing motion gestures within a \
 robotic guide dog platform. \
@@ -172,10 +171,10 @@ Gestures are recognized using an online model for personalized interaction.
 
 	\F0// \F7Cheddar and Feta\f7
 
-	\F0Date\f7:	2025 Jan - 2026 Feb
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/cheddar-and-feta}\
 https://github.com/micahdbak/cheddar-and-feta
-	\F0Langs\f7:	\f5C++\f7
+	\F0When\f7:	2025 Jan - 2026 Feb
+	\F0Stack\f7:	\f5C++\f7
 	\F0Links\f7:	\a0{Steam Page|\
 https://store.steampowered.com/app/4266860/Cheddar_and_Feta/}Steam_Page
 
@@ -192,10 +191,10 @@ networking.
 
 	\F0// \F7Gleebleglob\f7
 
-	\F0Date\f7:	2024 May - 2024 June
 	\F0Repo\f7:	\a0{https://github.com/Vixlump/GG}\
 https://github.com/Vixlump/GG
-	\F0Langs\f7:	\f5C++\f7
+	\F0When\f7:	2024 May - 2024 June
+	\F0Stack\f7:	\f5C++\f7
 	\F0Links\f7:	\a0{Archived Website|\
 https://web.archive.org/web/20250315161759/http://gleebleglob.club/}\
 Archived_Website
@@ -208,10 +207,10 @@ Video storage and authentication facilitated by remote server.
 
 	\F0// \F7droppr\f7
 
-	\F0Date\f7:	2024 Mar - 2025 Jun
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/droppr}\
 https://github.com/micahdbak/droppr
-	\F0Langs\f7:	\F3JavaScript\f7, \f4Go\f7
+	\F0When\f7:	2024 Mar - 2025 Jun
+	\F0Stack\f7:	\F3JavaScript\f7, \f4Go\f7
 	\F0Links\f7:	\a0{Website|https://droppr.net}Website
 
 	Send files over the internet using the peer-to-peer \a0{WebRTC API|\
@@ -224,10 +223,10 @@ Signal channel written in Go uses six-letter codes for peer discovery.
 
 	\F0// \F7PacMacro\f7
 
-	\F0Date\f7:	2023 Jun - 2023 Sep
 	\F0Repo\f7:	\a0{https://github.com/CSSS/pacmacro2}\
 https://github.com/CSSS/pacmacro2
-	\F0Langs\f7:	\F3JavaScript\f7, \f4Go\f7
+	\F0When\f7:	2023 Jun - 2023 Sep
+	\F0Stack\f7:	\F3JavaScript\f7, \f4Go\f7
 
 	PacMan played in real life with a mobile web application. \
 Uses \a0{Geolocation API|\
@@ -242,10 +241,10 @@ up to 20 consecutive players at a time.
 
 	\F0// \F7Yell\f7
 
-	\F0Date\f7:	2023 Feb - 2023 Apr
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/yell}\
 https://github.com/micahdbak/yell
-	\F0Langs\f7:	\f4C\f7
+	\F0When\f7:	2023 Feb - 2023 Apr
+	\F0Stack\f7:	\f4C\f7
 
 	C library for P2P applications and example chat program. \
 Built using BSD sockets for POSIX-compliant systems.
@@ -253,10 +252,10 @@ Built using BSD sockets for POSIX-compliant systems.
 
 	\F0// \F7Exeirus\f7
 
-	\F0Date\f7:	2022 Dec - 2023 Feb
 	\F0Repo\f7:	\a0{https://github.com/micahdbak/exeirus}\
 https://github.com/micahdbak/exeirus
-	\F0Langs\f7:	\F3JavaScript\f7, \f4Python\f7
+	\F0When\f7:	2022 Dec - 2023 Feb
+	\F0Stack\f7:	\F3JavaScript\f7, \f4Python\f7
 
 	An ARG where players compete by solving cryptographic puzzles.
 

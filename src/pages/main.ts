@@ -197,19 +197,6 @@ export function main() {
 				{ row: BANNER_ROW - pager.row, col: PADDING_COLS, rows: 1, cols: banner.cols }
 			);
 
-			// portrait
-
-			const portrait_anchors = content.anchors[1];
-
-			if (portrait !== null) {
-				renderer.draw(portrait_glyphs, portrait, {
-					row: content_row + portrait_anchors[0].row,
-					col: content_col + portrait_anchors[0].col,
-					rows: portrait_glyphs.rows,
-					cols: portrait_glyphs.cols
-				});
-			}
-
 			terminal.blit(
 				content,
 				{ row: pager.row - BANNER_ROWS, col: 0, rows: content_rows, cols: content.cols },
@@ -285,6 +272,19 @@ export function main() {
 			}
 
 			terminal.draw();
+
+			// portrait
+
+			const portrait_anchors = content.anchors[1];
+
+			if (portrait !== null) {
+				renderer.draw(portrait_glyphs, portrait, {
+					row: content_row + portrait_anchors[0].row,
+					col: content_col + portrait_anchors[0].col,
+					rows: portrait_glyphs.rows,
+					cols: portrait_glyphs.cols
+				});
+			}
 
 			canvas.mouse_click = false;
 

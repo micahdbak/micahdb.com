@@ -57,7 +57,7 @@ export class Canvas extends EventTarget {
 		const gl = element.getContext("webgl2");
 
 		if (!gl) {
-			window.location.href = "/readme.html";
+			window.location.href = "/raw/index.html";
 			return;
 		}
 

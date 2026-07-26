@@ -67,17 +67,8 @@ function reconcileSpans(
 	return { spans, tags };
 }
 
-function escapeHtml(c: string): string {
-	switch (c) {
-		case "&":
-			return "&amp;";
-		case "<":
-			return "&lt;";
-		case ">":
-			return "&gt;";
-		default:
-			return c;
-	}
+function escapeHtml(s: string): string {
+	return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 // converts formatted glyph text into HTML with minimal <span> usage
@@ -116,16 +107,37 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 				escape = false;
 			}
 
-			// ignore anchor escape sequences
+			// anchor escape sequence
+			// \a0{Display Text|URL} : link
+			// \a9{Display Text|#anchor} : section anchor
 			if (escape && i + 2 < line.length && line[i + 1] === "a" && !isNaN(Number(line[i + 2]))) {
+				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0);
 				let skip_chars = 2;
+				let options = null;
 
 				if (i + 3 < line.length && line[i + 3] === "{") {
 					const closing_brace = line.indexOf("}", i + 3);
 
 					if (closing_brace > i + 3) {
+						options = line.slice(i + 4, closing_brace);
 						skip_chars = closing_brace - i;
 					}
+				}
+
+				if (options !== null && (num === 0 || num === 9)) {
+					const split = options.split("|");
+					const text = split[0];
+					const url = split.length > 1 ? split[1] : split[0];
+
+					if (num === 0) {
+						html.push(`<a href="${escapeHtml(url)}" class="f12">${escapeHtml(text)}</a>`);
+					} else {
+						const anchor_id = url.startsWith("#") ? url.slice(1) : url;
+						html.push(`<span id="${escapeHtml(anchor_id)}" class="f15">${escapeHtml(text)}</span>`);
+					}
+
+					i += text.length;
+					col += text.length;
 				}
 
 				i += skip_chars;
@@ -243,6 +255,7 @@ function generate(src_dir: string, out_dir: string) {
 		const html = `<!doctype HTML>
 <html>
 <head>
+<meta charset="utf-8" />
 <title>micahdb.com - ${name}</title>
 <link rel="stylesheet" href="/raw/index.css" />
 </head>
