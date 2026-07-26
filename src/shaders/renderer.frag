@@ -64,5 +64,5 @@ void main() {
 	float on = mix(mix(bit_at(texel, x0, y0), bit_at(texel, x1, y0), sharp_x.y),
 	           mix(bit_at(texel, x0, y1), bit_at(texel, x1, y1), sharp_x.y), sharp_y.y);
 
-	frag_colour = vec4(mix(f_bg_colour, f_fg_colour, on), 1.0);
+	frag_colour = vec4(mix(bg, fg, on), 1.0);
 }
