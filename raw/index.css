@@ -1,0 +1,156 @@
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
+html {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: #080808;
+	color: #f4f4f4;
+	margin: 0;
+	padding: 0;
+}
+
+pre {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 14px;
+	line-height: 1.2;
+	margin: 0;
+	padding: 1rem;
+	white-space: pre;
+}
+
+.f0 {
+	color: #080808;
+}
+
+.b0 {
+	background-color: #080808;
+}
+
+.f1 {
+	color: #ed333b;
+}
+
+.b1 {
+	background-color: #ed333b;
+}
+
+.f2 {
+	color: #57e389;
+}
+
+.b2 {
+	background-color: #57e389;
+}
+
+.f3 {
+	color: #ff7800;
+}
+
+.b3 {
+	background-color: #ff7800;
+}
+
+.f4 {
+	color: #62a0ea;
+}
+
+.b4 {
+	background-color: #62a0ea;
+}
+
+.f5 {
+	color: #9141ac;
+}
+
+.b5 {
+	background-color: #9141ac;
+}
+
+.f6 {
+	color: #5bc8af;
+}
+
+.b6 {
+	background-color: #5bc8af;
+}
+
+.f7 {
+	color: #c0c0c0;
+}
+
+.b7 {
+	background-color: #c0c0c0;
+}
+
+.f8 {
+	color: #808080;
+}
+
+.b8 {
+	background-color: #808080;
+}
+
+.f9 {
+	color: #f66151;
+}
+
+.b9 {
+	background-color: #f66151;
+}
+
+.f10 {
+	color: #8ff0a4;
+}
+
+.b10 {
+	background-color: #8ff0a4;
+}
+
+.f11 {
+	color: #ffa348;
+}
+
+.b11 {
+	background-color: #ffa348;
+}
+
+.f12 {
+	color: #99c1f1;
+}
+
+.b12 {
+	background-color: #99c1f1;
+}
+
+.f13 {
+	color: #dc8add;
+}
+
+.b13 {
+	background-color: #dc8add;
+}
+
+.f14 {
+	color: #93ddc2;
+}
+
+.b14 {
+	background-color: #93ddc2;
+}
+
+.f15 {
+	color: #f4f4f4;
+}
+
+.b15 {
+	background-color: #f4f4f4;
+}
