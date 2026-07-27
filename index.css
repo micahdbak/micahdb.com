@@ -1,3 +1,11 @@
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
 html {
 	margin: 0;
 	padding: 0;
@@ -8,12 +16,6 @@ body {
 	color: #cdcdcd;
 	margin: 0;
 	padding: 0;
-	width: 100svw;
-	height: 100svh;
-	overflow: hidden;
-	touch-action: none;
-	user-select: none;
-	-webkit-user-select: none;
 }
 
 body.grab {
@@ -28,11 +30,32 @@ body.pointer {
 	cursor: pointer;
 }
 
+#raw {
+	margin: 0;
+	padding: 0;
+}
+
+#raw pre {
+	font-family: "JetBrains Mono", monospace;
+	font-size: 14px;
+	line-height: 1.2;
+	margin: 0;
+	padding: 1rem;
+	white-space: pre;
+}
+
 #webgl {
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 0;
+	width: 100svw;
+	height: 100svh;
+	overflow: hidden;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.hidden {
+	display: none;
 }
