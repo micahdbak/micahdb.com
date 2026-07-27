@@ -57,7 +57,7 @@ export class Canvas extends EventTarget {
 		const gl = element.getContext("webgl2");
 
 		if (!gl) {
-			window.location.href = "/raw/index.html";
+			throw new Error("No WebGL context");
 			return;
 		}
 

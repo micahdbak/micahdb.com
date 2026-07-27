@@ -21,7 +21,7 @@
   "private": true,
   "scripts": {
     "copy-public": "mkdir -p build && cp -r ./public/* ./build",
-    "build-html": "bun run src/html_pages.ts",
+    "build-html": "bun run src/generate.ts",
     "build": "bun run copy-public && bun run build-html && bun build ./src/index.ts --minify --outdir ./build",
     "dev": "bun run copy-public && bun run build-html && bun build ./src/index.ts --outdir ./build --watch",
     "lint": "eslint src",

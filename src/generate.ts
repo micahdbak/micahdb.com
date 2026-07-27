@@ -5,38 +5,8 @@ import { Colour, PALETTE } from "./colour.ts";
 import { textToLines, TAB_WIDTH } from "./glyphs.ts";
 
 const CONTENT_DIR = "src/pages/content";
-const OUTPUT_DIR = "build/raw";
+const OUTPUT_DIR = "build";
 const COLS = 80;
-
-const CSS_HEAD = `@font-face {
-	font-family: "JetBrains Mono";
-	src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
-	font-weight: normal;
-	font-style: normal;
-	font-display: block;
-}
-
-html {
-	margin: 0;
-	padding: 0;
-}
-
-body {
-	background-color: #080808;
-	color: #f4f4f4;
-	margin: 0;
-	padding: 0;
-}
-
-pre {
-	font-family: "JetBrains Mono", monospace;
-	font-size: 14px;
-	line-height: 1.2;
-	margin: 0;
-	padding: 1rem;
-	white-space: pre;
-}
-`;
 
 function reconcileSpans(
 	open_spans: string[],
@@ -228,11 +198,11 @@ function generateCss(): string {
 
 	for (let i = 0; i < 16; i++) {
 		const hex = colourAsHex(i);
-		classes.push(`.f${i} {\n\tcolor: ${hex};\n}`);
-		classes.push(`.b${i} {\n\tbackground-color: ${hex};\n}`);
+		classes.push(`.f${i} { color: ${hex}; }`);
+		classes.push(`.b${i} { background-color: ${hex}; }`);
 	}
 
-	return CSS_HEAD + "\n" + classes.join("\n\n") + "\n";
+	return classes.join("\n") + "\n";
 }
 
 function generate(src_dir: string, out_dir: string) {
@@ -241,42 +211,72 @@ function generate(src_dir: string, out_dir: string) {
 		const stat = statSync(src_path);
 
 		if (stat.isDirectory()) {
+			// recursively call generate on directory
 			generate(src_path, join(out_dir, entry.toLowerCase()));
 			continue;
 		}
 
 		const name = basename(entry);
-		const html_name = name.toLowerCase() + ".html";
-		const out_path = join(out_dir, html_name);
 
-		const content = readFileSync(src_path, "utf8");
+		const html_name = name.toLowerCase() + ".html";
+		const html_path = join(out_dir, html_name);
+
+		// content is of the form:
+		// title
+		// ---- <- arbitrary separator line
+		// content
+		let content = readFileSync(src_path, "utf8");
+		const first_nl = content.indexOf("\n");
+		const second_nl = first_nl + 1 + content.slice(first_nl + 1, -1).indexOf("\n");
+		const title = content.slice(0, first_nl);
+		content = content.slice(second_nl + 1, -1);
+
 		const body = textToHtml(content, COLS, true);
 
-		const html = `<!doctype HTML>
+		const html = `\
+<!doctype HTML>
 <html>
 <head>
 <meta charset="utf-8" />
-<title>micahdb.com - ${name}</title>
-<link rel="stylesheet" href="/raw/index.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${title}</title>
+<meta name="description" content="Micah Baker's software development portfolio." />
+<meta name="author" content="Micah Baker" />
+<meta property="og:title" content="micahdb.com - ${name}" />
+<meta property="og:description" content="Micah Baker's software development portfolio." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://micahdb.com/" />
+<meta property="og:image" content="https://micahdb.com/images/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="/index.css" />
+<link rel="stylesheet" href="/palette.css" />
+<script type="module" src="/index.js"></script>
 </head>
 <body>
+<div id="raw">
 <pre>
 ${body}
 </pre>
+</div>
+<canvas id="webgl" class="hidden"></canvas>
 </body>
 </html>
 `;
 
-		mkdirSync(dirname(out_path), { recursive: true });
-		writeFileSync(out_path, html);
+		mkdirSync(dirname(html_path), { recursive: true });
+		writeFileSync(html_path, html);
 
-		console.log(`generated ${out_path}`);
+		console.log(`generated ${html_path}`);
 	}
 }
 
 function main() {
 	mkdirSync(OUTPUT_DIR, { recursive: true });
-	const css_path = join(OUTPUT_DIR, "index.css");
+	const css_path = join(OUTPUT_DIR, "palette.css");
+
 	writeFileSync(css_path, generateCss());
 	console.log(`generated ${css_path}`);
 

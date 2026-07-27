@@ -65,8 +65,13 @@ export function main() {
 		void load_portrait();
 
 		// actual content
+		let content_str = CONTENT as string;
+		const first_nl = content_str.indexOf("\n");
+		const second_nl = first_nl + 1 + content_str.slice(first_nl + 1, -1).indexOf("\n");
+		content_str = content_str.slice(second_nl + 1, -1);
+
 		const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-		let content = textGlyphs(CONTENT as string, content_cols, true);
+		let content = textGlyphs(content_str, content_cols, true);
 
 		// links
 		const links: Link[] = [];
@@ -162,7 +167,7 @@ export function main() {
 				);
 
 				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-				content = textGlyphs(CONTENT as string, content_cols, true);
+				content = textGlyphs(content_str, content_cols, true);
 			}
 
 			canvas.clear();

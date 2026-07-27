@@ -1,4 +1,5 @@
 import { main } from "./pages/main.ts";
+import { donut } from "./pages/donut.ts";
 import { renderCp437 } from "./cp437.ts";
 
 // cp437.html
@@ -11,5 +12,28 @@ async function render() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	main();
+	const raw = document.getElementById("raw");
+	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
+	const gl = canvas.getContext("webgl2") as WebGL2RenderingContext;
+
+	if (gl) {
+		raw.className = "hidden";
+		canvas.className = "";
+	}
+
+	try {
+		switch (window.location.pathname) {
+			case "/donut.html":
+				donut();
+				break;
+			default:
+				main();
+				break;
+		}
+	} catch (e) {
+		console.log(e);
+
+		raw.className = "";
+		canvas.className = "hidden";
+	}
 }
