@@ -1,221 +1,214 @@
 Micah Baker
 ----
-\F0/*
-\F0 * \F7micahdb.com - \F2Micah Baker\f7's website.
-\F0 *
-\F0 * \a1╔══════╗
-\F0 * Portrait
-\F0 * ║ Here ║
-\F0 * ╚══════╝
-\F0 *   \F7(Me)\F0
-\F0 */\f7
+\F7micahdb.com\f7
+===========
 
+\a1╔══════╗
+Portrait
+║ Here ║
+╚══════╝
 
-1. \a0{Synopsis|#synopsis}Synopsis
-2. \a0{Education|#education}Education
-3. \a0{Experience|#experience}Experience
-4. \a0{Projects|#projects}Projects
+\F7Micah Baker\f7's website.
 
+I am a:		Software Developer
+Based in:	Vancouver, BC, Canada
+Education:	BSc Computing Science
 
-\F0/*
-\F0 * \a9{Synopsis|#synopsis}Synopsis
-\F0 */\f7
-
-	\F0I am a\f7:		\F7Software Developer
-	\F0Based in\f7:	Vancouver, BC, Canada
-	\F0Education\f7:	BSc Computing Science at \a0{SFU|\
-https://www.sfu.ca/fas/computing.html}SFU
-	\F0Previously\f7:	\
-\a0{Open WebUI|https://openwebui.com}Open_WebUI, \
-\a0{Improving|https://improving.com}Improving, \
-\a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
-
-	\F0E-mail\f7:		\a0{<micah_baker@sfu.ca>|\
+E-mail:		\a0{<micah_baker@sfu.ca>|\
 mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
-	\F0GitHub\f7:		\a0{@micahdbak|\
-https://github.com/micahdbak}@micahdbak
-	\F0LinkedIn\f7:	\a0{/in/micahdbak|\
-https://linkedin.com/in/micahdbak}/in/micahdbak
-	\F0Résumé\f7:		\a0{/resume.pdf}/resume.pdf
+GitHub:		\a0{https://github.com/micahdbak}https://github.com/micahdbak
+LinkedIn:	\a0{https://linkedin.com/in/micahdbak}\
+https://linkedin.com/in/micahdbak
+Résumé:		\a0{/resume.pdf}/resume.pdf
 
 
-\F0/*
-\F0 * \a9{Education|#education}Education
-\F0 */\f7
+\F0----\f7
 
-	I'm working towards a \F7Bachelor of Science\f7 in \F7Computing \
-Science\f7 at \a0{Simon Fraser University|\
+
+\a9{Education|#education}Education
+=========
+
+I'm working towards a Bachelor of Science in Computing Science at \
+\a0{Simon Fraser University|\
 https://www.sfu.ca/fas/computing.html}Simon_Fraser_University.
 
-	I've completed coursework in:
+I've completed coursework in:
 
-	- \F7Systems programming\f7 (CMPT 201, 454)
-	- \F7Databases & DBMS implementation\f7 (CMPT 354, 454, 496)
-	- \F7Machine learning\f7 (CMPT 310, 410)
-	- \F7Computer vision\f7 (CMPT 361, 415, 416)
-	- \F7Computer graphics\f7 (CMPT 361)
+\F0*\f7 Systems programming (CMPT 201, 454)
+\F0*\f7 Databases & DBMS implementation (CMPT 354, 454, 496)
+\F0*\f7 Machine learning (CMPT 310, 410)
+\F0*\f7 Computer vision (CMPT 361, 415, 416)
+\F0*\f7 Computer graphics (CMPT 361)
 
-	In addition to regular coursework, I've had the opportunity \
-to participate in research under the supervision of Dr. Lawrence Kim \
-(Tangent Lab) and Dr. Tianzheng Wang (Data-Intensive Systems Lab).
+In addition to regular coursework, I've had the opportunity to participate in \
+research under the supervision of Dr. Lawrence Kim (Tangent Lab) and Dr. \
+Tianzheng Wang (Data-Intensive Systems Lab).
 
 
-	\F0// \a0{Tangent Lab|https://tangent.cs.sfu.ca/}Tangent_Lab\f7
+\a0{Tangent Lab|https://tangent.cs.sfu.ca/}Tangent_Lab
+-----------
 
-	From Fall 2025 (CMPT 415) to Spring 2026 (CMPT 416), I helped build \
-a robotic guide dog at Tangent Lab. \
+From Fall 2025 (CMPT 415) to Spring 2026 (CMPT 416), I helped build a robotic \
+guide dog at Tangent Lab. \
 My contribution was a computer vision system for recognizing motion gestures \
 from a 360-degree camera. \
 See the project listing under \a0{Projects|#projects}Projects - "\F7Gestures \
 for a Robotic Guide Dog\f7" for more details.
 
 
-	\F0// \
 \a0{Data-Intensive Systems (DIS) Lab|https://github.com/sfu-dis}\
-Data-Intensive_Systems_(DIS)_Lab\f7
+Data-Intensive_Systems_(DIS)_Lab
+--------------------------------
 
-	TBD: working on a super-secret project optimizing DBMS development \
-through memory access abstraction.
+TBD: working on a super-secret project optimizing DBMS development through \
+memory access abstraction.
 
 
-\F0/*
-\F0 * \a9{Experience|#experience}Experience
-\F0 */\f7
+\F0----\f7
 
-	\F0// \a0{Open WebUI|https://openwebui.com}Open_WebUI
 
-	\F0What\f7:	Software Developer (\F7Part-time\f7)
-	\F0Where\f7:	Austin, TX, USA (Remote)
-	\F0When\f7:	Jan 2026 - Apr 2026 (\F74 months\f7)
-	\F0Stack\f7:	\F3JavaScript\f7 (Svelte), \f4Python\f7 (FastAPI)
+\a9{Experience|#experience}Experience
+==========
 
-	Maintained and implemented quality-of-life upgrades to a Reddit-like \
+
+\a0{Open WebUI|https://openwebui.com}Open_WebUI
+----------
+
+What:	Software Developer (Part-time)
+Where:	Austin, TX, USA (Remote)
+When:	Jan 2026 - Apr 2026 (4 months)
+Stack:	\F3JavaScript\f7 (Svelte), \f4Python\f7 (FastAPI)
+
+Maintained and implemented quality-of-life upgrades to a Reddit-like \
 community platform with nearly half a million users.
 
-	Led end-to-end development of an email microservice which receives and \
+Led end-to-end development of an email microservice which receives and \
 processes thousands of events from the community platform daily for mailing \
 through AWS Simple Email Service (SES).
 
-	Built a newsletter pipeline to reliably distribute emails with care \
-given to prevent congestion and throttling, as well as gracefully handle \
-errors.
+Built a newsletter pipeline to reliably distribute emails with care given to \
+prevent congestion and throttling, as well as gracefully handle errors.
 
 
-	\F0// \a0{Improving|https://improving.com}Improving
+\a0{Improving|https://improving.com}Improving
+---------
 
-	\F0What\f7:	Software Developer 1 (\F7Internship\f7)
-	\F0Where\f7:	Vancouver, BC, Canada (Hybrid)
-	\F0When\f7:	Sep 2024 - Aug 2025 (\F71 year\f7)
-	\F0Stack\f7:	\f4C++\f7 (CMake, Visual Studio), \f4C#\f7
+What:	Software Developer 1 (Internship)
+Where:	Vancouver, BC, Canada (Hybrid)
+When:	Sep 2024 - Aug 2025 (1 year)
+Stack:	\f4C++\f7 (CMake, Visual Studio), \f4C#\f7
 
-	Contributed 27 pull requests to open-source database connection \
-wrappers, providing client-side support for a variety of AWS Aurora/RDS \
-features.
+Contributed 27 pull requests to open-source database connection wrappers, \
+providing client-side support for a variety of AWS Aurora/RDS features.
 
-	Designed and implemented Aurora Limitless support in \
-\a0{AWS PostgreSQL ODBC|https://github.com/aws/aws-pgsql-odbc}\
-AWS_PostgreSQL_ODBC driver, allowing an application to react to cluster \
-topology changes in milliseconds.
+Designed and implemented Aurora Limitless support in \a0{AWS PostgreSQL ODBC\
+|https://github.com/aws/aws-pgsql-odbc}AWS_PostgreSQL_ODBC driver, allowing an \
+application to react to cluster topology changes in milliseconds.
 
-	Integrated AWS IAM, Secrets Manager, and federated SSO (ADFS, OKTA) \
-as authentication methods for \
-\a0{AWS PostgreSQL ODBC|https://github.com/aws/aws-pgsql-odbc}\
-AWS_PostgreSQL_ODBC driver and \
+Integrated AWS IAM, Secrets Manager, and federated SSO (ADFS, OKTA) as \
+authentication methods for \a0{AWS PostgreSQL ODBC\
+|https://github.com/aws/aws-pgsql-odbc}AWS_PostgreSQL_ODBC driver and \
 \a0{AWS Advanced .NET Data Provider Wrapper|\
 https://github.com/aws/aws-advanced-dotnet-data-provider-wrapper}\
 AWS_Advanced_.NET_Data_Provider_Wrapper.
 
 
-	\F0// \a0{Brave Technology Coop|\
-https://brave.coop}Brave_Technology_Coop
+\a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop
+---------------------
 
-	\F0What\f7:	Firmware and Software Developer (\F7Internship\f7)
-	\F0Where\f7:	Vancouver, BC, Canada (On-site)
-	\F0When\f7:	Sep 2023 - Apr 2024 (\F78 months\f7)
-	\F0Stack\f7:	\F3JavaScript\f7 (Node, Express, React), \f4C++\f7 \
+What:	Firmware and Software Developer (Internship)
+Where:	Vancouver, BC, Canada (On-site)
+When:	Sep 2023 - Apr 2024 (8 months)
+Stack:	\F3JavaScript\f7 (Node, Express, React), \f4C++\f7 \
 (\a0{Particle|https://www.particle.io/}Particle Device OS)
 
-	Built IoT firmware and infrastructure equipped with radar sensors.
+Built IoT firmware and infrastructure equipped with radar sensors.
 
-	Redesigned backend architecture for readability, security, and \
-efficiency.
+Redesigned backend architecture for readability, security, and efficiency.
 
-	Created deployment, monitoring, and CI/CD pipelines across AWS, \
-DigitalOcean, and GitHub Actions.
+Created deployment, monitoring, and CI/CD pipelines across AWS, DigitalOcean, \
+and GitHub Actions.
 
-	Trained incoming development team, ensuring complete and effective \
-knowledge transfer.
+Trained incoming development team, ensuring complete and effective knowledge \
+transfer.
 
 
-\F0/*
-\F0 * \a9{Projects|#projects}Projects
-\F0 */
+\F0----\f7
 
-	\F0// \F7micahdb.com\f7
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/micahdb.com}\
+\a9{Projects|#projects}Projects
+========
+
+micahdb.com
+-----------
+
+Repo:	\a0{https://github.com/micahdbak/micahdb.com}\
 https://github.com/micahdbak/micahdb.com
-	\F0When\f7:	Beginning of Time - Present
-	\F0Stack\f7:	\f4TypeScript\f7, \f3GLSL\f7
+When:	Beginning of Time - Present
+Stack:	\f4TypeScript\f7, \f3GLSL\f7
 
 
-	\F0// \F7Gestures for a Robotic Guide Dog\f7
+Gestures for a Robotic Guide Dog
+--------------------------------
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/isaac_ros_gestures}\
+Repo:	\a0{https://github.com/micahdbak/isaac_ros_gestures}\
 https://github.com/micahdbak/isaac_ros_gestures
-	\F0When\f7:	2025 Sep - 2026 Apr
-	\F0Stack\f7:	\f4Python\f7
+When:	2025 Sep - 2026 Apr
+Stack:	\f4Python\f7
 
-	Computer vision system for recognizing motion gestures within a \
-robotic guide dog platform. \
+Computer vision system for recognizing motion gestures within a robotic guide \
+dog platform. \
 Gestures are recognized using an online model for personalized interaction.
 
 
-	\F0// \F7Cheddar and Feta\f7
+Cheddar and Feta
+----------------
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/cheddar-and-feta}\
+Repo:	\a0{https://github.com/micahdbak/cheddar-and-feta}\
 https://github.com/micahdbak/cheddar-and-feta
-	\F0When\f7:	2025 Jan - 2026 Feb
-	\F0Stack\f7:	\f5C++\f7
-	\F0Links\f7:	\a0{Steam Page|\
+When:	2025 Jan - 2026 Feb
+Stack:	\f5C++\f7
+Links:	\a0{Steam Page|\
 https://store.steampowered.com/app/4266860/Cheddar_and_Feta/}Steam_Page
 
-	A short two-player cooperative adventure where you must save Cheddar \
-and Feta from the perils of a militarized fire ant colony, published to Steam.
+A short two-player cooperative adventure where you must save Cheddar and Feta \
+from the perils of a militarized fire ant colony, published to Steam.
 
-	Both game and engine built from the ground up in C++ using \a0{SDL3|\
+Both game and engine built from the ground up in C++ using \a0{SDL3|\
 https://libsdl.org/}SDL3 for cross-platform windowing and graphics support \
 and \a0{libdatachannel|https://libdatachannel.org/}libdatachannel for WebRTC \
 networking.
 
-	\F2Blog post coming soon\f7!
+\F2Blog post coming soon\f7!
 
 
-	\F0// \F7Gleebleglob\f7
+Gleebleglob
+-----------
 
-	\F0Repo\f7:	\a0{https://github.com/Vixlump/GG}\
+Repo:	\a0{https://github.com/Vixlump/GG}\
 https://github.com/Vixlump/GG
-	\F0When\f7:	2024 May - 2024 June
-	\F0Stack\f7:	\f5C++\f7
-	\F0Links\f7:	\a0{Archived Website|\
+When:	2024 May - 2024 June
+Stack:	\f5C++\f7
+Links:	\a0{Archived Website|\
 https://web.archive.org/web/20250315161759/http://gleebleglob.club/}\
 Archived_Website
 
-	Video streaming service on your terminal written in C++. \
+Video streaming service on your terminal written in C++. \
 MP4 videos are decoded by \a0{FFmpeg|https://www.ffmpeg.org/}FFmpeg, \
 and displayed in ASCII. \
 Video storage and authentication facilitated by remote server.
 
 
-	\F0// \F7droppr\f7
+droppr
+------
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/droppr}\
+Repo:	\a0{https://github.com/micahdbak/droppr}\
 https://github.com/micahdbak/droppr
-	\F0When\f7:	2024 Mar - 2025 Jun
-	\F0Stack\f7:	\F3JavaScript\f7, \f4Go\f7
-	\F0Links\f7:	\a0{Website|https://droppr.net}Website
+When:	2024 Mar - 2025 Jun
+Stack:	\F3JavaScript\f7, \f4Go\f7
+Links:	\a0{Website|https://droppr.net}Website
 
-	Send files over the internet using the peer-to-peer \a0{WebRTC API|\
+Send files over the internet using the peer-to-peer \a0{WebRTC API|\
 https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API}WebRTC_API. \
 Large files are chunked into blobs and stored in the \a0{IndexedDB API|\
 https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API}IndexedDB_API \
@@ -223,48 +216,51 @@ for fast retrieval and recovery of failed packets. \
 Signal channel written in Go uses six-letter codes for peer discovery.
 
 
-	\F0// \F7PacMacro\f7
+PacMacro
+--------
 
-	\F0Repo\f7:	\a0{https://github.com/CSSS/pacmacro2}\
+Repo:	\a0{https://github.com/CSSS/pacmacro2}\
 https://github.com/CSSS/pacmacro2
-	\F0When\f7:	2023 Jun - 2023 Sep
-	\F0Stack\f7:	\F3JavaScript\f7, \f4Go\f7
+When:	2023 Jun - 2023 Sep
+Stack:	\F3JavaScript\f7, \f4Go\f7
 
-	PacMan played in real life with a mobile web application. \
+PacMan played in real life with a mobile web application. \
 Uses \a0{Geolocation API|\
 https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API}\
 Geolocation_API to track player locations. \
 Synchronizes players with a WebSocket server written in Go.
 
-	Built during my role as \F7Frosh Co-Chair\f7 of the SFU Computing \
+Built during my role as \F7Frosh Co-Chair\f7 of the SFU Computing \
 Science Student Society in 2023 and 2024, where PacMacro was enjoyed by \
 up to 20 consecutive players at a time.
 
 
-	\F0// \F7Yell\f7
+Yell
+----
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/yell}\
+Repo:	\a0{https://github.com/micahdbak/yell}\
 https://github.com/micahdbak/yell
-	\F0When\f7:	2023 Feb - 2023 Apr
-	\F0Stack\f7:	\f4C\f7
+When:	2023 Feb - 2023 Apr
+Stack:	\f4C\f7
 
-	C library for P2P applications and example chat program. \
+C library for P2P applications and example chat program. \
 Built using BSD sockets for POSIX-compliant systems.
 
 
-	\F0// \F7Exeirus\f7
+Exeirus
+-------
 
-	\F0Repo\f7:	\a0{https://github.com/micahdbak/exeirus}\
+Repo:	\a0{https://github.com/micahdbak/exeirus}\
 https://github.com/micahdbak/exeirus
-	\F0When\f7:	2022 Dec - 2023 Feb
-	\F0Stack\f7:	\F3JavaScript\f7, \f4Python\f7
+When:	2022 Dec - 2023 Feb
+Stack:	\F3JavaScript\f7, \f4Python\f7
 
-	An ARG where players compete by solving cryptographic puzzles.
-
-
-\F0...
+An ARG where players compete by solving cryptographic puzzles.
 
 
-(You reached the end. Good job!)
+\F0----\f7
 
-(You can go back to the \a0{top|#top}top, if you'd like.)
+
+You reached the end. Good job!
+
+You can go back to the \a0{top|#top}top, if you'd like.

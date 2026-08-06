@@ -1,7 +1,7 @@
 import { Colour } from "./colour.ts";
 import { charCodeInCp437 } from "./cp437.ts";
 
-export const TAB_WIDTH = 4;
+export const TAB_WIDTH = 8;
 
 function finalSpaceIdx(text: string, start: number): number {
 	// skip remaining white space

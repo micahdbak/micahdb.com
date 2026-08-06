@@ -105,7 +105,7 @@ export function main() {
 
 		// top button
 
-		const to_top = new Link(terminal, " [ ↑ ] ", "#top");
+		const to_top = new Link(terminal, " [ Go to Top ] ", "#top");
 
 		// main draw loop
 
@@ -132,7 +132,7 @@ export function main() {
 			const i = sections.findIndex((section) => section.hash === hash);
 
 			if (i >= 0) {
-				pager.scrollToRow(BANNER_ROWS + content.anchors[9][i].row - 3, total_rows);
+				pager.scrollToRow(BANNER_ROWS + content.anchors[9][i].row - 1, total_rows);
 			}
 		}
 

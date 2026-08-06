@@ -88,6 +88,10 @@ Glyph getGlyph(int dim, float lum) {
 
 	int fgs[2] = int[](dim, dim + 8);
 
+	if (dim == 7) {
+		fgs = int[](8, 15);
+	}
+
 	int layer = clamp(int(lum * 2.0), 0, 2);
 
 	Glyph glyph;

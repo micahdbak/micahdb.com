@@ -36,7 +36,7 @@ void main() {
 	vec3 L = normalize(v_light - v_position);
 	vec3 V = normalize(-v_position);
 	vec3 H = normalize(L + V);
-	float spec = lam * pow(max(dot(normal, H), 0.0), shininess);
+	float spec = pow(max(dot(normal, H), 0.0), shininess);
 
-	frag_colour = vec4((amb + lam + spec) * col, 1.0);
+	frag_colour = vec4((amb + lam) * col + spec, 1.0);
 }

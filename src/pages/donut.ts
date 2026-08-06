@@ -21,7 +21,7 @@ export function donut() {
 		const visuals = new TorusVisuals(canvas);
 		void visuals.init();
 
-		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.BG_GLYPHS);
 		visuals.resize(canvas.rows, canvas.cols);
 
 		// main draw loop
@@ -45,7 +45,7 @@ export function donut() {
 			if (resized) {
 				resized = false;
 
-				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.BG_GLYPHS);
 				visuals.resize(canvas.rows, canvas.cols);
 			}
 
