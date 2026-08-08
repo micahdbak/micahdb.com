@@ -1,5 +1,4 @@
-import { Glyphs, textGlyphs } from "@/glyphs.ts";
-import { Terminal } from "@/terminal.ts";
+import { Glyphs, textGlyphs, Terminal } from "@creat/tscon";
 
 enum SectionState {
 	NOT_HOVERED = 1,

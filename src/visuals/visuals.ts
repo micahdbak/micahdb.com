@@ -1,5 +1,4 @@
-import { Canvas } from "@/canvas.ts";
-import { Mat4 } from "@/math.ts";
+import { Canvas, Mat4 } from "@creat/tscon";
 
 export abstract class Visuals {
 	// width/height of framebuffer object

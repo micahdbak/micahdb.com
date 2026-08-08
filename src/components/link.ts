@@ -1,6 +1,4 @@
-import { Glyphs, textGlyphs } from "@/glyphs.ts";
-import { Terminal } from "@/terminal.ts";
-import { Colour } from "@/colour.ts";
+import { Glyphs, textGlyphs, Terminal, Colour } from "@creat/tscon";
 
 export class Link {
 	private terminal: Terminal;

@@ -28,5 +28,8 @@
     "format": "prettier --write src",
     "deploy": "bun run build && gh-pages -d build"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@creat/tscon": "npm:@jsr/creat__tscon"
+  }
 }

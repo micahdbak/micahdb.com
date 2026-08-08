@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "micahdb.com",
+      "dependencies": {
+        "@creat/tscon": "npm:@jsr/creat__tscon",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "eslint": "^10.4.1",
@@ -19,6 +22,8 @@
     },
   },
   "packages": {
+    "@creat/tscon": ["@jsr/creat__tscon@0.1.1", "https://npm.jsr.io/~/11/@jsr/creat__tscon/0.1.1.tgz", {}, "sha512-XM1G/Dj1UfeZ1Iddu4hxBYmPzGokbu+cVqgTnxJO0Br7jwv9b/bEIbyuu6ASuiwiu5/4TnoZDCdkxp3qn8lW4A=="],
+
     "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.9.1", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ=="],
 
     "@eslint-community/regexpp": ["@eslint-community/regexpp@4.12.2", "", {}, "sha512-EriSTlt5OC9/7SXkRSCAhfSxxoSUgBm33OH+IkwbdpgoqsSsUg7y3uh+IICI/Qg4BBWr3U2i39RpmycbxMq4ew=="],

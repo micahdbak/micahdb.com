@@ -1,5 +1,4 @@
-import { Terminal } from "@/terminal.ts";
-import { Glyphs, textGlyphs } from "@/glyphs.ts";
+import { Terminal, Glyphs, textGlyphs } from "@creat/tscon";
 
 export class Pager {
 	private static readonly NAME = "pager"; // for mouse_owner

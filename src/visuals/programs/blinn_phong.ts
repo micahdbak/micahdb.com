@@ -1,8 +1,7 @@
 import VERTEX_SHADER from "@/shaders/blinn_phong.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/blinn_phong.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "@/shader.ts";
-import { Mat4 } from "@/math.ts";
+import { compileProgram, getAttribLocations, getUniformLocations, Mat4 } from "@creat/tscon";
 import { TriangleMesh } from "@/visuals/meshes/mesh.ts";
 
 import { Program } from "./program.ts";

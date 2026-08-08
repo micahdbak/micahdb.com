@@ -1,8 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 
-import { Colour, PALETTE } from "./colour.ts";
-import { textToLines, TAB_WIDTH } from "./glyphs.ts";
+import { Colour, PALETTE, textToLines, TAB_WIDTH } from "@creat/tscon";
 
 const CONTENT_DIR = "src/pages/content";
 const OUTPUT_DIR = "build";

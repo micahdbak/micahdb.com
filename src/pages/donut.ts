@@ -1,10 +1,6 @@
-import { Canvas } from "@/canvas.ts";
-import { Terminal } from "@/terminal.ts";
-import { Renderer } from "@/renderer.ts";
+import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs } from "@creat/tscon";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
-
-import { TexGlyphMode, textureGlyphs } from "@/glyphs.ts";
 
 export function donut() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;

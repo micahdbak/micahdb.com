@@ -1,6 +1,4 @@
-import { Canvas } from "@/canvas.ts";
-import { loadTexture } from "@/texture.ts";
-import { Mat4 } from "@/math.ts";
+import { Canvas, loadTexture, Mat4 } from "@creat/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { torusMesh } from "./meshes/torus.ts";

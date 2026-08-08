@@ -1,13 +1,15 @@
-import { Canvas } from "@/canvas.ts";
-import { Terminal } from "@/terminal.ts";
-import { Renderer } from "@/renderer.ts";
+import {
+	Canvas,
+	Terminal,
+	Renderer,
+	Anchor,
+	textGlyphs,
+	TexGlyphMode,
+	textureGlyphs,
+	loadTexture
+} from "@creat/tscon";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
-
-import { Anchor, textGlyphs } from "@/glyphs.ts";
-import { TexGlyphMode, textureGlyphs } from "@/glyphs.ts";
-
-import { loadTexture } from "@/texture.ts";
 
 import { Pager } from "@/components/pager.ts";
 import { Link } from "@/components/link.ts";
