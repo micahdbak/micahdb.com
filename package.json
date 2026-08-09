@@ -1,35 +1,30 @@
 {
   "name": "micahdb.com",
+  "private": true,
+  "type": "module",
   "module": "src/index.ts",
+  "scripts": {
+    "build:public": "mkdir -p build && cp -r ./public/* ./build",
+    "build:html": "bun run src/generate.ts",
+    "build": "bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
+    "dev": "bun run build:public && bun run build:html && bun build ./src/index.ts --outdir ./build --watch",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "deploy": "bun run build && gh-pages -d build"
+  },
+  "dependencies": {
+    "@creat/tscon": "npm:@jsr/creat__tscon@^0.1.1"
+  },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "^1.3.14",
     "eslint": "^10.4.1",
     "gh-pages": "^6.3.0",
     "globals": "^17.6.0",
     "jiti": "^2.7.0",
     "prettier": "^3.8.3",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.60.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5.9.3"
-  },
-  "prettier": {
-    "useTabs": true,
-    "trailingComma": "none",
-    "printWidth": 100
-  },
-  "private": true,
-  "scripts": {
-    "copy-public": "mkdir -p build && cp -r ./public/* ./build",
-    "build-html": "bun run src/generate.ts",
-    "build": "bun run copy-public && bun run build-html && bun build ./src/index.ts --minify --outdir ./build",
-    "dev": "bun run copy-public && bun run build-html && bun build ./src/index.ts --outdir ./build --watch",
-    "lint": "eslint src",
-    "format": "prettier --write src",
-    "deploy": "bun run build && gh-pages -d build"
-  },
-  "type": "module",
-  "dependencies": {
-    "@creat/tscon": "npm:@jsr/creat__tscon"
   }
 }
