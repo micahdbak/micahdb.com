@@ -36,6 +36,15 @@ export function main() {
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
 
+		// font
+
+		let font: WebGLTexture | null = null;
+
+		const load_font = async () => {
+			font = await loadTexture(canvas.gl, "/images/font.png");
+		};
+		void load_font();
+
 		// visuals
 
 		const visuals = new TorusVisuals(canvas);
@@ -170,6 +179,12 @@ export function main() {
 
 				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
 				content = textGlyphs(content_str, content_cols, true);
+			}
+
+			if (font !== null && canvas.user_font === null) {
+				canvas.user_font = font;
+				terminal.use_user_font = true;
+				renderer.use_user_font = true;
 			}
 
 			canvas.clear();

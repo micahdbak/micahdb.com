@@ -5,7 +5,7 @@
     "": {
       "name": "micahdb.com",
       "dependencies": {
-        "@creat/tscon": "npm:@jsr/creat__tscon@^0.1.1",
+        "@creat/tscon": "npm:@jsr/creat__tscon@^0.1.2",
       },
       "devDependencies": {
         "@types/bun": "^1.3.14",
@@ -20,7 +20,7 @@
     },
   },
   "packages": {
-    "@creat/tscon": ["@jsr/creat__tscon@0.1.1", "https://npm.jsr.io/~/11/@jsr/creat__tscon/0.1.1.tgz", {}, "sha512-XM1G/Dj1UfeZ1Iddu4hxBYmPzGokbu+cVqgTnxJO0Br7jwv9b/bEIbyuu6ASuiwiu5/4TnoZDCdkxp3qn8lW4A=="],
+    "@creat/tscon": ["@jsr/creat__tscon@0.1.3", "https://npm.jsr.io/~/11/@jsr/creat__tscon/0.1.3.tgz", {}, "sha512-+aqDkfWvH7w4c16pN6xnaKjZibGULCYH2xtzR1j37bQ5iWzPnHYvOpDHzN9+pNzpkgXiWoYTJGyQyuieG/B/Ew=="],
 
     "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.9.1", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ=="],
 
