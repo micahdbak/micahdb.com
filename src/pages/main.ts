@@ -14,17 +14,12 @@ import { TorusVisuals } from "@/visuals/torus.ts";
 import { Pager } from "@/components/pager.ts";
 import { Link } from "@/components/link.ts";
 import { Section } from "@/components/section.ts";
-import { makeBanner } from "@/components/banner.ts";
 
 import CONTENT from "./content/INDEX" with { type: "text" };
 
-const PADDING_ROWS = 2;
-const PADDING_COLS = 4;
-
-const BANNER_ROW = PADDING_ROWS;
-const BANNER_ROWS = 1 + PADDING_ROWS * 2;
-
-const TRAILING_ROWS = PADDING_ROWS * 2;
+const PADDING_ROWS = 1;
+const PADDING_COLS = 2;
+const TRAILING_ROWS = 4;
 
 export function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
@@ -58,13 +53,6 @@ export function main() {
 		const pager = new Pager(terminal);
 
 		// content
-
-		// banner
-		let banner = textGlyphs(
-			makeBanner("INDEX", "micahdb.com", canvas.cols - PADDING_COLS * 2),
-			canvas.cols - PADDING_COLS * 2,
-			false
-		);
 
 		// portrait
 		let portrait: WebGLTexture | null = null;
@@ -132,7 +120,7 @@ export function main() {
 				return;
 			}
 
-			const total_rows = BANNER_ROWS + content.rows + TRAILING_ROWS;
+			const total_rows = content.rows + TRAILING_ROWS;
 
 			if (hash === "#top") {
 				pager.scrollToRow(0, total_rows);
@@ -143,7 +131,7 @@ export function main() {
 			const i = sections.findIndex((section) => section.hash === hash);
 
 			if (i >= 0) {
-				pager.scrollToRow(BANNER_ROWS + content.anchors[9][i].row - 1, total_rows);
+				pager.scrollToRow(content.anchors[9][i].row - PADDING_ROWS, total_rows);
 			}
 		}
 
@@ -171,12 +159,6 @@ export function main() {
 				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
 				visuals.resize(canvas.rows, canvas.cols);
 
-				banner = textGlyphs(
-					makeBanner("INDEX", "micahdb.com", canvas.cols - PADDING_COLS * 2),
-					canvas.cols - PADDING_COLS * 2,
-					false
-				);
-
 				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
 				content = textGlyphs(content_str, content_cols, true);
 			}
@@ -203,25 +185,17 @@ export function main() {
 
 			terminal.clear();
 
-			const total_rows = BANNER_ROWS + content.rows + TRAILING_ROWS;
+			const total_rows = content.rows + TRAILING_ROWS;
 
 			pager.update(total_rows);
 
-			const content_row = BANNER_ROWS - pager.row;
+			const content_row = -pager.row;
 			const content_col = PADDING_COLS;
-			const content_rows = Math.min(canvas.rows, content.rows + BANNER_ROWS - pager.row);
-
-			// banner
-
-			terminal.blit(
-				banner,
-				{ row: 0, col: 0, rows: 1, cols: banner.cols },
-				{ row: BANNER_ROW - pager.row, col: PADDING_COLS, rows: 1, cols: banner.cols }
-			);
+			const content_rows = Math.min(canvas.rows, content.rows - pager.row);
 
 			terminal.blit(
 				content,
-				{ row: pager.row - BANNER_ROWS, col: 0, rows: content_rows, cols: content.cols },
+				{ row: pager.row, col: 0, rows: content_rows, cols: content.cols },
 				{ row: 0, col: content_col, rows: content_rows, cols: content.cols }
 			);
 
@@ -234,7 +208,7 @@ export function main() {
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 
-				if (anchor_row < 0 || anchor_row >= canvas.rows - 1) {
+				if (anchor_row < PADDING_ROWS || anchor_row >= canvas.rows - PADDING_ROWS) {
 					continue;
 				}
 
