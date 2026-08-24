@@ -22,15 +22,16 @@
 <body>
 <div id="raw">
 <pre>
-micahdb.com<span class="f7">
-===========
+
+micahdb.com
+<span class="f8">===========</span>
 
 ╔══════╗
 Portrait
 ║ Here ║
 ╚══════╝
 
-</span>Micah Baker<span class="f7">'s website.
+<span class="f11">Micah Baker</span>'s website.
 
 I am a:         Software Developer
 Based in:       Vancouver, BC, Canada
@@ -42,22 +43,19 @@ LinkedIn:       <a href="https://linkedin.com/in/micahdbak" class="f12">https://
 Résumé:         <a href="/resume.pdf" class="f12">/resume.pdf</a>
 
 
-</span><span class="f8">----</span><span class="f7">
-
-
 <span id="education" class="f15">Education</span>
-=========
+<span class="f8">=========</span>
 
 I'm working towards a Bachelor of Science in Computing Science at
 <a href="https://www.sfu.ca/fas/computing.html" class="f12">Simon Fraser University</a>.
 
 I've completed coursework in:
 
-</span><span class="f8">*</span><span class="f7"> Systems programming (CMPT 201, 454)
-</span><span class="f8">*</span><span class="f7"> Databases &amp; DBMS implementation (CMPT 354, 454, 496)
-</span><span class="f8">*</span><span class="f7"> Machine learning (CMPT 310, 410)
-</span><span class="f8">*</span><span class="f7"> Computer vision (CMPT 361, 415, 416)
-</span><span class="f8">*</span><span class="f7"> Computer graphics (CMPT 361)
+<span class="f8">*</span> Systems programming (CMPT 201, 454)
+<span class="f8">*</span> Databases &amp; DBMS implementation (CMPT 354, 454, 496)
+<span class="f8">*</span> Machine learning (CMPT 310, 410)
+<span class="f8">*</span> Computer vision (CMPT 361, 415, 416)
+<span class="f8">*</span> Computer graphics (CMPT 361)
 
 In addition to regular coursework, I've had the opportunity to participate in
 research under the supervision of Dr. Lawrence Kim (Tangent Lab) and Dr.
@@ -65,105 +63,121 @@ Tianzheng Wang (Data-Intensive Systems Lab).
 
 
 <a href="https://tangent.cs.sfu.ca/" class="f12">Tangent Lab</a>
------------
+<span class="f8">-----------</span>
 
 From Fall 2025 (CMPT 415) to Spring 2026 (CMPT 416), I helped build a robotic
-guide dog at Tangent Lab. My contribution was a computer vision system for
-recognizing motion gestures from a 360-degree camera. See the project listing
-under <a href="#projects" class="f12">Projects</a> - "</span>Gestures for a Robotic Guide Dog<span class="f7">" for more details.
+guide dog at Tangent Lab.
+
+My contribution was a computer vision system for recognizing motion gestures
+from a 360-degree camera. See the project listing under <a href="#projects" class="f12">Projects</a>--"Gestures for
+a Robotic Guide Dog"--for more details.
 
 
 <a href="https://github.com/sfu-dis" class="f12">Data-Intensive Systems (DIS) Lab</a>
---------------------------------
+<span class="f8">--------------------------------</span>
 
 TBD: working on a super-secret project optimizing DBMS development through
 memory access abstraction.
 
 
-</span><span class="f8">----</span><span class="f7">
-
-
 <span id="experience" class="f15">Experience</span>
-==========
-
+<span class="f8">==========</span>
 
 <a href="https://openwebui.com" class="f12">Open WebUI</a>
-----------
+<span class="f8">----------</span>
 
 What:   Software Developer (Part-time)
 Where:  Austin, TX, USA (Remote)
 When:   Jan 2026 - Apr 2026 (4 months)
-Stack:  </span><span class="f11">JavaScript</span><span class="f7"> (Svelte), </span><span class="f4">Python</span><span class="f7"> (FastAPI)
+Stack:  <span class="f11">JavaScript</span> (Svelte), <span class="f4">Python</span> (FastAPI)
 
-Maintained and implemented quality-of-life upgrades to a Reddit-like community
-platform with nearly half a million users.
+Maintained and implemented quality-of-life improvements to a Reddit-like
+community platform with nearly half a million users.
 
-Led end-to-end development of an email microservice which receives and processes
-thousands of events from the community platform daily for mailing through AWS
+Led end-to-end development of an email microservice that receives and processes
+thousands of events from the community platform daily for delivery through AWS
 Simple Email Service (SES).
 
-Built a newsletter pipeline to reliably distribute emails with care given to
-prevent congestion and throttling, as well as gracefully handle errors.
+Engineered a newsletter pipeline to reliably distribute emails with care given
+to prevent congestion and throttling, as well as gracefully handle errors.
 
 
 <a href="https://improving.com" class="f12">Improving</a>
----------
+<span class="f8">---------</span>
 
 What:   Software Developer 1 (Internship)
 Where:  Vancouver, BC, Canada (Hybrid)
 When:   Sep 2024 - Aug 2025 (1 year)
-Stack:  </span><span class="f4">C++</span><span class="f7"> (CMake, Visual Studio), </span><span class="f4">C#</span><span class="f7">
+Stack:  <span class="f4">C++</span> (CMake, Visual Studio), <span class="f4">C#</span>
 
-Contributed 27 pull requests to open-source database connection wrappers,
-providing client-side support for a variety of AWS Aurora/RDS features.
+Designed and implemented Aurora Limitless support in the <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a>
+driver, allowing applications to react to cluster topology changes within
+seconds rather than relying on DNS-based failover.
 
-Designed and implemented Aurora Limitless support in <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver,
-allowing an application to react to cluster topology changes in milliseconds.
-
-Integrated AWS IAM, Secrets Manager, and federated SSO (ADFS, OKTA) as
-authentication methods for <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver and
+Integrated AWS IAM, Secrets Manager, and federated SSO (AD FS, Okta)
+authentication into the <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver and
 <a href="https://github.com/aws/aws-advanced-dotnet-data-provider-wrapper" class="f12">AWS Advanced .NET Data Provider Wrapper</a>.
+
+Diagnosed and resolved complex database-driver issues involving authentication
+retry semantics, provider-specific exception handling, and connection lifecycle.
+
+Established integration-test infrastructure for database drivers covering
+Limitless host routing, authentication, Unicode/ANSI compatibility, and
+cross-platform execution on Windows and macOS.
 
 
 <a href="https://brave.coop" class="f12">Brave Technology Coop</a>
----------------------
+<span class="f8">---------------------</span>
 
 What:   Firmware and Software Developer (Internship)
 Where:  Vancouver, BC, Canada (On-site)
 When:   Sep 2023 - Apr 2024 (8 months)
-Stack:  </span><span class="f11">JavaScript</span><span class="f7"> (Node, Express, React), </span><span class="f4">C++</span><span class="f7"> (<a href="https://www.particle.io/" class="f12">Particle</a> Device OS)
+Stack:  <span class="f11">JavaScript</span> (Node, Express, React), <span class="f4">C++</span> (<a href="https://www.particle.io/" class="f12">Particle</a> Device OS)
 
-Built IoT firmware and infrastructure equipped with radar sensors.
+Implemented a unified Google authentication library used by multiple internal
+services and APIs, increasing maintainability and hardening security.
 
-Redesigned backend architecture for readability, security, and efficiency.
+Developed shared application and database architecture across multiple IoT
+products, extracting common models and functionality into reusable libraries.
 
-Created deployment, monitoring, and CI/CD pipelines across AWS, DigitalOcean,
-and GitHub Actions.
+Built comprehensive testing and CI infrastructure across multiple platforms,
+improving test coverage and deployment confidence.
 
-Trained incoming development team, ensuring complete and effective knowledge
-transfer.
-
-
-</span><span class="f8">----</span><span class="f7">
+Wrote comprehensive deployment and codebase documentation across multiple
+repositories, supporting developer onboarding.
 
 
 <span id="projects" class="f15">Projects</span>
-========
+<span class="f8">========</span>
 
 micahdb.com
------------
+<span class="f8">-----------</span>
 
 Repo:   <a href="https://github.com/micahdbak/micahdb.com" class="f12">https://github.com/micahdbak/micahdb.com</a>
 When:   Beginning of Time - Present
-Stack:  </span><span class="f4">TypeScript</span><span class="f7">, </span><span class="f3">GLSL</span><span class="f7">
+Stack:  <span class="f4">TypeScript</span>, <span class="f3">GLSL</span>
+
+My portfolio, which acts as a digital resume.
+
+
+tscon
+<span class="f8">-----</span>
+
+Repo:   <a href="https://github.com/micahdbak/tscon" class="f12">https://github.com/micahdbak/tscon</a>
+When:   2026 Apr - Present
+Stack:  <span class="f4">TypeScript</span>, <span class="f3">GLSL</span>
+
+A WebGL2 text-mode graphics library written in TypeScript. Supports user fonts,
+ASCII-art rendering of user textures (such as the donut you are seeing!), all
+with zero dependencies allowing for smaller bundles.
 
 
 Gestures for a Robotic Guide Dog
---------------------------------
+<span class="f8">--------------------------------</span>
 
 Repo:   <a href="https://github.com/micahdbak/isaac_ros_gestures" class="f12">https://github.com/micahdbak/isaac_ros_gestures</a>
 When:   2025 Sep - 2026 Apr
-Stack:  </span><span class="f4">Python</span><span class="f7">
+Stack:  <span class="f4">Python</span>
 
 Computer vision system for recognizing motion gestures within a robotic guide
 dog platform. Gestures are recognized using an online model for personalized
@@ -171,11 +185,11 @@ interaction.
 
 
 Cheddar and Feta
-----------------
+<span class="f8">----------------</span>
 
 Repo:   <a href="https://github.com/micahdbak/cheddar-and-feta" class="f12">https://github.com/micahdbak/cheddar-and-feta</a>
 When:   2025 Jan - 2026 Feb
-Stack:  </span><span class="f5">C++</span><span class="f7">
+Stack:  <span class="f5">C++</span>
 Links:  <a href="https://store.steampowered.com/app/4266860/Cheddar_and_Feta/" class="f12">Steam Page</a>
 
 A short two-player cooperative adventure where you must save Cheddar and Feta
@@ -185,15 +199,13 @@ Both game and engine built from the ground up in C++ using <a href="https://libs
 cross-platform windowing and graphics support and <a href="https://libdatachannel.org/" class="f12">libdatachannel</a> for WebRTC
 networking.
 
-</span><span class="f10">Blog post coming soon</span><span class="f7">!
-
 
 Gleebleglob
------------
+<span class="f8">-----------</span>
 
 Repo:   <a href="https://github.com/Vixlump/GG" class="f12">https://github.com/Vixlump/GG</a>
 When:   2024 May - 2024 June
-Stack:  </span><span class="f5">C++</span><span class="f7">
+Stack:  <span class="f5">C++</span>
 Links:  <a href="https://web.archive.org/web/20250315161759/http://gleebleglob.club/" class="f12">Archived Website</a>
 
 Video streaming service on your terminal written in C++. MP4 videos are decoded
@@ -202,11 +214,11 @@ by remote server.
 
 
 droppr
-------
+<span class="f8">------</span>
 
 Repo:   <a href="https://github.com/micahdbak/droppr" class="f12">https://github.com/micahdbak/droppr</a>
 When:   2024 Mar - 2025 Jun
-Stack:  </span><span class="f11">JavaScript</span><span class="f7">, </span><span class="f4">Go</span><span class="f7">
+Stack:  <span class="f11">JavaScript</span>, <span class="f4">Go</span>
 Links:  <a href="https://droppr.net" class="f12">Website</a>
 
 Send files over the internet using the peer-to-peer <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API" class="f12">WebRTC API</a>. Large files are
@@ -216,46 +228,43 @@ for peer discovery.
 
 
 PacMacro
---------
+<span class="f8">--------</span>
 
 Repo:   <a href="https://github.com/CSSS/pacmacro2" class="f12">https://github.com/CSSS/pacmacro2</a>
 When:   2023 Jun - 2023 Sep
-Stack:  </span><span class="f11">JavaScript</span><span class="f7">, </span><span class="f4">Go</span><span class="f7">
+Stack:  <span class="f11">JavaScript</span>, <span class="f4">Go</span>
 
 PacMan played in real life with a mobile web application. Uses <a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API" class="f12">Geolocation API</a>
 to track player locations. Synchronizes players with a WebSocket server written
 in Go.
 
-Built during my role as </span>Frosh Co-Chair<span class="f7"> of the SFU Computing Science Student
+Built during my role as Frosh Co-Chair of the SFU Computing Science Student
 Society in 2023 and 2024, where PacMacro was enjoyed by up to 20 consecutive
 players at a time.
 
 
 Yell
-----
+<span class="f8">----</span>
 
 Repo:   <a href="https://github.com/micahdbak/yell" class="f12">https://github.com/micahdbak/yell</a>
 When:   2023 Feb - 2023 Apr
-Stack:  </span><span class="f4">C</span><span class="f7">
+Stack:  <span class="f4">C</span>
 
 C library for P2P applications and example chat program. Built using BSD sockets
 for POSIX-compliant systems.
 
 
 Exeirus
--------
+<span class="f8">-------</span>
 
 Repo:   <a href="https://github.com/micahdbak/exeirus" class="f12">https://github.com/micahdbak/exeirus</a>
 When:   2022 Dec - 2023 Feb
-Stack:  </span><span class="f11">JavaScript</span><span class="f7">, </span><span class="f4">Python</span><span class="f7">
+Stack:  <span class="f11">JavaScript</span>, <span class="f4">Python</span>
 
 An ARG where players compete by solving cryptographic puzzles.
 
 
-</span><span class="f8">----</span><span class="f7">
-
-
-You reached the end. Good job!
+<span class="f7">You reached the end. Good job!
 
 You can go back to the <a href="#top" class="f12">top</a>, if you'd like.</span>
 </pre>
