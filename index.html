@@ -40,7 +40,6 @@ Education:      BSc Computing Science
 E-mail:         <a href="mailto:micah_baker@sfu.ca" class="f12">&lt;micah_baker@sfu.ca&gt;</a>
 GitHub:         <a href="https://github.com/micahdbak" class="f12">https://github.com/micahdbak</a>
 LinkedIn:       <a href="https://linkedin.com/in/micahdbak" class="f12">https://linkedin.com/in/micahdbak</a>
-Résumé:         <a href="/resume.pdf" class="f12">/resume.pdf</a>
 
 
 <span id="education" class="f15">Education</span>
@@ -91,15 +90,14 @@ Where:  Austin, TX, USA (Remote)
 When:   Jan 2026 - Apr 2026 (4 months)
 Stack:  <span class="f11">JavaScript</span> (Svelte), <span class="f4">Python</span> (FastAPI)
 
-Maintained and implemented quality-of-life improvements to a Reddit-like
-community platform with nearly half a million users.
+Led end-to-end development of an email microservice that processes thousands of
+events daily for delivery through AWS Simple Email Service (SES).
 
-Led end-to-end development of an email microservice that receives and processes
-thousands of events from the community platform daily for delivery through AWS
-Simple Email Service (SES).
+Built a newsletter pipeline to reliably distribute emails to subscribers using
+Celery and Redis.
 
-Engineered a newsletter pipeline to reliably distribute emails with care given
-to prevent congestion and throttling, as well as gracefully handle errors.
+Implemented quality-of-life improvements to a Reddit-like community platform
+built with Svelte and FastAPI.
 
 
 <a href="https://improving.com" class="f12">Improving</a>
@@ -110,18 +108,16 @@ Where:  Vancouver, BC, Canada (Hybrid)
 When:   Sep 2024 - Aug 2025 (1 year)
 Stack:  <span class="f4">C++</span> (CMake, Visual Studio), <span class="f4">C#</span>
 
-Designed and implemented Aurora Limitless support in the <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a>
-driver, allowing applications to react to cluster topology changes within
-seconds rather than relying on DNS-based failover.
+Engineered Aurora Limitless support in the <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver (C, C++),
+allowing applications to react to cluster topology changes within seconds.
 
-Integrated AWS IAM, Secrets Manager, and federated SSO (AD FS, Okta)
-authentication into the <a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver and
-<a href="https://github.com/aws/aws-advanced-dotnet-data-provider-wrapper" class="f12">AWS Advanced .NET Data Provider Wrapper</a>.
+Integrated AWS IAM, Secrets Manager, AD FS, and Okta authentication into the
+<a href="https://github.com/aws/aws-pgsql-odbc" class="f12">AWS PostgreSQL ODBC</a> driver and <a href="https://github.com/aws/aws-advanced-dotnet-data-provider-wrapper" class="f12">AWS Advanced .NET Data Provider Wrapper</a>.
 
-Diagnosed and resolved complex database-driver issues involving authentication
+Diagnosed and resolved complex database driver issues involving authentication
 retry semantics, provider-specific exception handling, and connection lifecycle.
 
-Established integration-test infrastructure for database drivers covering
+Established integration test infrastructure for database drivers covering
 Limitless host routing, authentication, Unicode/ANSI compatibility, and
 cross-platform execution on Windows and macOS.
 
@@ -134,17 +130,18 @@ Where:  Vancouver, BC, Canada (On-site)
 When:   Sep 2023 - Apr 2024 (8 months)
 Stack:  <span class="f11">JavaScript</span> (Node, Express, React), <span class="f4">C++</span> (<a href="https://www.particle.io/" class="f12">Particle</a> Device OS)
 
-Implemented a unified Google authentication library used by multiple internal
-services and APIs, increasing maintainability and hardening security.
+Refactored internal services to authenticate with Google OAuth2, hardening the
+security of provisioning pipelines.
 
-Developed shared application and database architecture across multiple IoT
-products, extracting common models and functionality into reusable libraries.
+Consolidated JavaScript components and PostgreSQL database models across several
+IoT products into a shared library and database, increasing maintainability and
+enabling business analytics.
 
-Built comprehensive testing and CI infrastructure across multiple platforms,
-improving test coverage and deployment confidence.
+Programmed C++ firmware for hundreds of IoT devices equipped with radar sensors
+and LTE connectivity.
 
 Wrote comprehensive deployment and codebase documentation across multiple
-repositories, supporting developer onboarding.
+repositories, streamlining the onboarding process for incoming developers.
 
 
 <span id="projects" class="f15">Projects</span>
@@ -167,9 +164,16 @@ Repo:   <a href="https://github.com/micahdbak/tscon" class="f12">https://github.
 When:   2026 Apr - Present
 Stack:  <span class="f4">TypeScript</span>, <span class="f3">GLSL</span>
 
-A WebGL2 text-mode graphics library written in TypeScript. Supports user fonts,
-ASCII-art rendering of user textures (such as the donut you are seeing!), all
-with zero dependencies allowing for smaller bundles.
+A WebGL2 text-mode graphics library written in TypeScript, published to JSR as
+@creat/tscon.
+
+Glyphs are compiled only when content changes or when containers are resized,
+reducing CPU footprint.
+
+GLSL shader pipeline renders user textures as dithered ASCII glyphs using a 4x4
+Bayer matrix.
+
+Demonstrated live at <a href="https://micahdb.com" class="f12">micahdb.com</a>, rendering a spinning 3D donut in ASCII.
 
 
 Gestures for a Robotic Guide Dog
@@ -192,12 +196,17 @@ When:   2025 Jan - 2026 Feb
 Stack:  <span class="f5">C++</span>
 Links:  <a href="https://store.steampowered.com/app/4266860/Cheddar_and_Feta/" class="f12">Steam Page</a>
 
-A short two-player cooperative adventure where you must save Cheddar and Feta
-from the perils of a militarized fire ant colony, published to Steam.
+From-scratch 2D game engine built with C++ and low-level core libraries for
+cross-platform support.
 
-Both game and engine built from the ground up in C++ using <a href="https://libsdl.org/" class="f12">SDL3</a> for
-cross-platform windowing and graphics support and <a href="https://libdatachannel.org/" class="f12">libdatachannel</a> for WebRTC
-networking.
+GPU-accelerated sprite-based rendering pipeline displaying items, enemies,
+players, and maps.
+
+Created development tooling and file format for tile-based game world and object
+creation.
+
+Published to Steam with peer-to-peer multiplayer support using <a href="https://libdatachannel.org/" class="f12">libdatachannel</a> to
+synchronize game logic.
 
 
 Gleebleglob
@@ -208,9 +217,12 @@ When:   2024 May - 2024 June
 Stack:  <span class="f5">C++</span>
 Links:  <a href="https://web.archive.org/web/20250315161759/http://gleebleglob.club/" class="f12">Archived Website</a>
 
-Video streaming service on your terminal written in C++. MP4 videos are decoded
-by <a href="https://www.ffmpeg.org/" class="f12">FFmpeg</a>, and displayed in ASCII. Video storage and authentication facilitated
-by remote server.
+Terminal video streaming service written in C++, with video decoding done by
+<a href="https://www.ffmpeg.org/" class="f12">FFmpeg</a>.
+
+Frames are converted to ASCII characters and coloured using escape codes.
+
+Video storage and authentication facilitated by a remote server.
 
 
 droppr
@@ -221,10 +233,15 @@ When:   2024 Mar - 2025 Jun
 Stack:  <span class="f11">JavaScript</span>, <span class="f4">Go</span>
 Links:  <a href="https://droppr.net" class="f12">Website</a>
 
-Send files over the internet using the peer-to-peer <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API" class="f12">WebRTC API</a>. Large files are
-chunked into blobs and stored in the <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" class="f12">IndexedDB API</a> for fast retrieval and
-recovery of failed packets. Signal channel written in Go uses six-letter codes
-for peer discovery.
+Peer-to-peer file transfer service written in React and Go.
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API" class="f12">WebRTC</a> is used for peer discovery, connectivity, and transmission of file blobs.
+
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" class="f12">IndexedDB</a> stores and reconstructs files on-disk to support low-memory clients
+and large files.
+
+Backend joins peers with a 6-digit code and provides the signal channel for
+communicating ICE candidates.
 
 
 PacMacro
@@ -234,13 +251,12 @@ Repo:   <a href="https://github.com/CSSS/pacmacro2" class="f12">https://github.c
 When:   2023 Jun - 2023 Sep
 Stack:  <span class="f11">JavaScript</span>, <span class="f4">Go</span>
 
-PacMan played in real life with a mobile web application. Uses <a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API" class="f12">Geolocation API</a>
-to track player locations. Synchronizes players with a WebSocket server written
-in Go.
+Play PacMan in real-life with a mobile web application, using the
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API" class="f12">Geolocation API</a> to track player locations.
 
-Built during my role as Frosh Co-Chair of the SFU Computing Science Student
-Society in 2023 and 2024, where PacMacro was enjoyed by up to 20 consecutive
-players at a time.
+Synchronizes players through a WebSocket server written in Go.
+
+Built during my tenure as SFU CSSS Frosh Co-Chair, in use yearly since 2023.
 
 
 Yell
@@ -250,8 +266,9 @@ Repo:   <a href="https://github.com/micahdbak/yell" class="f12">https://github.c
 When:   2023 Feb - 2023 Apr
 Stack:  <span class="f4">C</span>
 
-C library for P2P applications and example chat program. Built using BSD sockets
-for POSIX-compliant systems.
+C library for peer-to-peer applications and example chat program.
+
+Built using BSD sockets for POSIX-compliant systems.
 
 
 Exeirus
