@@ -1,4 +1,5 @@
-import { Glyphs, textGlyphs, Terminal } from "@creat/tscon";
+import { textGlyphs, Terminal } from "@micahdb/tscon";
+import type { Glyphs } from "@micahdb/tscon";
 
 enum SectionState {
 	NOT_HOVERED = 1,

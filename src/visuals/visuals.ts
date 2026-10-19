@@ -1,4 +1,4 @@
-import { Canvas, Mat4 } from "@creat/tscon";
+import { Canvas, Mat4 } from "@micahdb/tscon";
 
 export abstract class Visuals {
 	// width/height of framebuffer object
@@ -148,7 +148,7 @@ export abstract class Visuals {
 		gl.disable(gl.DEPTH_TEST);
 	}
 
-	abstract async init(): Promise<void>;
+	abstract init(): Promise<void>;
 
-	abstract draw(projection_matrix: Float32Array, elapsed: number, delta: number);
+	abstract draw(projection_matrix: Float32Array, elapsed: number, delta: number): void;
 }

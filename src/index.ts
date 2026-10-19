@@ -1,6 +1,6 @@
 import { main } from "./pages/main.ts";
 import { donut } from "./pages/donut.ts";
-import { renderCp437 } from "@creat/tscon";
+import { renderCp437 } from "@micahdb/tscon";
 
 // cp437.html
 async function render() {

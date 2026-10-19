@@ -1,4 +1,4 @@
-import { loadCubeMap, loadTexture, Mat4 } from "@creat/tscon";
+import { loadCubeMap, loadTexture, Mat4 } from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { sphereMesh } from "./meshes/sphere.ts";

@@ -156,8 +156,8 @@ https://github.com/micahdbak/tscon
 When:	2026 Apr - Present
 Stack:	\f4TypeScript\F7, \f3GLSL\F7
 
-A WebGL2 text-mode graphics library written in TypeScript, published to JSR \
-as @creat/tscon.
+A WebGL2 text-mode graphics library written in TypeScript, published to npm \
+as @micahdb/tscon.
 
 Glyphs are compiled only when content changes or when containers are \
 resized, reducing CPU footprint.

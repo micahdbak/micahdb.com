@@ -1,4 +1,5 @@
-import { Terminal, Glyphs, textGlyphs } from "@creat/tscon";
+import { Terminal, textGlyphs } from "@micahdb/tscon";
+import type { Glyphs } from "@micahdb/tscon";
 
 export class Pager {
 	private static readonly NAME = "pager"; // for mouse_owner

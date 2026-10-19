@@ -1,4 +1,4 @@
-import { Canvas, loadCubeMap, Mat4 } from "@creat/tscon";
+import { Canvas, loadCubeMap, Mat4 } from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { SkyboxProgram } from "./programs/skybox.ts";
@@ -25,15 +25,13 @@ export class NebulaeVisuals extends Visuals {
 		this.skybox = new SkyboxProgram(gl);
 		this.skybox.init();
 
-		[this.cubemap] = await Promise.all([
-			loadCubeMap(gl, [
-				"/images/nebulae/right.png",
-				"/images/nebulae/left.png",
-				"/images/nebulae/top.png",
-				"/images/nebulae/bottom.png",
-				"/images/nebulae/front.png",
-				"/images/nebulae/back.png"
-			])
+		this.cubemap = await loadCubeMap(gl, [
+			"/images/nebulae/right.png",
+			"/images/nebulae/left.png",
+			"/images/nebulae/top.png",
+			"/images/nebulae/bottom.png",
+			"/images/nebulae/front.png",
+			"/images/nebulae/back.png"
 		]);
 
 		if (this.cubemap !== null) {

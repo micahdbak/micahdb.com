@@ -1,4 +1,4 @@
-import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs } from "@creat/tscon";
+import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs } from "@micahdb/tscon";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
 

@@ -2,13 +2,12 @@ import {
 	Canvas,
 	Terminal,
 	Renderer,
-	Anchor,
 	textGlyphs,
 	TexGlyphMode,
 	textureGlyphs,
 	loadTexture
-} from "@creat/tscon";
-
+} from "@micahdb/tscon";
+import type { Anchor } from "@micahdb/tscon";
 import { TorusVisuals } from "@/visuals/torus.ts";
 
 import { Pager } from "@/components/pager.ts";

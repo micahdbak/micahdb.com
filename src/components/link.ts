@@ -1,4 +1,5 @@
-import { Glyphs, textGlyphs, Terminal, Colour } from "@creat/tscon";
+import { textGlyphs, Terminal, Colour } from "@micahdb/tscon";
+import type { Glyphs } from "@micahdb/tscon";
 
 export class Link {
 	private terminal: Terminal;
