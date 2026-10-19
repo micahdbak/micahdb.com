@@ -9,11 +9,11 @@ export class TorusVisuals extends Visuals {
 	static readonly PITCH_HALF_RANGE = Math.PI / 3;
 	static readonly TRACKING_K = 4;
 
-	private blinn_phong: BlinnPhongIndicesProgram;
+	private blinn_phong!: BlinnPhongIndicesProgram;
 
-	private texture: WebGLTexture;
-	private normal: WebGLTexture;
-	private roughness: WebGLTexture;
+	private texture!: WebGLTexture;
+	private normal!: WebGLTexture;
+	private roughness!: WebGLTexture;
 
 	private yaw: number;
 	private pitch: number;
@@ -27,8 +27,7 @@ export class TorusVisuals extends Visuals {
 	async init() {
 		const gl = this.canvas.gl;
 
-		this.blinn_phong = new BlinnPhongIndicesProgram(gl);
-		this.blinn_phong.init(torusMesh(32, 24, 4, 1));
+		this.blinn_phong = new BlinnPhongIndicesProgram(gl, torusMesh(32, 24, 4, 1));
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
 			loadTexture(gl, "/images/torus/texture.jpg"),
@@ -45,7 +44,12 @@ export class TorusVisuals extends Visuals {
 
 		// camera placed in front of the origin, looking at the torus's front face
 		const view_matrix = Mat4.create();
-		Mat4.lookAt(view_matrix, [0.0, 0.0, 16.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(
+			view_matrix,
+			new Float32Array([0.0, 0.0, 16.0]),
+			new Float32Array([0.0, 0.0, 0.0]),
+			new Float32Array([0.0, -1.0, 0.0])
+		);
 
 		// rotate the torus so its front face tracks the cursor
 		const ry = Mat4.rotation("y", elapsed / 1.7);

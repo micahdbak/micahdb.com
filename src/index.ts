@@ -12,7 +12,7 @@ async function render() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	const raw = document.getElementById("raw");
+	const raw = document.getElementById("raw") as HTMLElement;
 	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
 	const gl = canvas.getContext("webgl2") as WebGL2RenderingContext;
 

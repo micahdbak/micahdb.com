@@ -10,25 +10,23 @@ export class EarthVisuals extends Visuals {
 	static readonly EARTH_SPIN_PERIOD = 30;
 	static readonly MOON_ORBIT_PERIOD = 25;
 
-	private blinn_phong: BlinnPhongIndicesProgram;
+	private blinn_phong!: BlinnPhongIndicesProgram;
 
-	private skybox: SkyboxProgram;
+	private skybox!: SkyboxProgram;
 
-	private cubemap: WebGLTexture | null;
+	private cubemap!: WebGLTexture | null;
 
-	private earth_texture: WebGLTexture;
-	private moon_texture: WebGLTexture;
-	private normal: WebGLTexture;
-	private roughness: WebGLTexture;
+	private earth_texture!: WebGLTexture;
+	private moon_texture!: WebGLTexture;
+	private normal!: WebGLTexture;
+	private roughness!: WebGLTexture;
 
 	async init() {
 		const gl = this.canvas.gl;
 
-		this.blinn_phong = new BlinnPhongIndicesProgram(gl);
-		this.blinn_phong.init(sphereMesh(8, 16));
+		this.blinn_phong = new BlinnPhongIndicesProgram(gl, sphereMesh(8, 16));
 
 		this.skybox = new SkyboxProgram(gl);
-		this.skybox.init();
 
 		[this.cubemap, this.earth_texture, this.moon_texture, this.normal, this.roughness] =
 			await Promise.all([
@@ -60,9 +58,14 @@ export class EarthVisuals extends Visuals {
 		const view_z = 5.0 * Math.sin(cycle);
 
 		const view_matrix = Mat4.create();
-		Mat4.lookAt(view_matrix, [view_x, 0.5, view_z], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(
+			view_matrix,
+			new Float32Array([view_x, 0.5, view_z]),
+			new Float32Array([0.0, 0.0, 0.0]),
+			new Float32Array([0.0, -1.0, 0.0])
+		);
 
-		this.skybox.draw(this.cubemap, projection_matrix, view_matrix);
+		this.skybox.draw(this.cubemap!, projection_matrix, view_matrix);
 
 		const light_position = [1.0, 0.1, 0.0];
 

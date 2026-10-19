@@ -1,23 +1,24 @@
 {
   "name": "micahdb.com",
+  "private": true,
+  "type": "module",
   "module": "src/index.ts",
+  "scripts": {
+    "lint": "oxlint src",
+    "typecheck": "tsc --noEmit",
+    "build:public": "mkdir -p build && cp -r ./public/* ./build",
+    "build:html": "bun run src/generate.ts",
+    "build": "bun run typecheck && bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
+    "dev": "bun run build:public && bun run build:html && bun build ./src/index.ts --outdir ./build --watch",
+    "deploy": "bun run build && gh-pages -d build"
+  },
+  "dependencies": {
+    "@micahdb/tscon": "^0.1.1"
+  },
   "devDependencies": {
     "@types/bun": "^1.4.3",
     "gh-pages": "^6.3.0",
     "oxlint": "^1.88.0",
     "typescript": "^5.9.3"
-  },
-  "private": true,
-  "scripts": {
-    "build:public": "mkdir -p build && cp -r ./public/* ./build",
-    "build:html": "bun run src/generate.ts",
-    "build": "bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
-    "dev": "bun run build:public && bun run build:html && bun build ./src/index.ts --outdir ./build --watch",
-    "lint": "oxlint src",
-    "deploy": "bun run build && gh-pages -d build"
-  },
-  "type": "module",
-  "dependencies": {
-    "@micahdb/tscon": "^0.1.0"
   }
 }

@@ -9,9 +9,9 @@ export class NebulaeVisuals extends Visuals {
 	private yaw: number;
 	private pitch: number;
 
-	private skybox: SkyboxProgram;
+	private skybox!: SkyboxProgram;
 
-	private cubemap: WebGLTexture;
+	private cubemap!: WebGLTexture;
 
 	constructor(canvas: Canvas) {
 		super(canvas);
@@ -23,7 +23,6 @@ export class NebulaeVisuals extends Visuals {
 		const gl = this.canvas.gl;
 
 		this.skybox = new SkyboxProgram(gl);
-		this.skybox.init();
 
 		this.cubemap = await loadCubeMap(gl, [
 			"/images/nebulae/right.png",
@@ -68,7 +67,12 @@ export class NebulaeVisuals extends Visuals {
 		const view_z = 5.0 * Math.sin(cycle);
 
 		const view_matrix = Mat4.create();
-		Mat4.lookAt(view_matrix, [view_x, 0.5, view_z], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(
+			view_matrix,
+			new Float32Array([view_x, 0.5, view_z]),
+			new Float32Array([0.0, 0.0, 0.0]),
+			new Float32Array([0.0, -1.0, 0.0])
+		);
 
 		const yaw_matrix = Mat4.rotation("y", this.yaw);
 		const pitch_matrix = Mat4.rotation("x", -this.pitch);

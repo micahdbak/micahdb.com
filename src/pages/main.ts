@@ -74,14 +74,13 @@ export function main() {
 		// links
 		const links: Link[] = [];
 
-		for (let i = 0; i < content.anchors[0].length; i++) {
-			const anchor = content.anchors[0][i] as Anchor;
+		const link_anchors = content.anchors[0] ?? [];
+
+		for (let i = 0; i < link_anchors.length; i++) {
+			const anchor = link_anchors[i] as Anchor;
 
 			// \a0{Link Text|https://example.com}Link_Text
-			const split = (anchor.options || "Missing Link|#").split("|");
-
-			const text = split[0];
-			const url = split.length > 1 ? split[1] : split[0];
+			const [text = "", url = text] = (anchor.options || "Missing Link|#").split("|");
 
 			links.push(new Link(terminal, text, url));
 		}
@@ -89,14 +88,13 @@ export function main() {
 		// sections
 		const sections: Section[] = [];
 
-		for (let i = 0; i < content.anchors[9].length; i++) {
-			const anchor = content.anchors[9][i] as Anchor;
+		const section_anchors = content.anchors[9] ?? [];
+
+		for (let i = 0; i < section_anchors.length; i++) {
+			const anchor = section_anchors[i] as Anchor;
 
 			// \a0{Section Text|#section_hash}Section_Text
-			const split = (anchor.options || "Missing Section").split("|");
-
-			const text = split[0];
-			const hash = split.length > 1 ? split[1] : "#";
+			const [text = "", hash = "#"] = (anchor.options || "Missing Section").split("|");
 
 			sections.push(new Section(terminal, text, hash));
 		}
@@ -130,7 +128,7 @@ export function main() {
 			const i = sections.findIndex((section) => section.hash === hash);
 
 			if (i >= 0) {
-				pager.scrollToRow(content.anchors[9][i].row - PADDING_ROWS, total_rows);
+				pager.scrollToRow(content.anchors[9]![i]!.row - PADDING_ROWS, total_rows);
 			}
 		}
 
@@ -200,9 +198,13 @@ export function main() {
 
 			// links
 
-			const link_anchors = content.anchors[0];
+			const link_anchors = content.anchors[0] ?? [];
 
-			for (let i = 0; i < link_anchors.length && i < links.length; i++) {
+			for (const [i, link] of links.entries()) {
+				if (i >= link_anchors.length) {
+					break;
+				}
+
 				const { row, col } = link_anchors[i] as Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
@@ -211,21 +213,24 @@ export function main() {
 					continue;
 				}
 
-				const link = links[i];
-				link.update(anchor_row, anchor_col);
+				const glyphs = link.update(anchor_row, anchor_col);
 
 				terminal.blit(
-					link.glyphs,
-					{ row: 0, col: 0, rows: 1, cols: link.glyphs.cols },
-					{ row: anchor_row, col: anchor_col, rows: 1, cols: link.glyphs.cols }
+					glyphs,
+					{ row: 0, col: 0, rows: 1, cols: glyphs.cols },
+					{ row: anchor_row, col: anchor_col, rows: 1, cols: glyphs.cols }
 				);
 			}
 
 			// sections
 
-			const section_anchors = content.anchors[9];
+			const section_anchors = content.anchors[9] ?? [];
 
-			for (let i = 0; i < section_anchors.length && i < sections.length; i++) {
+			for (const [i, section] of sections.entries()) {
+				if (i >= section_anchors.length) {
+					break;
+				}
+
 				const { row, col } = section_anchors[i] as Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
@@ -234,13 +239,12 @@ export function main() {
 					continue;
 				}
 
-				const section = sections[i];
-				section.update(anchor_row, anchor_col);
+				const glyphs = section.update(anchor_row, anchor_col);
 
 				terminal.blit(
-					section.glyphs,
-					{ row: 0, col: 0, rows: 1, cols: section.glyphs.cols },
-					{ row: anchor_row, col: anchor_col, rows: 1, cols: section.glyphs.cols }
+					glyphs,
+					{ row: 0, col: 0, rows: 1, cols: glyphs.cols },
+					{ row: anchor_row, col: anchor_col, rows: 1, cols: glyphs.cols }
 				);
 			}
 
@@ -249,12 +253,12 @@ export function main() {
 				if (pager.row > 0) {
 					const row = 0;
 					const col = canvas.cols - to_top.text.length;
-					to_top.update(row, col);
+					const glyphs = to_top.update(row, col);
 
 					terminal.blit(
-						to_top.glyphs,
-						{ row: 0, col: 0, rows: 1, cols: to_top.glyphs.cols },
-						{ row, col, rows: 1, cols: to_top.glyphs.cols }
+						glyphs,
+						{ row: 0, col: 0, rows: 1, cols: glyphs.cols },
+						{ row, col, rows: 1, cols: glyphs.cols }
 					);
 				}
 
@@ -270,12 +274,12 @@ export function main() {
 
 			// portrait
 
-			const portrait_anchors = content.anchors[1];
+			const [first_anchor] = content.anchors[1] ?? [];
 
-			if (portrait !== null) {
+			if (portrait !== null && first_anchor) {
 				renderer.draw(portrait_glyphs, portrait, {
-					row: content_row + portrait_anchors[0].row,
-					col: content_col + portrait_anchors[0].col,
+					row: content_row + first_anchor.row,
+					col: content_col + first_anchor.col,
 					rows: portrait_glyphs.rows,
 					cols: portrait_glyphs.cols
 				});
@@ -291,7 +295,7 @@ export function main() {
 		};
 
 		requestAnimationFrame(draw);
-	} catch (err: Error) {
+	} catch (err) {
 		console.error(err);
 	}
 }

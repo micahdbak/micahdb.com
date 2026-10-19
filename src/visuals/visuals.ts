@@ -2,47 +2,36 @@ import { Canvas, Mat4 } from "@micahdb/tscon";
 
 export abstract class Visuals {
 	// width/height of framebuffer object
-	private target_width: number;
-	private target_height: number;
+	private readonly target_width: number;
+	private readonly target_height: number;
 
-	private dbo: WebGLRenderbuffer;
-	private fbo: WebGLFramebuffer;
+	private readonly dbo: WebGLRenderbuffer;
+	private readonly fbo: WebGLFramebuffer;
 
-	private projection_matrix: Float32Array;
+	private readonly projection_matrix: Float32Array;
 
 	private elapsed: number;
 	private last_time: number;
 
-	protected canvas: Canvas;
+	protected readonly canvas: Canvas;
 
 	protected is_ready: boolean;
 
 	// to be used with Renderer.draw
-	public render_target: WebGLTexture;
+	public readonly render_target: WebGLTexture;
 
 	constructor(canvas: Canvas) {
 		this.canvas = canvas;
 
-		this.initializeRenderTarget();
-		this.initializeDBO();
-		this.initializeFBO();
+		const gl = canvas.gl;
 
-		this.projection_matrix = Mat4.create();
-		this.resize(canvas.rows, canvas.cols);
-
-		this.elapsed = 0;
-		this.last_time = performance.now();
-
-		this.is_ready = false;
-	}
-
-	private initializeRenderTarget() {
 		this.target_width = 1024;
 		this.target_height = 1024;
 
-		const gl = this.canvas.gl;
-
 		this.render_target = gl.createTexture();
+		if (!this.render_target) {
+			throw new Error("When creating render target");
+		}
 
 		gl.bindTexture(gl.TEXTURE_2D, this.render_target);
 		gl.texImage2D(
@@ -62,10 +51,6 @@ export abstract class Visuals {
 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	}
-
-	private initializeDBO() {
-		const gl = this.canvas.gl;
 
 		this.dbo = gl.createRenderbuffer();
 		if (!this.dbo) {
@@ -73,6 +58,7 @@ export abstract class Visuals {
 		}
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, this.dbo);
+
 		gl.renderbufferStorage(
 			gl.RENDERBUFFER,
 			gl.DEPTH_COMPONENT16,
@@ -81,10 +67,6 @@ export abstract class Visuals {
 		);
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-	}
-
-	private initializeFBO() {
-		const gl = this.canvas.gl;
 
 		this.fbo = gl.createFramebuffer();
 		if (!this.fbo) {
@@ -104,9 +86,17 @@ export abstract class Visuals {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.bindTexture(gl.TEXTURE_2D, null);
+
+		this.projection_matrix = Mat4.create();
+		this.resize(canvas.rows, canvas.cols);
+
+		this.elapsed = 0;
+		this.last_time = performance.now();
+
+		this.is_ready = false;
 	}
 
-	private resize(rows: number, cols: number) {
+	resize(rows: number, cols: number) {
 		const width = isFinite(cols) ? Math.max(1, cols) : 1;
 		const height = isFinite(rows) ? Math.max(1, rows) : 1;
 

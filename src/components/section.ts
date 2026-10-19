@@ -9,16 +9,16 @@ enum SectionState {
 }
 
 export class Section {
-	private terminal: Terminal;
-	private text: string;
+	private readonly terminal: Terminal;
+	private readonly text: string;
 
 	private state: null | SectionState;
 	private anchored_when: null | number;
 	private anchored_by_click: boolean;
 
-	public hash: string;
+	private glyphs: Glyphs | null = null;
 
-	public glyphs: Glyphs;
+	public readonly hash: string;
 
 	constructor(terminal: Terminal, text: string, hash: string) {
 		this.terminal = terminal;
@@ -30,7 +30,7 @@ export class Section {
 		this.anchored_by_click = false;
 	}
 
-	update(row: number, col: number) {
+	update(row: number, col: number): Glyphs {
 		// note: + 2 is for the string " ¶" to be included in the hover
 		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length + 2);
 		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length + 2);
@@ -92,7 +92,9 @@ export class Section {
 				? SectionState.HOVERED
 				: SectionState.NOT_HOVERED;
 
-		if (new_state !== this.state) {
+		let glyphs = this.glyphs;
+
+		if (glyphs === null || new_state !== this.state) {
 			this.state = new_state;
 
 			let section_title = this.text;
@@ -121,7 +123,10 @@ export class Section {
 
 			const text = format + section_title + pilcrow;
 
-			this.glyphs = textGlyphs(text, len + 2, false);
+			glyphs = textGlyphs(text, len + 2, false);
+			this.glyphs = glyphs;
 		}
+
+		return glyphs;
 	}
 }

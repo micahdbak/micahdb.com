@@ -7,25 +7,38 @@ import { TriangleMesh } from "@/visuals/meshes/mesh.ts";
 import { Program } from "./program.ts";
 
 export class BlinnPhongProgram extends Program {
-	private mesh: TriangleMesh;
+	private readonly mesh: TriangleMesh;
 
-	private attributes: Record<string, number>;
-	private uniforms: Record<string, WebGLUniformLocation>;
+	private readonly attributes: {
+		position: number;
+		normal: number;
+		tangent: number;
+		uv_coord: number;
+	};
+	private readonly uniforms: {
+		projection_matrix: WebGLUniformLocation;
+		view_matrix: WebGLUniformLocation;
+		model_matrix: WebGLUniformLocation;
+		normal_matrix: WebGLUniformLocation;
+		texture: WebGLUniformLocation;
+		normal: WebGLUniformLocation;
+		roughness: WebGLUniformLocation;
+		light_position: WebGLUniformLocation;
+	};
 
-	private vbo: WebGLBuffer;
+	private readonly vbo: WebGLBuffer;
 
-	init(mesh: TriangleMesh) {
+	constructor(gl: WebGL2RenderingContext, mesh: TriangleMesh) {
+		super(gl, compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER));
+
 		this.mesh = mesh;
-
-		const gl = this.gl;
-		this.gl_program = compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
 
 		this.attributes = getAttribLocations(gl, this.gl_program, {
 			position: "a_position",
 			normal: "a_normal",
 			tangent: "a_tangent",
 			uv_coord: "a_uv_coord"
-		});
+		}) as typeof this.attributes;
 
 		this.uniforms = getUniformLocations(gl, this.gl_program, {
 			projection_matrix: "u_projection_matrix",
@@ -36,12 +49,13 @@ export class BlinnPhongProgram extends Program {
 			normal: "u_normal",
 			roughness: "u_roughness",
 			light_position: "u_light_position"
-		});
+		}) as typeof this.uniforms;
 
-		this.vbo = gl.createBuffer();
-		if (!this.vbo) {
+		const vbo = gl.createBuffer();
+		if (!vbo) {
 			throw new Error("When creating vertex buffer");
 		}
+		this.vbo = vbo;
 
 		gl.useProgram(this.gl_program);
 		gl.uniform1i(this.uniforms.texture, 0);
@@ -86,8 +100,7 @@ export class BlinnPhongProgram extends Program {
 		gl.bindTexture(gl.TEXTURE_2D, roughness);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
-		gl.drawArrays(gl.TRIANGLES, 0, this.mesh.positions.length / 3);
+		gl.drawArrays(gl.TRIANGLES, 0, this.mesh.vertex_count);
 	}
 }
 
-export { CubeProgram };

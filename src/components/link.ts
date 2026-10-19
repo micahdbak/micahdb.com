@@ -2,13 +2,13 @@ import { textGlyphs, Terminal, Colour } from "@micahdb/tscon";
 import type { Glyphs } from "@micahdb/tscon";
 
 export class Link {
-	private terminal: Terminal;
-	private text: string;
-	private url: string;
+	private readonly terminal: Terminal;
+	private readonly url: string;
 
+	private glyphs: Glyphs | null = null;
 	private glyphs_are_hovered: null | boolean;
 
-	public glyphs: Glyphs;
+	public readonly text: string;
 
 	constructor(terminal: Terminal, text: string, url: string) {
 		this.terminal = terminal;
@@ -19,7 +19,7 @@ export class Link {
 		this.glyphs_are_hovered = null;
 	}
 
-	update(row: number, col: number) {
+	update(row: number, col: number): Glyphs {
 		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length);
 		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length);
 
@@ -41,7 +41,9 @@ export class Link {
 			this.terminal.detail_text = " Link: " + detail + " ";
 		}
 
-		if (is_hovered !== this.glyphs_are_hovered) {
+		let glyphs = this.glyphs;
+
+		if (glyphs === null || is_hovered !== this.glyphs_are_hovered) {
 			this.glyphs_are_hovered = is_hovered;
 
 			const fg = is_hovered ? Colour.BLACK : Colour.BRIGHT_BLUE;
@@ -54,7 +56,10 @@ export class Link {
 			const bgc = bg > Colour.GREY ? "B" : "b";
 
 			const text = `\\${fgc}${fgv}\\${bgc}${bgv}${this.text}`;
-			this.glyphs = textGlyphs(text, this.text.length, false);
+			glyphs = textGlyphs(text, this.text.length, false);
+			this.glyphs = glyphs;
 		}
+
+		return glyphs;
 	}
 }

@@ -8,33 +8,37 @@ import { cubeMesh } from "@/visuals/meshes/cube.ts";
 import { Program } from "./program.ts";
 
 export class SkyboxProgram extends Program {
-	private cube_mesh: TriangleMesh;
+	private readonly cube_mesh: TriangleMesh;
 
-	private attributes: Record<string, number>;
-	private uniforms: Record<string, WebGLUniformLocation>;
+	private readonly attributes: { position: number };
+	private readonly uniforms: {
+		projection_matrix: WebGLUniformLocation;
+		view_matrix: WebGLUniformLocation;
+		skybox_texture: WebGLUniformLocation;
+	};
 
-	private vbo: WebGLBuffer;
+	private readonly vbo: WebGLBuffer;
 
-	init() {
+	constructor(gl: WebGL2RenderingContext) {
+		super(gl, compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER));
+
 		this.cube_mesh = cubeMesh();
-
-		const gl = this.gl;
-		this.gl_program = compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
 
 		this.attributes = getAttribLocations(gl, this.gl_program, {
 			position: "a_position"
-		});
+		}) as typeof this.attributes;
 
 		this.uniforms = getUniformLocations(gl, this.gl_program, {
 			projection_matrix: "u_projection_matrix",
 			view_matrix: "u_view_matrix",
 			skybox_texture: "u_skybox_texture"
-		});
+		}) as typeof this.uniforms;
 
-		this.vbo = gl.createBuffer();
-		if (!this.vbo) {
+		const vbo = gl.createBuffer();
+		if (!vbo) {
 			throw new Error("When creating vertex buffer");
 		}
+		this.vbo = vbo;
 
 		gl.useProgram(this.gl_program);
 		gl.uniform1i(this.uniforms.skybox_texture, 0);
@@ -61,7 +65,7 @@ export class SkyboxProgram extends Program {
 		gl.enableVertexAttribArray(this.attributes.position);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
-		gl.drawArrays(gl.TRIANGLES, 0, this.cube_mesh.positions.length / 3);
+		gl.drawArrays(gl.TRIANGLES, 0, this.cube_mesh.vertex_count);
 
 		gl.depthFunc(gl.LESS);
 	}

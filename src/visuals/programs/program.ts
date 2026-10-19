@@ -1,13 +1,11 @@
 export abstract class Program {
-	protected gl: WebGL2RenderingContext;
-	protected gl_program: WebGLProgram;
+	protected readonly gl: WebGL2RenderingContext;
+	protected readonly gl_program: WebGLProgram;
 
-	constructor(gl: WebGL2RenderingContext) {
+	constructor(gl: WebGL2RenderingContext, gl_program: WebGLProgram) {
 		this.gl = gl;
-		this.gl_program = null;
+		this.gl_program = gl_program;
 	}
 
-	abstract init(): void;
-
-	abstract draw(): void;
+	abstract draw(...args: unknown[]): void;
 }

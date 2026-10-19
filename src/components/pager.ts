@@ -5,14 +5,16 @@ export class Pager {
 	private static readonly NAME = "pager"; // for mouse_owner
 	private static readonly STATUS_HELP = "Wheel, drag, [jk|↓↑] to scroll";
 
-	private terminal: Terminal;
+	private readonly terminal: Terminal;
 
 	private wheel_rows: number;
 
-	private is_dragging: boolean;
-	private drag_start_row: number;
-	private drag_start_row_offset: number;
-	private drag_last_row: number;
+	private drag: {
+		start_row: number;
+		start_row_offset: number;
+		last_row: number;
+	} | null = null;
+
 	private drag_velocity: number;
 
 	private row_offset: number;
@@ -22,14 +24,14 @@ export class Pager {
 
 	public row: number;
 
-	public status_glyphs: Glyphs | null;
+	public status_glyphs: Glyphs;
 
 	constructor(terminal: Terminal) {
 		this.terminal = terminal;
 
 		this.wheel_rows = 0;
 
-		this.is_dragging = false;
+		this.drag_velocity = 0;
 
 		this.row_offset = 0;
 
@@ -37,10 +39,12 @@ export class Pager {
 
 		this.row = 0;
 
-		this.status_glyphs = null;
+		this.last_content_rows = -1;
 
-		this.terminal.canvas.addEventListener("wheel", (event: CustomEvent) => {
-			const detail = event.detail as { rows: number };
+		this.status_glyphs = this.compileStatus(0);
+
+		this.terminal.canvas.addEventListener("wheel", (event: Event) => {
+			const detail = (event as CustomEvent).detail as { rows: number };
 			this.wheel_rows += detail.rows;
 		});
 	}
@@ -51,7 +55,6 @@ export class Pager {
 		}
 
 		this.wheel_rows = 0;
-		this.is_dragging = false;
 		this.drag_velocity = 0;
 
 		this.row_offset = row;
@@ -59,20 +62,7 @@ export class Pager {
 		this.row = row;
 		this.last_content_rows = content_rows;
 
-		if (
-			this.last_row !== this.row ||
-			this.last_content_rows !== content_rows ||
-			this.status_glyphs === null
-		) {
-			const max_offset = Math.max(0, content_rows - this.terminal.canvas.rows);
-			let percent = 0;
-			if (max_offset != 0) {
-				percent = Math.round((this.row / max_offset) * 100);
-			}
-			const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
-			const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
-			this.status_glyphs = textGlyphs(status_text, cols, false);
-		}
+		this.updateStatus(content_rows);
 	}
 
 	update(content_rows: number) {
@@ -88,30 +78,35 @@ export class Pager {
 		}
 
 		if (this.terminal.canvas.mouse_down) {
+			const { mouse_row } = this.terminal.canvas;
+
+			// mouse_down implies a mouse position: canvas resets both together on resize
+			if (mouse_row === undefined) {
+				return;
+			}
+
 			if (this.terminal.canvas.mouse_owner === "") {
 				this.terminal.canvas.mouse_owner = Pager.NAME;
 
-				this.is_dragging = true;
-				this.drag_start_row = this.terminal.canvas.mouse_row;
-				this.drag_start_row_offset = Math.round(this.row_offset);
-				this.drag_last_row = this.terminal.canvas.mouse_row;
-				this.drag_velocity = 0;
+				this.drag = {
+					start_row: mouse_row,
+					start_row_offset: Math.round(this.row_offset),
+					last_row: mouse_row,
+				};
 			}
 
-			if (this.terminal.canvas.mouse_owner === Pager.NAME) {
-				const mouse_row = this.terminal.canvas.mouse_row;
-
-				const row_delta = mouse_row - this.drag_last_row;
+			if (this.terminal.canvas.mouse_owner === Pager.NAME && this.drag !== null) {
+				const row_delta = mouse_row - this.drag.last_row;
 				this.drag_velocity = Math.max(-2, Math.min(2, row_delta));
-				this.drag_last_row = mouse_row;
+				this.drag.last_row = mouse_row;
 
-				const drag_delta = mouse_row - this.drag_start_row;
-				this.row_offset = this.drag_start_row_offset - drag_delta;
+				const drag_delta = mouse_row - this.drag.start_row;
+				this.row_offset = this.drag.start_row_offset - drag_delta;
 			}
 		} else {
 			if (this.terminal.canvas.mouse_owner === Pager.NAME) {
-				this.is_dragging = false;
 				this.terminal.canvas.mouse_owner = "";
+				this.drag = null;
 			}
 
 			if (Math.abs(this.drag_velocity) > 0.01) {
@@ -128,23 +123,27 @@ export class Pager {
 		this.last_row = this.row;
 		this.row = Math.round(this.row_offset);
 
-		// status text
-		if (
-			this.last_row !== this.row ||
-			this.last_content_rows !== content_rows ||
-			this.status_glyphs === null
-		) {
+		this.updateStatus(content_rows);
+
+		this.last_content_rows = content_rows;
+	}
+
+	private updateStatus(content_rows: number) {
+		if (this.last_row !== this.row || this.last_content_rows !== content_rows) {
+			const max_offset = Math.max(0, content_rows - this.terminal.canvas.rows);
 			let percent = 0;
 
 			if (max_offset != 0) {
 				percent = Math.round((this.row / max_offset) * 100);
 			}
 
-			const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
-			const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
-			this.status_glyphs = textGlyphs(status_text, cols, false);
+			this.status_glyphs = this.compileStatus(percent);
 		}
+	}
 
-		this.last_content_rows = content_rows;
+	private compileStatus(percent: number): Glyphs {
+		const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
+		const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
+		return textGlyphs(status_text, cols, false);
 	}
 }

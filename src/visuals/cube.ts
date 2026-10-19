@@ -9,11 +9,11 @@ export class CubeVisuals extends Visuals {
 	static readonly PITCH_HALF_RANGE = Math.PI / 3;
 	static readonly TRACKING_K = 4;
 
-	private blinn_phong: BlinnPhongProgram;
+	private blinn_phong!: BlinnPhongProgram;
 
-	private texture: WebGLTexture;
-	private normal: WebGLTexture;
-	private roughness: WebGLTexture;
+	private texture!: WebGLTexture;
+	private normal!: WebGLTexture;
+	private roughness!: WebGLTexture;
 
 	private yaw: number;
 	private pitch: number;
@@ -27,8 +27,7 @@ export class CubeVisuals extends Visuals {
 	async init() {
 		const gl = this.canvas.gl;
 
-		this.blinn_phong = new BlinnPhongProgram(gl);
-		this.blinn_phong.init(cubeMesh());
+		this.blinn_phong = new BlinnPhongProgram(gl, cubeMesh());
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
 			loadTexture(gl, "/images/texture.png"),
@@ -61,7 +60,12 @@ export class CubeVisuals extends Visuals {
 
 		// camera placed in front of the origin, looking at the cube's front face
 		const view_matrix = Mat4.create();
-		Mat4.lookAt(view_matrix, [0.0, 0.0, 8.0], [0.0, 0.0, 0.0], [0.0, -1.0, 0.0]);
+		Mat4.lookAt(
+			view_matrix,
+			new Float32Array([0.0, 0.0, 8.0]),
+			new Float32Array([0.0, 0.0, 0.0]),
+			new Float32Array([0.0, -1.0, 0.0])
+		);
 
 		// rotate the cube so its front face tracks the cursor
 		const yaw_matrix = Mat4.rotation("y", -this.yaw);

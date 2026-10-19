@@ -72,7 +72,7 @@ export function donut() {
 		};
 
 		requestAnimationFrame(draw);
-	} catch (err: Error) {
+	} catch (err) {
 		console.error(err);
 	}
 }

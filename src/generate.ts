@@ -27,8 +27,7 @@ function reconcileSpans(
 
 	const spans = open_spans.slice(0, i);
 
-	while (spans.length < desired.length) {
-		const cls = desired[spans.length];
+	for (const cls of desired.slice(open_spans.length)) {
 		spans.push(cls);
 		tags.push(`<span class="${cls}">`);
 	}
@@ -62,16 +61,15 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 
 	const html: string[] = [];
 
-	for (let row = 0; row < lines.length; row++) {
-		const line = lines[row];
+	for (const [row, line] of lines.entries()) {
 		let col = 0;
 
 		for (let i = 0; i < line.length; i++) {
-			const c = line[i];
+			const c = line.charAt(i);
 			let escape = c === "\\";
 
 			// \\ : display a single back slash
-			if (escape && i + 1 < line.length && line[i + 1] === "\\") {
+			if (escape && i + 1 < line.length && line.charAt(i + 1) === "\\") {
 				i++;
 				escape = false;
 			}
@@ -79,12 +77,12 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 			// anchor escape sequence
 			// \a0{Display Text|URL} : link
 			// \a9{Display Text|#anchor} : section anchor
-			if (escape && i + 2 < line.length && line[i + 1] === "a" && !isNaN(Number(line[i + 2]))) {
+			if (escape && i + 2 < line.length && line.charAt(i + 1) === "a" && !isNaN(Number(line.charAt(i + 2)))) {
 				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0);
 				let skip_chars = 2;
 				let options = null;
 
-				if (i + 3 < line.length && line[i + 3] === "{") {
+				if (i + 3 < line.length && line.charAt(i + 3) === "{") {
 					const closing_brace = line.indexOf("}", i + 3);
 
 					if (closing_brace > i + 3) {
@@ -94,9 +92,7 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 				}
 
 				if (options !== null && (num === 0 || num === 9)) {
-					const split = options.split("|");
-					const text = split[0];
-					const url = split.length > 1 ? split[1] : split[0];
+					const [text = "", url = text] = options.split("|");
 
 					if (num === 0) {
 						html.push(`<a href="${escapeHtml(url)}" class="f12">${escapeHtml(text)}</a>`);
@@ -118,10 +114,10 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 			if (
 				escape &&
 				i + 2 < line.length &&
-				"fFbB".includes(line[i + 1]) &&
-				!isNaN(Number(line[i + 2]))
+				"fFbB".includes(line.charAt(i + 1)) &&
+				!isNaN(Number(line.charAt(i + 2)))
 			) {
-				const num = Math.max(Math.min(Number(line[i + 2]), 7), 0);
+				const num = Math.max(Math.min(Number(line.charAt(i + 2)), 7), 0);
 
 				switch (line[i + 1]) {
 					case "f":
@@ -185,20 +181,13 @@ function textToHtml(text: string, cols: number, wrap: boolean): string {
 	return html.join("");
 }
 
-function colourAsHex(i: number): string {
-	const r = PALETTE[i * 3].toString(16).padStart(2, "0");
-	const g = PALETTE[i * 3 + 1].toString(16).padStart(2, "0");
-	const b = PALETTE[i * 3 + 2].toString(16).padStart(2, "0");
-	return `#${r}${g}${b}`;
-}
-
 function generateCss(): string {
 	const classes: string[] = [];
 
-	for (let i = 0; i < 16; i++) {
-		const hex = colourAsHex(i);
-		classes.push(`.f${i} { color: ${hex}; }`);
-		classes.push(`.b${i} { background-color: ${hex}; }`);
+	for (const [i, [r, g, b]] of PALETTE.entries()) {
+		const hex = [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
+		classes.push(`.f${i} { color: #${hex}; }`);
+		classes.push(`.b${i} { background-color: #${hex}; }`);
 	}
 
 	return classes.join("\n") + "\n";

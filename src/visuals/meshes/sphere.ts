@@ -18,18 +18,14 @@ export function sphereMesh(num_stacks: number, num_sectors: number): TriangleInd
 			const x = xy * Math.cos(sector_angle);
 			const y = xy * Math.sin(sector_angle);
 
-			sphere.positions.push(x, y, z);
-			sphere.normals.push(x, y, z); // unit sphere, so vertex is normalized
-
+			// unit sphere, so vertex position is also its normal
 			const tx = -Math.sin(sector_angle);
 			const ty = Math.cos(sector_angle);
-
-			sphere.tangents.push(tx, ty, 0);
 
 			const s = j / num_sectors;
 			const t = i / num_stacks;
 
-			sphere.uv_coords.push(s, t);
+			sphere.addVertex([x, y, z], [x, y, z], [tx, ty, 0], [s, t]);
 		}
 	}
 

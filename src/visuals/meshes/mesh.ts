@@ -1,39 +1,33 @@
+export type Vertex = {
+	position: [number, number, number];
+	normal: [number, number, number];
+	tangent: [number, number, number];
+	uv_coord: [number, number];
+};
+
 export class TriangleMesh {
 	static readonly STRIDE = 44;
 
-	public positions: number[];
-	public normals: number[];
-	public tangents: number[];
-	public uv_coords: number[];
+	private vertices: Vertex[] = [];
 
-	constructor() {
-		this.positions = [];
-		this.normals = [];
-		this.tangents = [];
-		this.uv_coords = [];
+	addVertex(
+		position: [number, number, number],
+		normal: [number, number, number],
+		tangent: [number, number, number],
+		uv_coord: [number, number]
+	): void {
+		this.vertices.push({ position, normal, tangent, uv_coord });
+	}
+
+	get vertex_count(): number {
+		return this.vertices.length;
 	}
 
 	data(): Float32Array {
-		const buffer = [];
+		const buffer: number[] = [];
 
-		for (let i = 0; i < this.positions.length / 3; i++) {
-			const base_vec3 = i * 3;
-			const base_vec2 = i * 2;
-
-			// each vertex in the vbo is layed out as position, normal, tangent, UV coord
-			buffer.push(
-				this.positions[base_vec3],
-				this.positions[base_vec3 + 1],
-				this.positions[base_vec3 + 2],
-				this.normals[base_vec3],
-				this.normals[base_vec3 + 1],
-				this.normals[base_vec3 + 2],
-				this.tangents[base_vec3],
-				this.tangents[base_vec3 + 1],
-				this.tangents[base_vec3 + 2],
-				this.uv_coords[base_vec2],
-				this.uv_coords[base_vec2 + 1]
-			);
+		for (const { position, normal, tangent, uv_coord } of this.vertices) {
+			buffer.push(...position, ...normal, ...tangent, ...uv_coord);
 		}
 
 		return new Float32Array(buffer);
@@ -70,10 +64,5 @@ export class TriangleMesh {
 }
 
 export class TriangleIndicesMesh extends TriangleMesh {
-	public indices: number[];
-
-	constructor() {
-		super();
-		this.indices = [];
-	}
+	public indices: number[] = [];
 }

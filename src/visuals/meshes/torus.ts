@@ -100,9 +100,6 @@ export function torusMesh(
 			 */
 			const v = j / ring_vertices;
 
-			// UV coords
-			torus.uv_coords.push(u, v);
-
 			const phi = two_pi * v;
 			const cos_phi = Math.cos(phi);
 			const sin_phi = Math.sin(phi);
@@ -112,18 +109,17 @@ export function torusMesh(
 			const x = cos_theta * bx;
 			const y = sin_theta * bx;
 			const z = br * sin_phi;
-			torus.positions.push(x, y, z);
 
 			// normal
 			const nx = cos_theta * cos_phi;
 			const ny = sin_theta * cos_phi;
 			const nz = sin_phi;
-			torus.normals.push(nx, ny, nz);
 
 			// tangent
 			const tx = -sin_theta;
 			const ty = cos_theta;
-			torus.tangents.push(tx, ty, 0);
+
+			torus.addVertex([x, y, z], [nx, ny, nz], [tx, ty, 0], [u, v]);
 		}
 	}
 
