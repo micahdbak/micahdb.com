@@ -1,0 +1,144 @@
+import { Canvas, Terminal, Renderer, loadTexture } from "@micahdb/tscon";
+
+import { Editor } from "./editor/editor.ts";
+import { Input } from "./input.ts";
+import { View } from "./view.ts";
+import { Viewport } from "./viewport.ts";
+
+type TextureLoader = (gl: WebGL2RenderingContext) => WebGLTexture | Promise<WebGLTexture>;
+
+export type TextureSource = WebGLTexture | TextureLoader;
+
+export type ViOptions = {
+	canvas_el: HTMLCanvasElement;
+	content: string;
+	filename: string;
+	textures?: Record<string, TextureSource>;
+	font_path?: string;
+	pad_cols?: number;
+};
+
+export class Vi {
+	private readonly canvas: Canvas;
+	private readonly terminal: Terminal;
+	private readonly renderer: Renderer;
+	private readonly editor: Editor;
+	private readonly viewport = new Viewport();
+	private readonly input: Input;
+	private readonly view: View;
+	private readonly textures = new Map<string, WebGLTexture>();
+	private font: WebGLTexture | null = null;
+	private readonly pad_cols: number;
+	private resized = true;
+
+	constructor(options: ViOptions) {
+		this.canvas = new Canvas(options.canvas_el);
+		this.terminal = new Terminal(this.canvas);
+		this.renderer = new Renderer(this.canvas);
+
+		this.pad_cols = options.pad_cols ?? 2;
+		this.editor = new Editor(options.content, this.wrapWidth());
+		this.input = new Input(this.editor, this.canvas, (row, col) =>
+			this.editor.layout.screenToBuffer(this.viewport.top + row, col - this.pad_cols)
+		);
+		this.input.attach();
+
+		this.view = new View(this.terminal, this.renderer, {
+			editor: this.editor,
+			layout: this.editor.layout,
+			viewport: this.viewport,
+			textures: this.textures,
+			pad_cols: this.pad_cols,
+			filename: options.filename,
+		});
+
+		this.canvas.addEventListener("resize", () => {
+			this.resized = true;
+		});
+
+		this.loadTextures(options.textures ?? {});
+		this.loadFont(options.font_path);
+
+		this.frame();
+	}
+
+	private wrapWidth(): number {
+		return Math.max(8, this.canvas.cols - this.pad_cols * 2);
+	}
+
+	private loadTextures(registry: Record<string, TextureSource>): void {
+		for (const [name, source] of Object.entries(registry)) {
+			if (source instanceof WebGLTexture) {
+				this.textures.set(name, source);
+				continue;
+			}
+
+			void Promise.resolve()
+				.then(() => source(this.canvas.gl))
+				.then((texture) => this.textures.set(name, texture))
+				.catch(() => undefined);
+		}
+	}
+
+	private loadFont(path: string | undefined): void {
+		if (path === undefined) {
+			return;
+		}
+
+		void loadTexture(this.canvas.gl, path)
+			.then((texture) => {
+				this.font = texture;
+			})
+			.catch(() => undefined);
+	}
+
+	private frame = (): void => {
+		const canvas = this.canvas;
+
+		if (canvas.rows < 8 || canvas.cols < 16) {
+			canvas.clear();
+			this.terminal.clear();
+			this.terminal.draw();
+			canvas.mouse_click = false;
+			requestAnimationFrame(this.frame);
+			return;
+		}
+
+		if (this.resized) {
+			this.resized = false;
+			this.editor.layout.setWidth(this.wrapWidth());
+		}
+
+		if (this.font !== null && canvas.user_font === null) {
+			canvas.user_font = this.font;
+			this.terminal.use_user_font = true;
+			this.renderer.use_user_font = true;
+		}
+
+		this.editor.viewport.top = this.viewport.top;
+		this.editor.viewport.rows = Math.max(1, canvas.rows - 2);
+
+		this.input.update();
+
+		this.viewport.update(this.editor.layout.displayRows.length, canvas.rows);
+
+		const cursor_screen = this.editor.layout.bufferToScreen(this.editor.cursor.pos);
+		const first = this.editor.layout.firstRowOfLine[this.editor.cursor.pos.line] ?? 0;
+		const cursor_display_row = first + cursor_screen.row;
+		this.viewport.follow(cursor_display_row, this.editor.layout.displayRows.length, canvas.rows);
+
+		this.editor.viewport.top = this.viewport.top;
+
+		canvas.clear();
+		this.terminal.clear();
+		this.view.render();
+
+		canvas.mouse_click = false;
+
+		if (canvas.class_name !== document.body.className) {
+			document.body.className = canvas.class_name;
+		}
+
+		requestAnimationFrame(this.frame);
+	};
+}

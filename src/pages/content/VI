@@ -1,0 +1,382 @@
+vi
+----
+
+\F3 W E L C O M E   T O   V I   T U T O R -- version 1.0 (1976)\F7
+
+Welcome. This page is a text editor. The file you are looking at IS the
+document: move through it, change it, break it. When you reload the page the
+file is new again, because nothing here is saved anywhere. There is no disk.
+Trust me.
+
+vi has two faces:
+
+  * COMMAND mode -- every key is an editing command. You start here.
+  * INSERT mode -- keys become text. Press Esc to return to command mode.
+
+The status line at the bottom of the screen shows the file name, the mode,
+and the ruler (line, column, percent of file).
+
+Each lesson below has exercises on lines marked --->. Everything you do in
+this file is real: the deletions delete, the inserts insert, and u takes it
+all back. Practice freely; the page is restored on reload.
+
+When a lesson says to move to a line, use h j k l or click on it.
+
+------------------------------------------------------------------------
+\F3 LESSON 1.1 -- MOVING THE CURSOR\F7
+
+  j moves down        k moves up
+  h moves left        l moves right
+
+1. Move the cursor onto the line below, then wander around it.
+
+---> the quick brown fox jumps over the lazy dog.
+
+2. Words, forward and back. vi sorts characters into three classes: blanks,
+   word characters (letters and digits), and punctuation.
+
+  w   start of next word          b   start of previous word
+  e   end of next word            ge  end of previous word
+  W B E ge   the same, but a "word" is any run of non-blanks
+
+3. Within a line:
+
+  0   column zero         ^  first non-blank        $  last character
+  N|  column N (try 20| on the ---> line below)
+
+---> practice makes perfect, and so does repetition.
+
+4. Counts. A number before a command repeats it that many times: 3j moves
+   down three lines, 2w two words forward, 5l five characters right.
+
+5. Lines:
+
+  + or Enter   first non-blank of the line below
+  -            first non-blank of the line above
+
+------------------------------------------------------------------------
+\F3 LESSON 1.2 -- DELETING\F7
+
+  x   delete the character under the cursor
+  X   delete the character before the cursor
+  dw  delete to the start of the next word
+  d$  delete to the end of the line (D does the same)
+  dd  delete the whole line; a count deletes that many lines
+
+1. Move to the ---> line below and delete the doubled words with dw.
+
+---> the the quick quick brown brown fox fox jumped jumped
+
+2. Delete the ---> line itself with dd, then bring it back with u.
+
+---> I am a line. Delete me with dd. Restore me with u.
+
+3. x works on counts too: 4x deletes four characters.
+
+---> xxxxxxxx is eight characters. Take four with 4x, undo with u.
+
+A note on dw at the end of a line: vi deletes to the end of the line rather
+than joining the next line onto this one. Lines are only joined by J.
+
+------------------------------------------------------------------------
+\F3 LESSON 1.3 -- DELETING BY TEXT OBJECTS (WELL, MOTIONS)\F7
+
+The d of deletion can be followed by any motion; the operator deletes from
+the cursor to where the motion lands.
+
+  dfx   delete through the next x on the line (f = find)
+  dtx   delete up to the next x (t = until, one short)
+  d}    delete to the end of the paragraph
+  dG    delete to the end of the file (careful!)
+
+1. Move to the ---> line and delete "exported" with dw, then "ships" with
+   d$ ... on second thought, undo that with u twice instead.
+
+---> the export ships exported shipping.
+
+2. Move to the ---> line, put the cursor on the first o, and press dfo.
+   Then undo.
+
+---> q{fF}qq
+
+Do not worry about what q does; that lesson was cut for space. (It was.)
+
+------------------------------------------------------------------------
+\F3 LESSON 2.1 -- INSERT MODE\F7
+
+  i   insert before the cursor        a  insert after the cursor
+  I   insert at first non-blank      A  insert at end of line
+  o   open a line below              O  open a line above
+  R   enter replace mode: typed keys overwrite, like overtyping
+
+1. Move to the ---> line, cursor on the first flower, and press i, then
+   type "tulip " and press Esc. Repeat for roses, daisies, whatever.
+
+--->      flowers are nice.
+
+2. Backspace at the start of a line joins it to the line above,
+   precisely undoing Enter: cursor on the ---> line, press o (a new line
+   opens below), then Backspace, then Esc.
+
+---> press o, then Backspace, then Esc. As if nothing happened.
+
+3. Enter inside insert mode splits the line at the cursor; Backspace at
+   the start of the new line rejoins it with nothing lost.
+
+---> this line will split here and rejoin.
+
+4. R replaces as you type. Move to the ---> line, press R, mangle the word,
+   then Esc. Notice -- REPLACE -- on the status line.
+
+---> overwrite me (gently)
+
+------------------------------------------------------------------------
+\F3 LESSON 2.2 -- UNDO, JOIN, REPEAT\F7
+
+  u   undo the last change. vi keeps ONE level of undo: pressing u again
+      toggles the change back. This is not a bug; it is 1976.
+  U   undo all changes to the line that changed last
+  J   join the next line onto this one with one space
+  .   repeat the last change that moved text
+
+1. Move to the ---> lines and join them with J. Then u, then J again.
+
+---> these two lines
+---> yearn to be one.
+
+1. Move to the ---> line, put the cursor on the first word, press dw,
+   then press . again and again.
+
+---> chop chop chop chop chop chop chop chop
+
+3. . repeats insertions too: cw fresh text Esc, move to another word, and
+   press .
+
+---> change this word and this word and this word.
+
+------------------------------------------------------------------------
+\F3 LESSON 3.1 -- THE COMMAND LINE, PART ONE: GOING PLACES\F7
+
+Press : to enter command-line mode. The status line becomes a prompt. Esc
+cancels; Enter executes; up/down arrows walk the history.
+
+  :5        go to line five              :$   go to the last line
+  :+2       down two lines               :-1  up one line
+
+1. Try :$ (end of file), then :1 (back), then :0 (very top; this tutorial
+   has no line zero, so vi settles for line one).
+
+------------------------------------------------------------------------
+\F3 LESSON 3.2 -- THE COMMAND LINE, PART TWO: SED WITHOUT THE S \F7
+
+  :s/old/new        replace the first "old" on the current line
+  :s/old/new/       trailing slash: same thing, vi will not judge
+  :%s/old/new/g     every line; the g replaces every match in a line
+
+1. Move to the ---> line and run :s/fox/gnu/; then :%s/fox/gnu/g and
+   watch both lines change at once.
+
+---> the quick brown fox. the fox is quick.
+
+2. Move to the ---> line and run :s/teh/the/, then :%s/lots/loads/g.
+
+---> teh best of teh web has lots of typo and lots of charm.
+
+3. :d deletes the current line (or N lines), :y yanks it, :put pastes the
+   unnamed register below the cursor line. Like dd and p, but with more
+   punctuation.
+
+4. Save and quit, vi style:
+
+  :w    "Saved. (To where? There's no disk. Trust me.)"
+  :q    "Nowhere to go. You're here forever." (with unsaved changes, this
+         is also the refusal, as in real vi)
+  :q!   also refused, with feeling
+  :wq   "Saved and quit. Wait-- you can't quit. You're still here."
+
+Unknown commands answer "E492: Not an editor command", as they have since
+time immemorial.
+
+------------------------------------------------------------------------
+\F3 LESSON 4.1 -- REGISTERS AND PUT\F7
+
+Every delete and yank lands in the unnamed register, and p/P paste it:
+
+  p   put after the cursor (charwise) or below the line (linewise)
+  P   put before the cursor, or above the line
+  "a  prefix: delete or yank into register a ("add, "ayy)
+  "A  append to register a. "0 holds the last yank; "1-"9 the delete
+      chain. There is no register named by punctuation. vi is orderly.
+
+1. xp: delete the character under the cursor and put it after. Move the
+   cursor between the t and the h in ---> and press xp. Undo with u.
+
+---> th is is xp in action.
+
+2. Move a line: dd it, move elsewhere, p it back below the cursor line.
+
+---> I would rather be below the next line.
+
+3. Named registers survive intervening deletes: "ayy a line, delete three
+   other lines, then "ap restores the yanked one.
+
+------------------------------------------------------------------------
+\F3 LESSON 4.2 -- SEARCHING\F7
+
+  /text   search forward for literal text (not a regex; vi would accept
+           one, this page prefers honesty)
+  ?text   search backward
+  n       repeat in the same direction      N  opposite direction
+
+1. Press /, type lesson, press Enter. Then press n to hop forward
+   through every mention, and N to hop back.
+
+Search wraps around the end of the file; when it does, vi says so.
+
+2. Move to the ---> line and press fo three times (and twice with ;).
+
+---> one two three four five, and a fifth "four" for luck.
+
+  f F   find next/previous occurrence of a character on the line
+  t T   like f/F but stop one short
+  ;     repeat the last find       ,  repeat it backwards
+
+------------------------------------------------------------------------
+\F3 LESSON 4.3 -- MARKS\F7
+
+  mx   mark this spot under the name x (a-z)
+  `x   jump to the exact marked position
+  'x   jump to the first non-blank of the marked line
+  ''   jump back where you came from (the last "jump")
+
+1. On the ---> line below, press mz. Travel somewhere far away in this
+   file (G is good). Return with 'z. Then '' to go back where you were.
+
+---> the centre of the universe (as marked)
+
+------------------------------------------------------------------------
+\F3 LESSON 5.1 -- SCREEN MOTIONS AND THE WRAP\F7
+
+  Ctrl-F  forward one screen     Ctrl-B  back one screen
+  Ctrl-D  forward half a screen  Ctrl-U  back half a screen
+  H       top line of the screen (Home)
+  M       middle line of the screen (Middle)
+  L       last line of the screen (Lower)
+
+1. Press Ctrl-F a few times, then Ctrl-B. Watch the ruler.
+
+2. H M L do not scroll; they move within the screen. Press L, then M,
+   then H.
+
+A note on long lines: a physical line too wide for the screen wraps onto
+several display rows, and j and k move one display row at a time, so the
+cursor never jumps over the continuation. The bar on column 80 marks the
+classic print margin; it only shows when the terminal is wide enough, and
+continuation rows of a wrapped line have none.
+
+------------------------------------------------------------------------
+\F3 LESSON 5.2 -- SENTENCES, PARAGRAPHS, AND MATCHING\F7
+
+  (   previous sentence       )  next sentence
+  {   previous paragraph      }  next paragraph
+  %   match the bracket under or after the cursor: () [] {} nest
+
+A sentence ends with ., ! or ? followed by a space; a paragraph ends at a
+blank line.
+
+1. Put the cursor on the first line of this paragraph and press } twice.
+   The blank lines around lessons are paragraphs too.
+
+2. Move to the ---> line and press % a few times.
+
+---> (never [do "this" {sort of} thing] much)
+
+------------------------------------------------------------------------
+\F3 LESSON 6.1 -- OPERATORS, SYSTEMATICALLY\F7
+
+The real grammar of vi: [count] operator [count] motion. The counts
+multiply: 2d3w deletes six words. Operators so far: d c < > y and the case
+motions:
+
+  gu{motion}  lowercase the range      gU{motion}  uppercase it
+  g~{motion}  toggle its case
+  guu gUU g~~  like their doubled cousins dd yy, for the whole line
+
+1. On the ---> line, use gU$ then undo, then gu$ and undo.
+
+---> make me shout. or whisper. TOGGLE ME.
+
+2. c works like d but enters insert mode: cw changes a word, cc a line,
+   C to the end of the line. The classic is cw, which vi smartly keeps to
+   the word itself, without eating the space after it.
+
+3. Yank with y: yy yanks a line, yw a word. Yanking changes nothing --
+   registers only. On the ---> lines, yy the first, p below the second.
+
+---> yank me.
+---> paste below me.
+
+4. < and > shift lines left and right by one shiftwidth (a tab). >>, <<,
+   and their counted forms all work.
+
+---> shift me right. (Then left. Then complain to :q!)
+
+------------------------------------------------------------------------
+\F3 LESSON 7.1 -- THE MOUSE (ANACHRONISMS WELCOME)\F7
+
+The original vi had no mouse. Ours humours you:
+
+  * Click to move the cursor.
+  * Press and drag to highlight a range. The highlight is only a
+    highlight: on release it is gone, and a following d acts on the cursor
+    position, as in real vi. Selection is the mouse's alone; vi has no v
+    key for it. That arrived with vim, which is another story.
+  * The wheel scrolls, moving the cursor line by line, like j and k.
+
+Clicking works on every lesson line above. Go on; nothing is fragile here.
+
+------------------------------------------------------------------------
+\F3 LESSON 8.1 -- RICH TEXT, EDITED RAW\F7
+
+This document can hold links and images. They are written as anchors in
+the source text and rendered when the cursor is elsewhere:
+
+  \a0{GitHub|https://github.com/micahdbak}GitHub, \a0{LinkedIn|https://linkedin.com/in/micahdbak}LinkedIn, and the \a0{main_page|/index.html}main_page.
+
+1. Move the cursor onto the line above: it renders raw, escapes and all,
+   so you can edit the source directly. Move away and it renders.
+
+2. With the cursor off that line, click a link: it opens, and the vi
+   cursor moves with you.
+
+3. Images are anchors too. The one below is a real anchor line; rest the
+   cursor on it to see its source, move away to see the picture.
+
+\a2{portrait|5|14}
+
+
+
+
+
+That is the whole trick of this page: one file, one format, edits and all.
+
+------------------------------------------------------------------------
+\F3 S U M M A R Y\F7
+
+  move      h j k l  w b e ge  W B E gE  0 ^ $ |  + - Enter  G
+  screens   Ctrl-F Ctrl-B Ctrl-D Ctrl-U   H M L
+  text      ( ) { } %   f F t T ; ,   / ? n N
+  delete    x X dd D dw d} dfx   J joins
+  insert    i a I A o O   R overtypes   Esc returns
+  change    cw cc C r ~   gu gU g~   < >
+  copy      yy yw "ayy "A   p P "ap xp
+  undo      u (toggles)   U (one line)
+  repeat    .
+  command   :5 :$ :s :%s :d :y :put :w :q
+  marks     mx 'x `x '' ``
+
+The vi on this page is a working subset of the real thing: every command
+listed here behaves as the UNIX original does, within the memory of one
+page load. When in doubt, press Esc, then u.
+
+\a0{main_page|/index.html}Back to the main page. (This one leaves vi running in your heart.)
