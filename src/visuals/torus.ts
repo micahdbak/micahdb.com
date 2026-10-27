@@ -63,9 +63,7 @@ export class TorusVisuals extends Visuals {
 		Mat4.multiply(model_matrix, tmp, rz);
 
 		const light_phi = elapsed / 2.9;
-		const light_x = Math.cos(light_phi);
-		const light_y = Math.sin(light_phi);
-		const light = [light_x, light_y, 0.5];
+		const light = [6.0 * Math.cos(light_phi), 6.0 * Math.sin(light_phi), 2.0];
 
 		this.blinn_phong.draw(
 			this.texture,
@@ -74,7 +72,9 @@ export class TorusVisuals extends Visuals {
 			model_matrix,
 			view_matrix,
 			projection_matrix,
-			light
+			0.5,
+			light,
+			0.75
 		);
 	}
 }

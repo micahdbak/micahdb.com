@@ -1,4 +1,4 @@
-import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs } from "@micahdb/tscon";
+import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs, loadTexture } from "@micahdb/tscon";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
 
@@ -11,6 +11,15 @@ export function donut() {
 		const canvas = new Canvas(canvas_el);
 		const terminal = new Terminal(canvas);
 		const renderer = new Renderer(canvas);
+
+		// font
+
+		let font: WebGLTexture | null = null;
+
+		const load_font = async () => {
+			font = await loadTexture(canvas.gl, "/images/font.png");
+		};
+		void load_font();
 
 		// visuals
 
@@ -43,6 +52,12 @@ export function donut() {
 
 				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.BG_GLYPHS);
 				visuals.resize(canvas.rows, canvas.cols);
+			}
+
+			if (font !== null && canvas.user_font === null) {
+				canvas.user_font = font;
+				terminal.use_user_font = true;
+				renderer.use_user_font = true;
 			}
 
 			canvas.clear();

@@ -80,7 +80,9 @@ export class CubeVisuals extends Visuals {
 			model_matrix,
 			view_matrix,
 			projection_matrix,
-			[0.0, 0.5, 1.0]
+			2.0 / 12.0,
+			[0.0, 0.5, 1.0],
+			1.0
 		);
 	}
 }

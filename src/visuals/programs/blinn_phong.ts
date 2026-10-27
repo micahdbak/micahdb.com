@@ -24,6 +24,8 @@ export class BlinnPhongProgram extends Program {
 		normal: WebGLUniformLocation;
 		roughness: WebGLUniformLocation;
 		light_position: WebGLUniformLocation;
+		ambient: WebGLUniformLocation;
+		light_intensity: WebGLUniformLocation;
 	};
 
 	private readonly vbo: WebGLBuffer;
@@ -48,7 +50,9 @@ export class BlinnPhongProgram extends Program {
 			texture: "u_texture",
 			normal: "u_normal",
 			roughness: "u_roughness",
-			light_position: "u_light_position"
+			light_position: "u_light_position",
+			ambient: "u_ambient",
+			light_intensity: "u_light_intensity"
 		}) as typeof this.uniforms;
 
 		const vbo = gl.createBuffer();
@@ -73,7 +77,9 @@ export class BlinnPhongProgram extends Program {
 		model_matrix: Float32Array,
 		view_matrix: Float32Array,
 		projection_matrix: Float32Array,
-		light_position: number[]
+		ambient: number,
+		light_position: number[],
+		light_intensity: number
 	) {
 		const gl = this.gl;
 		gl.useProgram(this.gl_program);
@@ -89,6 +95,8 @@ export class BlinnPhongProgram extends Program {
 		gl.uniformMatrix3fv(this.uniforms.normal_matrix, false, normal_matrix);
 
 		gl.uniform3fv(this.uniforms.light_position, light_position);
+		gl.uniform1f(this.uniforms.ambient, ambient);
+		gl.uniform1f(this.uniforms.light_intensity, light_intensity);
 
 		this.mesh.enableAttributes(gl, this.vbo, this.attributes);
 

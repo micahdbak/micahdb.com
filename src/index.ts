@@ -1,5 +1,6 @@
 import { main } from "./pages/main.ts";
 import { donut } from "./pages/donut.ts";
+import { model } from "./pages/model.ts";
 import { renderCp437 } from "@micahdb/tscon";
 
 // cp437.html
@@ -25,6 +26,9 @@ if (window.location.pathname === "/cp437.html") {
 		switch (window.location.pathname) {
 			case "/donut.html":
 				donut();
+				break;
+			case "/model.html":
+				model();
 				break;
 			default:
 				main();

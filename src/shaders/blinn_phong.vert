@@ -16,6 +16,8 @@ out vec3 v_position;
 out vec2 v_uv_coord;
 out vec3 v_light;
 
+const vec2 SNAP_GRID = vec2(320.0, 160.0);
+
 void main() {
 	mat4 model_view_matrix = u_view_matrix * u_model_matrix;
 
@@ -27,7 +29,12 @@ void main() {
 	v_position = vec3(model_view_matrix * vec4(a_position, 1.0));
 	v_uv_coord = a_uv_coord;
 
-	v_light = vec3(u_view_matrix * vec4(u_light_position, 0.0));
+	v_light = vec3(u_view_matrix * vec4(u_light_position, 1.0));
 
-	gl_Position = u_projection_matrix * model_view_matrix * vec4(a_position, 1.0);
+	vec4 clip = u_projection_matrix * model_view_matrix * vec4(a_position, 1.0);
+
+	vec2 screen = (clip.xy / clip.w) * (SNAP_GRID * 0.5);
+	clip.xy = (floor(screen) + 0.5) / (SNAP_GRID * 0.5) * clip.w;
+
+	gl_Position = clip;
 }

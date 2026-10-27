@@ -88,7 +88,9 @@ export class EarthVisuals extends Visuals {
 			earth_model,
 			view_matrix,
 			projection_matrix,
-			light_position
+			2.0 / 12.0,
+			light_position,
+			1.0
 		);
 
 		// moon
@@ -113,7 +115,9 @@ export class EarthVisuals extends Visuals {
 			moon_model,
 			view_matrix,
 			projection_matrix,
-			light_position
+			2.0 / 12.0,
+			light_position,
+			1.0
 		);
 	}
 }
