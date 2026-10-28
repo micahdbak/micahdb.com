@@ -18,17 +18,25 @@ export type ViOptions = {
 	pad_cols?: number;
 };
 
+/**
+ * Wires the editor core, input, and view layers together and owns the
+ * frame loop. Pages provide the content, the texture registry, and
+ * options; everything below the canvas is this class's business.
+ */
 export class Vi {
 	private readonly canvas: Canvas;
 	private readonly terminal: Terminal;
 	private readonly renderer: Renderer;
+
 	private readonly editor: Editor;
 	private readonly viewport = new Viewport();
 	private readonly input: Input;
 	private readonly view: View;
 	private readonly textures = new Map<string, WebGLTexture>();
-	private font: WebGLTexture | null = null;
+
 	private readonly pad_cols: number;
+
+	private font: WebGLTexture | null = null;
 	private resized = true;
 
 	constructor(options: ViOptions) {
@@ -95,6 +103,7 @@ export class Vi {
 	private frame = (): void => {
 		const canvas = this.canvas;
 
+		// too small to lay out a usable screen
 		if (canvas.rows < 8 || canvas.cols < 16) {
 			canvas.clear();
 			this.terminal.clear();
@@ -115,6 +124,10 @@ export class Vi {
 			this.renderer.use_user_font = true;
 		}
 
+		/**
+		 * The editor core sees the viewport as a plain struct it can read
+		 * for H M L and paging; the Viewport instance owns the real state
+		 */
 		this.editor.viewport.top = this.viewport.top;
 		this.editor.viewport.rows = Math.max(1, canvas.rows - 2);
 
@@ -132,6 +145,12 @@ export class Vi {
 		canvas.clear();
 		this.terminal.clear();
 		this.view.render();
+
+		/**
+		 * After the render, so links saw the click before the cursor
+		 * landed and flipped their line to its raw form
+		 */
+		this.input.placeClick();
 
 		canvas.mouse_click = false;
 

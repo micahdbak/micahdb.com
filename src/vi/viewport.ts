@@ -1,5 +1,7 @@
-// the visible window over the display rows; it follows the vi cursor, and
-// the mouse wheel moves the cursor rather than scrolling directly
+/**
+ * The visible window over the display rows; it follows the vi cursor, and
+ * the mouse wheel moves the cursor rather than scrolling directly
+ */
 export class Viewport {
 	top = 0;
 

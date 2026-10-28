@@ -4,10 +4,10 @@ import type { MotionDescription, MotionKind } from "../motions/types.ts";
 import { applyOperator, sugarRange } from "../operators.ts";
 import type { OperatorContext } from "../operators.ts";
 import { SEARCH_NOT_FOUND } from "../search.ts";
+import type { OperatorCommand, OperatorName, SimpleCommand } from "../parser.ts";
+import type { Editor } from "./editor.ts";
 import { startSession } from "./insert.ts";
 import { repeatCommand } from "./repeat.ts";
-import type { Editor } from "./editor.ts";
-import type { OperatorCommand, OperatorName, SimpleCommand } from "../parser.ts";
 
 // cursor movement for a motion command, applying sticky column rules
 export function doMotion(editor: Editor, motion: MotionDescription): void {
@@ -62,8 +62,10 @@ export function moveDisplay(editor: Editor, count: number, down: boolean): void 
 	if (display_row.line !== editor.cursor.pos.line) {
 		const raw_rows = editor.layout.rawRowCount(display_row.line);
 
-		// entering a line that renders raw from below puts the cursor on
-		// its bottom raw row; from above, on its top
+		/**
+		 * Entering a line that renders raw from below puts the cursor on
+		 * its bottom raw row; from above, on its top
+		 */
 		if (raw_rows !== null) {
 			editor.layout.setRawLine(display_row.line);
 			const entry_row = down ? 0 : raw_rows - 1;
@@ -83,8 +85,10 @@ export function moveDisplay(editor: Editor, count: number, down: boolean): void 
 
 const FIND_NAMES = ["f", "F", "t", "T"];
 
-// f/F/t/T record their target for ; and , -- as motions and as operator
-// targets alike
+/**
+ * F/F/t/T record their target for ; and , -- as motions and as operator
+ * targets alike
+ */
 function recordCharSearch(editor: Editor, motion: MotionDescription): void {
 	if (!FIND_NAMES.includes(motion.name)) {
 		return;
@@ -178,8 +182,10 @@ function changeMotion(
 ): MotionDescription {
 	const wordish = motion.name === "w" || motion.name === "W";
 
-	// cw behaves like ce when not on whitespace, so a change never
-	// swallows the blanks after the word
+	/**
+	 * Cw behaves like ce when not on whitespace, so a change never
+	 * swallows the blanks after the word
+	 */
 	if (operator !== "c" || !wordish || editor.buffer.isBlankAt(editor.cursor.pos)) {
 		return motion;
 	}
@@ -188,7 +194,7 @@ function changeMotion(
 }
 
 /**
- * s, S and C are c on a sugar range: the range is deleted, and an insert
+ * S, S and C are c on a sugar range: the range is deleted, and an insert
  * session begins whose repeat replays both halves.
  */
 export function startSugarChange(
@@ -232,8 +238,10 @@ export function applyOperatorRange(
 	editor.afterEdit(range.normalized().start.line);
 	editor.cursor.setExact(result.cursor);
 
-	// a change enters insert mode, whose cursor may rest past the last
-	// character; normal-mode clamping would pull it back
+	/**
+	 * A change enters insert mode, whose cursor may rest past the last
+	 * character; normal-mode clamping would pull it back
+	 */
 	if (!result.enter_insert) {
 		editor.clampCursor();
 	}

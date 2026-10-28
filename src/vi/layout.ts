@@ -34,9 +34,81 @@ type AnchorSpan = { start: number; length: number; payload: string };
 
 type ScannedAnchors = { images: AnchorSpan[]; links: AnchorSpan[]; broken: number[] };
 
-// valid image anchors (group 2, payload closed on the line) are hidden;
-// link anchors (group 0) are positioned where their text starts; broken
-// ones (payload never closes) render raw, backslash included
+/**
+ * Lengths of the escape forms tscon understands: colours (\fX) are zero
+ * width, anchors (\aX{...}) are zero width, and \\ displays one backslash.
+ * An escape starts only at a real backslash -- the walk calls this at every
+ * character.
+ */
+function scanEscape(text: string, index: number): { chars: number; visible: number } {
+	if (text[index] !== "\\") {
+		return { chars: 1, visible: 1 };
+	}
+
+	const next = text[index + 1];
+
+	if (next !== undefined && "fFbB".includes(next) && /\d/.test(text[index + 2] ?? "")) {
+		return { chars: 3, visible: 0 };
+	}
+
+	if (next === "\\") {
+		return { chars: 2, visible: 1 };
+	}
+
+	if (next === "a" && /\d/.test(text[index + 2] ?? "")) {
+		let chars = 3;
+
+		/**
+		 * An unterminated anchor payload renders literally after the escape,
+		 * matching tscon
+		 */
+		if (text[index + 3] === "{") {
+			const closing = text.indexOf("}", index + 4);
+
+			if (closing !== -1) {
+				chars = closing - index + 1;
+			}
+		}
+
+		return { chars, visible: 0 };
+	}
+
+	return { chars: 1, visible: 1 };
+}
+
+/**
+ * Whether tscon would transform anything on the line: anchors, colour
+ * escapes, or an escaped backslash all render differently from source
+ */
+function hasEscape(text: string): boolean {
+	for (let index = 0; index < text.length; ) {
+		const { chars, visible } = scanEscape(text, index);
+
+		if (chars !== 1 || visible !== 1) {
+			return true;
+		}
+
+		index += chars;
+	}
+
+	return false;
+}
+
+function imageExtent(payload: string): { name: string; rows: number; cols: number } | null {
+	const [name = "", rows = "", cols = ""] = payload.split("|");
+
+	if (name === "") {
+		return null;
+	}
+
+	return { name, rows: Math.max(1, Number(rows) || 1), cols: Math.max(1, Number(cols) || 1) };
+}
+
+/**
+ * Valid image anchors (group 2, payload closed on the line) are hidden;
+ * link anchors (group 0) are positioned where their text starts; broken
+ * ones (payload never closes) render raw, backslash included
+ */
 function scanAnchorSpans(text: string): ScannedAnchors {
 	const images: AnchorSpan[] = [];
 	const links: AnchorSpan[] = [];
@@ -71,72 +143,6 @@ function scanAnchorSpans(text: string): ScannedAnchors {
 	}
 
 	return { images, links, broken };
-}
-
-// whether tscon would transform anything on the line: anchors, colour
-// escapes, or an escaped backslash all render differently from source
-function hasEscape(text: string): boolean {
-	for (let index = 0; index < text.length; ) {
-		const { chars, visible } = scanEscape(text, index);
-
-		if (chars !== 1 || visible !== 1) {
-			return true;
-		}
-
-		index += chars;
-	}
-
-	return false;
-}
-
-function imageExtent(payload: string): { name: string; rows: number; cols: number } | null {
-	const [name = "", rows = "", cols = ""] = payload.split("|");
-
-	if (name === "") {
-		return null;
-	}
-
-	return { name, rows: Math.max(1, Number(rows) || 1), cols: Math.max(1, Number(cols) || 1) };
-}
-
-/**
- * Lengths of the escape forms tscon understands: colours (\fX) are zero
- * width, anchors (\aX{...}) are zero width, and \\ displays one backslash.
- * An escape starts only at a real backslash -- the walk calls this at every
- * character.
- */
-function scanEscape(text: string, index: number): { chars: number; visible: number } {
-	if (text[index] !== "\\") {
-		return { chars: 1, visible: 1 };
-	}
-
-	const next = text[index + 1];
-
-	if (next !== undefined && "fFbB".includes(next) && /\d/.test(text[index + 2] ?? "")) {
-		return { chars: 3, visible: 0 };
-	}
-
-	if (next === "\\") {
-		return { chars: 2, visible: 1 };
-	}
-
-	if (next === "a" && /\d/.test(text[index + 2] ?? "")) {
-		let chars = 3;
-
-		// an unterminated anchor payload renders literally after the escape,
-		// matching tscon
-		if (text[index + 3] === "{") {
-			const closing = text.indexOf("}", index + 4);
-
-			if (closing !== -1) {
-				chars = closing - index + 1;
-			}
-		}
-
-		return { chars, visible: 0 };
-	}
-
-	return { chars: 1, visible: 1 };
 }
 
 /**
@@ -270,17 +276,22 @@ function buildColMap(original: string, pieces: string[]): ColMap {
  * anchor payloads must close on their own line.
  */
 export class Layout {
+	private readonly buffer: Buffer;
+
+	private wrap_width: number;
 	private readonly maps: (LineMap | undefined)[] = [];
 	private display_rows_cache: DisplayRow[] | null = null;
 	private raw_line: number | null = null;
 
-	constructor(
-		private readonly buffer: Buffer,
-		private wrap_width: number
-	) {}
+	constructor(buffer: Buffer, width: number) {
+		this.buffer = buffer;
+		this.wrap_width = width;
+	}
 
-	// the width lines are wrapped to, for view decorations like the column
-	// bar
+	/**
+	 * The width lines are wrapped to, for view decorations like the column
+	 * bar
+	 */
 	get wrapWidth(): number {
 		return this.wrap_width;
 	}
@@ -300,9 +311,11 @@ export class Layout {
 		this.display_rows_cache = null;
 	}
 
-	// while the vi cursor rests on a line with escapes, that line renders
-	// raw: every escape visible, no links or images. Moving away recompiles
-	// it into its rendered form.
+	/**
+	 * While the vi cursor rests on a line with escapes, that line renders
+	 * raw: every escape visible, no links or images. Moving away recompiles
+	 * it into its rendered form.
+	 */
 	setRawLine(line: number | null): void {
 		if (line === this.raw_line) {
 			return;
@@ -407,8 +420,10 @@ export class Layout {
 		return (this.compile(line).visible_to_buffer[row_in_line] ?? []).length;
 	}
 
-	// the number of display rows the line has while rendering raw, or null
-	// when the line has no anchors and never changes
+	/**
+	 * The number of display rows the line has while rendering raw, or null
+	 * when the line has no escapes and never changes
+	 */
 	rawRowCount(line: number): number | null {
 		const text = this.buffer.lineText(line);
 
@@ -448,10 +463,12 @@ export class Layout {
 
 		const text = this.buffer.lineText(line);
 
-		// valid image anchors hide as spaces of their own length: the cursor
-		// and every position map one-to-one with the source text, and the
-		// image renders at the anchor's position. The raw line renders every
-		// escape literally instead, links and images included.
+		/**
+		 * Valid image anchors hide as spaces of their own length: the cursor
+		 * and every position map one-to-one with the source text, and the
+		 * image renders at the anchor's position. The raw line renders every
+		 * escape literally instead, links and images included.
+		 */
 		let link_spans: AnchorSpan[] = [];
 		let image_spans: AnchorSpan[] = [];
 		let compile_text = text;
@@ -482,9 +499,11 @@ export class Layout {
 
 		const map: LineMap = { glyphs, pieces, links: [], images: [], ...col_map };
 
-		// a link renders where its text starts -- the first character after
-		// the anchor -- which wrapping may place on a later row than the
-		// anchor itself
+		/**
+		 * A link renders where its text starts -- the first character after
+		 * the anchor -- which wrapping may place on a later row than the
+		 * anchor itself
+		 */
 		for (const span of link_spans) {
 			const text_start = map.buffer_to_visible[span.start + span.length];
 
@@ -500,8 +519,10 @@ export class Layout {
 			});
 		}
 
-		// an image's region starts where its anchor's first character sits in
-		// the wrap
+		/**
+		 * An image's region starts where its anchor's first character sits in
+		 * the wrap
+		 */
 		for (const span of image_spans) {
 			const extent = imageExtent(span.payload);
 

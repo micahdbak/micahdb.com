@@ -35,7 +35,7 @@ function findCharInLine(
 }
 
 /**
- * f F t T: find a character on the current line; ; and , repeat the last
+ * F F t T: find a character on the current line; ; and , repeat the last
  * search, comma reversing its direction.
  */
 export const resolveCharSearchMotion: MotionResolver = (motion, from, context) => {

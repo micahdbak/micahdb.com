@@ -10,6 +10,10 @@ export class Registers {
 	private named = new Map<string, RegisterContent>();
 	unnamed: RegisterContent | null = null;
 
+	/**
+	 * Deletes fill the unnamed register, the named register if given, and
+	 * shift the numbered chain "1-"9
+	 */
 	record(content: RegisterContent, register?: string): void {
 		this.unnamed = content;
 
@@ -24,8 +28,10 @@ export class Registers {
 		}
 	}
 
-	// yanks fill the unnamed register and "0; the numbered chain is for
-	// deletes only
+	/**
+	 * Yanks fill the unnamed register and "0; the numbered chain is for
+	 * deletes only
+	 */
 	recordYank(content: RegisterContent, register?: string): void {
 		this.unnamed = content;
 

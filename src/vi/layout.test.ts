@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { Pos } from "./buffer.ts";
+import { Buffer, Pos } from "./buffer.ts";
 import { Layout } from "./layout.ts";
-import { Buffer } from "./buffer.ts";
 
 const BACKSLASH = String.fromCharCode(92);
 
@@ -73,8 +72,10 @@ describe("anchor rendering", () => {
 			throw new Error("expected an image anchor");
 		}
 
-		// the twelve visible characters before the anchor fill row 0, so
-		// the region starts on row 1
+		/**
+		 * The twelve visible characters before the anchor fill row 0, so
+		 * the region starts on row 1
+		 */
 		expect({ row: image.row_in_line, col: image.col }).toEqual(layout.bufferToScreen(new Pos(0, 12)));
 		expect(image.row_in_line).toBe(1);
 	});
@@ -92,9 +93,11 @@ describe("anchor rendering", () => {
 		expect(image.line).toBe(0);
 		expect(image.row_in_line).toBe(0);
 
-		// the anchor line and the blank rows are ordinary lines; text after
-		// flows below the region. Rows are group-relative; firstRowOfLine
-		// lifts them to display rows.
+		/**
+		 * The anchor line and the blank rows are ordinary lines; text after
+		 * flows below the region. Rows are group-relative; firstRowOfLine
+		 * lifts them to display rows.
+		 */
 		expect(layout.firstRowOfLine[1]).toBe(1);
 		expect(layout.firstRowOfLine[3]).toBe(3);
 		expect(layout.bufferToScreen(new Pos(3, 0))).toEqual({ row: 0, col: 0 });
@@ -170,8 +173,10 @@ describe("per-line compilation", () => {
 		const buffer = new Buffer(BACKSLASH + "a0{li" + BACKSLASH + "\nk}text");
 		const layout = new Layout(buffer, 76);
 
-		// the anchor never resolves: no links, and both lines show their
-		// raw text with the backslash visible
+		/**
+		 * The anchor never resolves: no links, and both lines show their
+		 * raw text with the backslash visible
+		 */
 		expect(layout.links().length).toBe(0);
 
 		const expecteds: [number, string][] = [[0, BACKSLASH + "a0{li" + BACKSLASH], [1, "k}text"]];
@@ -188,8 +193,10 @@ describe("per-line compilation", () => {
 			expect(rendered).toBe(expected);
 		}
 
-		// the cursor maps one-to-one through the raw text (rows relative to
-		// each line's own wrap)
+		/**
+		 * The cursor maps one-to-one through the raw text (rows relative to
+		 * each line's own wrap)
+		 */
 		expect(layout.bufferToScreen(new Pos(0, 0))).toEqual({ row: 0, col: 0 });
 		expect(layout.bufferToScreen(new Pos(1, 0))).toEqual({ row: 0, col: 0 });
 	});

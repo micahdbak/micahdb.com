@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
+import type { MotionDescription } from "./motions/types.ts";
 import { feed } from "./parser.ts";
 import type { ParsedCommand, Pending } from "./parser.ts";
-import type { MotionDescription } from "./motions/types.ts";
 
 type Complete = { pending: Pending | null; command: ParsedCommand | null };
 

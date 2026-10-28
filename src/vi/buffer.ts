@@ -27,8 +27,10 @@ export class Pos {
 		return new Pos(this.line, col);
 	}
 
-	// the position reached after moving through text, which may contain
-	// newlines
+	/**
+	 * The position reached after moving through text, which may contain
+	 * newlines
+	 */
 	advancedBy(text: string): Pos {
 		const parts = text.split("\n");
 
@@ -106,15 +108,9 @@ export class Buffer {
 	}
 
 	firstNonBlank(line: number): Pos {
-		const text = this.lineText(line);
+		const col = this.lineText(line).search(/\S/);
 
-		for (const [col, ch] of [...text].entries()) {
-			if (!isBlank(ch)) {
-				return new Pos(line, col);
-			}
-		}
-
-		return new Pos(line, 0);
+		return new Pos(line, col === -1 ? 0 : col);
 	}
 
 	isEmptyLine(line: number): boolean {

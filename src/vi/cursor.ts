@@ -8,8 +8,8 @@ export class Cursor {
 	pos: Pos;
 	sticky: number | null;
 
-	constructor(line = 0, col = 0) {
-		this.pos = new Pos(line, col);
+	constructor() {
+		this.pos = new Pos(0, 0);
 		this.sticky = null;
 	}
 

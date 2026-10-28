@@ -429,8 +429,10 @@ describe("insert sessions", () => {
 		editor.cursor.setExact(new Pos(0, 6));
 		typeKeys(editor, "i", "<bs>", "<bs>", "<bs>", "esc");
 
-		// real vi rests the cursor where the edits left it; it does not
-		// rewind to the session start
+		/**
+		 * Real vi rests the cursor where the edits left it; it does not
+		 * rewind to the session start
+		 */
 		expect(cursorAt(editor)).toEqual({ line: 0, col: 3 });
 	});
 
@@ -494,8 +496,10 @@ describe("repeat", () => {
 	test(". after 3i duplicates the text three times", () => {
 		const editor = editorWith("start");
 
-		// the cursor cannot rest past the last character, so 3i inserts
-		// before the final t
+		/**
+		 * The cursor cannot rest past the last character, so 3i inserts
+		 * before the final t
+		 */
 		editor.cursor.setExact(new Pos(0, 4));
 		typeKeys(editor, "3", "i", "ha", "esc");
 

@@ -113,8 +113,10 @@ function insertBackspace(editor: Editor): void {
 		editor.buffer.remove(new Range(new Pos(at.line, at.col - 1), new Pos(at.line, at.col), false));
 		editor.cursor.setExact(new Pos(at.line, at.col - 1));
 	} else if (at.line > 0) {
-		// a lossless join: the newline was split at exactly this spot, so
-		// backspace removes it without adding a separator
+		/**
+		 * A lossless join: the newline was split at exactly this spot, so
+		 * backspace removes it without adding a separator
+		 */
 		const previous_length = editor.buffer.lineLength(at.line - 1);
 		editor.buffer.lines[at.line - 1] += editor.buffer.lineText(at.line);
 		editor.buffer.lines.splice(at.line, 1);
@@ -166,8 +168,10 @@ export function endSession(editor: Editor): void {
 
 	const end = editor.cursor.pos;
 
-	// the cursor may have moved above the session start by mouse or arrow;
-	// only the span from the start forward is a repeatable insertion
+	/**
+	 * The cursor may have moved above the session start by mouse or arrow;
+	 * only the span from the start forward is a repeatable insertion
+	 */
 	const changed = end.before(session.start);
 	const text = changed ? "" : editor.buffer.textOf(new Range(session.start, end, false));
 	const extra = duplicatedText(text, session.count, session.location);
@@ -183,9 +187,11 @@ export function endSession(editor: Editor): void {
 	editor.session = null;
 	editor.afterEdit(end.line);
 
-	// the cursor rests on the last inserted character. A session that
-	// only deleted, or typed nothing, stays where the edits left it --
-	// real vi does not rewind to the session start
+	/**
+	 * The cursor rests on the last inserted character. A session that
+	 * only deleted, or typed nothing, stays where the edits left it --
+	 * real vi does not rewind to the session start
+	 */
 	const resting = text.length > 0 ? final.withCol(Math.max(0, final.col - 1)) : end;
 
 	editor.cursor.setExact(resting);

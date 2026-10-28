@@ -1,5 +1,5 @@
-import type { Editor } from "./editor/editor.ts";
 import { Pos, Range } from "./buffer.ts";
+import type { Editor } from "./editor/editor.ts";
 
 const MESSAGES = {
 	w: "Saved. (To where? There's no disk. Trust me.)",

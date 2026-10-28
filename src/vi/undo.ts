@@ -3,7 +3,7 @@ import type { Pos } from "./buffer.ts";
 export type Snapshot = { lines: string[]; cursor: Pos };
 
 /**
- * vi keeps exactly one undo level: u swaps the buffer between the state
+ * Vi keeps exactly one undo level: u swaps the buffer between the state
  * before the last change and the state after it, so repeating u toggles
  * between the two. A new change replaces the remembered state.
  */
@@ -37,6 +37,10 @@ export class Undo {
 		return restored;
 	}
 
+	/**
+	 * U's entry point: the line's pre-change state, once; a second U
+	 * finds nothing remembered
+	 */
 	takeLine(): Snapshot | null {
 		const restored = this.line_state?.snapshot ?? null;
 		this.line_state = null;

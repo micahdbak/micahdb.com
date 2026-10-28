@@ -37,6 +37,10 @@ function sentenceForward(buffer: Buffer, from: Pos): Pos | null {
 	return null;
 }
 
+/**
+ * The start of the sentence before the cursor: the character after the
+ * previous sentence end, blank lines acting as ends.
+ */
 function sentenceBackward(buffer: Buffer, from: Pos): Pos | null {
 	let position: Pos | null = from;
 	let sentence_start: Pos | null = null;

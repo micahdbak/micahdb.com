@@ -1,13 +1,13 @@
 import type { Pos } from "../buffer.ts";
 import type { MotionContext, MotionDescription, MotionResult, MotionResolver } from "./types.ts";
-import { resolveLineMotion } from "./lines.ts";
-import { resolveScreenMotion } from "./screen.ts";
-import { resolveWordMotion } from "./word.ts";
-import { resolveCharSearchMotion } from "./char_search.ts";
 import { resolveBracketMotion } from "./bracket.ts";
-import { resolveSentenceMotion } from "./sentence.ts";
-import { resolveParagraphMotion } from "./paragraph.ts";
+import { resolveCharSearchMotion } from "./char_search.ts";
+import { resolveLineMotion } from "./lines.ts";
 import { resolveMarkMotion, resolveSearchMotion } from "./marks.ts";
+import { resolveParagraphMotion } from "./paragraph.ts";
+import { resolveScreenMotion } from "./screen.ts";
+import { resolveSentenceMotion } from "./sentence.ts";
+import { resolveWordMotion } from "./word.ts";
 
 export type {
 	MotionContext,

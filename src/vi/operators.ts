@@ -1,9 +1,9 @@
 import { TAB_WIDTH } from "@micahdb/tscon";
 import { Pos, Range } from "./buffer.ts";
 import type { Buffer } from "./buffer.ts";
-import type { Registers } from "./registers.ts";
-import type { OperatorName } from "./parser.ts";
 import type { MotionKind } from "./motions/types.ts";
+import type { OperatorName } from "./parser.ts";
+import type { Registers } from "./registers.ts";
 
 export type OperatorResult = { cursor: Pos; enter_insert: boolean };
 
@@ -93,8 +93,10 @@ export function adjustedRange(buffer: Buffer, range: Range, kind: MotionKind): R
 	return new Range(ordered.start, pulled_back, false);
 }
 
-// the resting column after a charwise delete or yank: the last character
-// removed, clamped into the line
+/**
+ * The resting column after a charwise delete or yank: the last character
+ * removed, clamped into the line
+ */
 function restingCol(buffer: Buffer, start: Pos, line: number, linewise: boolean): number {
 	if (linewise) {
 		return buffer.firstNonBlank(line).col;
@@ -131,8 +133,10 @@ export function applyOperator(
 		}
 
 		case "c": {
-			// removal of the whole buffer leaves a sentinel empty line, which
-			// is exactly the blank line cc opens
+			/**
+			 * Removal of the whole buffer leaves a sentinel empty line, which
+			 * is exactly the blank line cc opens
+			 */
 			const covers_all = linewise && start.line === 0 && adjusted.end.line >= buffer.lineCount() - 1;
 
 			context.registers.record({ text: buffer.textOf(adjusted), linewise }, context.register);

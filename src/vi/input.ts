@@ -1,21 +1,29 @@
 import type { Canvas } from "@micahdb/tscon";
 import { Pos } from "./buffer.ts";
-import { moveDisplay } from "./editor/normal.ts";
 import type { Editor } from "./editor/editor.ts";
+import { moveDisplay } from "./editor/normal.ts";
 
 /**
  * Mouse interaction outside the vi cursor: clicks move the vi cursor, and
  * press-drag-release paints a transient selection that is fake visual mode.
  */
 export class Input {
+	private readonly editor: Editor;
+	private readonly canvas: Canvas;
+	private readonly screenToBuffer: (row: number, col: number) => Pos | null;
+
 	private dragging = false;
 	private anchor: Pos | null = null;
 
 	constructor(
-		private readonly editor: Editor,
-		private readonly canvas: Canvas,
-		private readonly screenToBuffer: (row: number, col: number) => Pos | null
-	) {}
+		editor: Editor,
+		canvas: Canvas,
+		screenToBuffer: (row: number, col: number) => Pos | null
+	) {
+		this.editor = editor;
+		this.canvas = canvas;
+		this.screenToBuffer = screenToBuffer;
+	}
 
 	attach(): void {
 		this.canvas.addEventListener("wheel", (event: Event) => {
@@ -47,27 +55,29 @@ export class Input {
 
 	// polled once per frame, before rendering
 	update(): void {
-		if (!this.canvas.mouse_down) {
-			this.updateReleased();
+		if (this.canvas.mouse_down) {
+			this.updatePressed();
 			return;
 		}
 
-		this.updatePressed();
-	}
-
-	// a released mouse places the cursor: after a drag that became a
-	// selection, the highlight drops and the click is consumed so no link
-	// fires
-	private updateReleased(): void {
 		if (this.dragging) {
 			this.dragging = false;
 			this.canvas.mouse_owner = "";
 			this.editor.selection = null;
 			this.placeFromMouse();
-			this.canvas.mouse_click = false;
-			return;
-		}
 
+			// a drag that became a selection never activates a link
+			this.canvas.mouse_click = false;
+		}
+	}
+
+	/**
+	 * Places the cursor from a plain click, called after the view has
+	 * rendered: the link components must see the click while their line
+	 * still renders as links -- placing the cursor first would flip the
+	 * line to its raw form and swallow the click
+	 */
+	placeClick(): void {
 		if (this.canvas.mouse_click) {
 			this.placeFromMouse();
 		}

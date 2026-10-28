@@ -17,8 +17,10 @@ export function charClass(ch: string | undefined, big: boolean): WordClass {
 	return /[A-Za-z0-9_]/.test(ch) ? "word" : "punct";
 }
 
-// the position is on the same line and in the same word class: the word
-// run continues through it
+/**
+ * The position is on the same line and in the same word class: the word
+ * run continues through it
+ */
 function continues(
 	position: Pos,
 	from: Pos,
@@ -30,7 +32,7 @@ function continues(
 }
 
 /**
- * w / W: the start of the next word. Word runs never cross a line break,
+ * W / W: the start of the next word. Word runs never cross a line break,
  * and empty lines count as words, so the motion stops on them.
  */
 export function wordForward(buffer: Buffer, from: Pos, big: boolean): Pos | null {
@@ -72,7 +74,7 @@ export function wordForward(buffer: Buffer, from: Pos, big: boolean): Pos | null
 }
 
 /**
- * b / B: the start of the previous word, stopping on empty lines.
+ * B / B: the start of the previous word, stopping on empty lines.
  */
 export function wordBackward(buffer: Buffer, from: Pos, big: boolean): Pos | null {
 	let position = prevChar(buffer, from);
@@ -105,7 +107,7 @@ export function wordBackward(buffer: Buffer, from: Pos, big: boolean): Pos | nul
 }
 
 /**
- * e / E: the end of the current or next word. Word ends cross newlines and
+ * E / E: the end of the current or next word. Word ends cross newlines and
  * skip empty lines, but never extend past the end of their own line.
  */
 export function wordEnd(buffer: Buffer, from: Pos, big: boolean): Pos | null {
@@ -139,7 +141,7 @@ export function wordEnd(buffer: Buffer, from: Pos, big: boolean): Pos | null {
 }
 
 /**
- * ge / gE: the end of the previous word.
+ * Ge / gE: the end of the previous word.
  */
 export function wordEndBackward(buffer: Buffer, from: Pos, big: boolean): Pos | null {
 	let position = prevChar(buffer, from);
@@ -148,8 +150,10 @@ export function wordEndBackward(buffer: Buffer, from: Pos, big: boolean): Pos | 
 		return null;
 	}
 
-	// skip the tail of the word the cursor stands in; word runs never
-	// cross a line break, so a previous line's tail is the previous word
+	/**
+	 * Skip the tail of the word the cursor stands in; word runs never
+	 * cross a line break, so a previous line's tail is the previous word
+	 */
 	const start_class = charClass(buffer.charAt(from), big);
 
 	if (start_class !== "blank") {

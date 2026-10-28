@@ -87,8 +87,10 @@ function addCount(count: number | null, key: string): number {
 
 type MotionCount = number | null;
 
-// count1/count2 are the pre- and post-operator counts; the effective count
-// is count2 ?? count1 ?? 0
+/**
+ * Count1/count2 are the pre- and post-operator counts; the effective count
+ * is count2 ?? count1 ?? 0
+ */
 function motionDescription(
 	name: string,
 	count1: MotionCount,
@@ -127,8 +129,10 @@ function operatorCommand(
 
 type FeedResult = { pending: Pending | null; command: ParsedCommand | null };
 
-// the count the motion sees: before the operator when the operator is
-// absent, after it otherwise (the operator step multiplies them)
+/**
+ * The count the motion sees: before the operator when the operator is
+ * absent, after it otherwise (the operator step multiplies them)
+ */
 function pendingCount(state: Pending): number | null {
 	return state.operator === null ? state.count1 : state.count2;
 }

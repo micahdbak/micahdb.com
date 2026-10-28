@@ -1,5 +1,5 @@
-import { searchNext } from "../search.ts";
 import { Pos } from "../buffer.ts";
+import { searchNext } from "../search.ts";
 import type { MotionResolver } from "./types.ts";
 
 /**
@@ -21,7 +21,7 @@ export const resolveMarkMotion: MotionResolver = (motion, _from, context) => {
 };
 
 /**
- * n and N: repeat the last search, N in the opposite direction.
+ * N and N: repeat the last search, N in the opposite direction.
  */
 export const resolveSearchMotion: MotionResolver = (motion, from, context) => {
 	const forward = (motion.name === "n") === context.search.forward;

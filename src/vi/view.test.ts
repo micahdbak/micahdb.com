@@ -2,9 +2,10 @@ import { describe, expect, test } from "bun:test";
 
 import { Pos } from "./buffer.ts";
 import { Editor } from "./editor/editor.ts";
+import { Input } from "./input.ts";
 import { View } from "./view.ts";
-import { Viewport } from "./viewport.ts";
 import CONTENT from "../pages/content/VI" with { type: "text" };
+import { Viewport } from "./viewport.ts";
 
 // the pinned render width: wide enough for the column bar to show
 const WIDTH = 100;
@@ -12,8 +13,10 @@ const WIDTH = 100;
 // padding (2) plus the bar's visible column (79)
 const BAR_SCREEN_COL = 81;
 
-// a mock terminal that records what the view blits, so the full render
-// pipeline is testable without a browser
+/**
+ * A mock terminal that records what the view blits, so the full render
+ * pipeline is testable without a browser
+ */
 class MockTerminal {
 	canvas = {
 		rows: 30,
@@ -22,11 +25,31 @@ class MockTerminal {
 		class_name: "",
 		mouse_down: false,
 		mouse_owner: "",
-		mouseAt: () => false,
-		mouseDownAt: () => false,
+		mouse_row: undefined as number | undefined,
+		mouse_col: undefined as number | undefined,
+		mouse_down_row: undefined as number | undefined,
+		mouse_down_col: undefined as number | undefined,
+		mouseAt: (row: number, col: number, rows: number, cols: number): boolean =>
+			this.pointerIn(row, col, rows, cols),
+		mouseDownAt: (row: number, col: number, rows: number, cols: number): boolean =>
+			this.pointerIn(row, col, rows, cols),
 	};
 	detail_text = "";
 	cells = new Uint16Array(30 * (WIDTH + 4));
+
+	/**
+	 * Hit-tests the single pointer cell against a component's rect, like
+	 * the real canvas does
+	 */
+	private pointerIn(row: number, col: number, rows: number, cols: number): boolean {
+		const { mouse_row, mouse_col } = this.canvas;
+
+		if (mouse_row === undefined || mouse_col === undefined) {
+			return false;
+		}
+
+		return mouse_row >= row && mouse_row < row + rows && mouse_col >= col && mouse_col < col + cols;
+	}
 
 	blit(
 		glyphs: { data: Uint16Array; cols: number },
@@ -126,14 +149,18 @@ describe("view rendering", () => {
 		frame();
 		frame();
 
-		// back onto the raw line: the viewport stays put, so both of its
-		// display rows sit above the status row
+		/**
+		 * Back onto the raw line: the viewport stays put, so both of its
+		 * display rows sit above the status row
+		 */
 		editor.placeCursor(new Pos(link_line, 0));
 		frame();
 		frame();
 
-		// the raw render can break anywhere, so join the rows and ignore
-		// the wrap
+		/**
+		 * The raw render can break anywhere, so join the rows and ignore
+		 * the wrap
+		 */
 		const rows = [0, 1, 2].map((offset) => {
 			const display_index = (editor.layout.firstRowOfLine[link_line] ?? 0) + offset;
 
@@ -153,8 +180,10 @@ describe("view rendering", () => {
 
 		const bar_bg = (cell: number) => (cell >> 8) & 0xf;
 
-		// the long line's first display row runs under the bar, which paints
-		// the 80th column behind the text
+		/**
+		 * The long line's first display row runs under the bar, which paints
+		 * the 80th column behind the text
+		 */
 		const in_text = terminal.cells[BAR_SCREEN_COL]!;
 
 		expect(String.fromCharCode(in_text & 0xff)).toBe("x");
@@ -181,8 +210,10 @@ describe("view rendering", () => {
 		const screen_row = display_index - viewport.top;
 		const cell = terminal.cells[screen_row * terminal.canvas.cols + visible.col + 2]!;
 
-		// the cell under the cursor is the document's own character,
-		// inverted, not a garbage glyph
+		/**
+		 * The cell under the cursor is the document's own character,
+		 * inverted, not a garbage glyph
+		 */
 		expect(String.fromCharCode(cell & 0xff)).toBe(expected);
 		expect((cell >> 12) & 0xf).toBe(0);
 	});
@@ -211,9 +242,11 @@ describe("view rendering", () => {
 		const { editor, terminal, viewport, frame } = harness(20);
 		const link_line = editor.layout.links()[0]!.line;
 
-		// bring the cursor past the line, so it renders in its hidden-anchor
-		// form near the viewport; the second frame paints at the followed
-		// scroll position
+		/**
+		 * Bring the cursor past the line, so it renders in its hidden-anchor
+		 * form near the viewport; the second frame paints at the followed
+		 * scroll position
+		 */
 		editor.placeCursor(new Pos(link_line + 2, 0));
 		frame();
 		frame();
@@ -229,8 +262,10 @@ describe("view rendering", () => {
 		const { editor, terminal, viewport, frame } = harness();
 		const image = editor.layout.images()[0]!;
 
-		// the cursor rests a few lines above, so the image is on screen but
-		// renders in its hidden-anchor form
+		/**
+		 * The cursor rests a few lines above, so the image is on screen but
+		 * renders in its hidden-anchor form
+		 */
 		editor.placeCursor(new Pos(image.line - 3, 0));
 		frame();
 		frame();
@@ -244,5 +279,38 @@ describe("view rendering", () => {
 		for (let row = anchor_row + 1; row < anchor_row + image.rows; row++) {
 			expect(terminal.text(row).trim()).toBe("");
 		}
+	});
+
+	test("a click activates the link, then moves the cursor onto its line", () => {
+		const { editor, terminal, viewport, frame } = harness();
+		const input = new Input(editor, terminal.canvas as never, (row, col) =>
+			editor.layout.screenToBuffer(viewport.top + row, col - 2)
+		);
+
+		const opened: string[] = [];
+		(globalThis as { window: unknown }).window = { open: (url: string) => opened.push(url) };
+
+		const link = editor.layout.links()[0]!;
+		const link_display_row = (editor.layout.firstRowOfLine[link.line] ?? 0) + link.row_in_line;
+
+		// cursor away from the link's line, so the line renders as links
+		editor.placeCursor(new Pos(link.line + 5, 0));
+		frame();
+		frame();
+
+		// press and release on the link's screen cell
+		terminal.canvas.mouse_down = true;
+		terminal.canvas.mouse_row = link_display_row - viewport.top;
+		terminal.canvas.mouse_col = link.col + 2;
+		frame();
+
+		terminal.canvas.mouse_down = false;
+		terminal.canvas.mouse_click = true;
+		input.update();
+		frame();
+		input.placeClick();
+
+		expect(opened).toEqual(["https://github.com/micahdbak"]);
+		expect(editor.cursor.pos.line).toBe(link.line);
 	});
 });

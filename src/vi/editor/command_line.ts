@@ -1,5 +1,5 @@
-import { searchNext, SEARCH_NOT_FOUND } from "../search.ts";
 import { executeEx } from "../ex.ts";
+import { searchNext, SEARCH_NOT_FOUND } from "../search.ts";
 import type { Editor } from "./editor.ts";
 
 export function commandLineKey(editor: Editor, key: string): void {
@@ -10,17 +10,20 @@ export function commandLineKey(editor: Editor, key: string): void {
 		return;
 	}
 
-	if (key === "esc") {
+	const close = (): void => {
 		editor.command_line = null;
 		editor.mode = "normal";
+	};
+
+	if (key === "esc") {
+		close();
 		return;
 	}
 
 	if (key === "enter") {
 		const text = command_line.text;
 		const prompt = command_line.prompt;
-		editor.command_line = null;
-		editor.mode = "normal";
+		close();
 
 		// one history, shared between : and the search prompts
 		if (text.trim() !== "") {
@@ -39,8 +42,7 @@ export function commandLineKey(editor: Editor, key: string): void {
 	if (key === "<bs>") {
 		// backspace on an empty command line cancels it
 		if (command_line.text === "") {
-			editor.command_line = null;
-			editor.mode = "normal";
+			close();
 			return;
 		}
 

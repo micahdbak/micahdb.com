@@ -1,16 +1,17 @@
 import { Buffer, Pos, Range } from "../buffer.ts";
 import { Cursor } from "../cursor.ts";
 import { Layout } from "../layout.ts";
-import type { MotionContext } from "../motions/types.ts";
-import { Registers } from "../registers.ts";
-import { Undo } from "../undo.ts";
-import type { Snapshot } from "../undo.ts";
+import type { MotionContext, CharSearch } from "../motions/types.ts";
 import { feed } from "../parser.ts";
 import type { Pending } from "../parser.ts";
+import { Registers } from "../registers.ts";
+import type { SearchState } from "../search.ts";
+import { Undo } from "../undo.ts";
+import type { Snapshot } from "../undo.ts";
 import { commandLineKey } from "./command_line.ts";
 import { insertKey } from "./insert.ts";
 import { applyOperatorRange, doMotion, doOperatorCommand, doSimple } from "./normal.ts";
-import type { CommandLine, Mode, Repeat, Session } from "./types.ts";
+import type { CommandLine, Mode, Repeat, Selection, Session, ViewportState } from "./types.ts";
 
 /**
  * The editor state machine: modes, the command parser, insert sessions,
@@ -20,25 +21,28 @@ import type { CommandLine, Mode, Repeat, Session } from "./types.ts";
  * modules, which receive the editor instance.
  */
 export class Editor {
-	buffer: Buffer;
-	layout: Layout;
-	cursor: Cursor;
-	registers: Registers;
-	undo_state: Undo;
-	marks: Map<string, Pos>;
-	search: { pattern: string; forward: boolean };
-	last_char_search: { char: string; forward: boolean; before_target: boolean } | null;
-	last_jump: Pos | null;
-	mode: Mode;
-	pending: Pending | null;
-	command_line: CommandLine | null;
-	history: string[];
-	history_index: number | null;
-	session: Session | null;
-	repeat_last: Repeat | null;
-	message: string | null;
-	selection: { anchor: Pos; head: Pos } | null;
-	viewport: { top: number; rows: number };
+	// the document and the machinery built around it once
+	readonly buffer: Buffer;
+	readonly layout: Layout;
+	readonly cursor: Cursor;
+	readonly registers: Registers;
+	readonly undo_state: Undo;
+	readonly marks: Map<string, Pos>;
+	readonly history: string[];
+	readonly viewport: ViewportState;
+
+	// the mutable editor state
+	search: SearchState = { pattern: "", forward: true };
+	last_char_search: CharSearch | null = null;
+	last_jump: Pos | null = null;
+	mode: Mode = "normal";
+	pending: Pending | null = null;
+	command_line: CommandLine | null = null;
+	history_index: number | null = null;
+	session: Session | null = null;
+	repeat_last: Repeat | null = null;
+	message: string | null = null;
+	selection: Selection | null = null;
 
 	constructor(content: string, width: number) {
 		this.buffer = new Buffer(content);
@@ -47,18 +51,7 @@ export class Editor {
 		this.registers = new Registers();
 		this.undo_state = new Undo();
 		this.marks = new Map();
-		this.search = { pattern: "", forward: true };
-		this.last_char_search = null;
-		this.last_jump = null;
-		this.mode = "normal";
-		this.pending = null;
-		this.command_line = null;
 		this.history = [];
-		this.history_index = null;
-		this.session = null;
-		this.repeat_last = null;
-		this.message = null;
-		this.selection = null;
 		this.viewport = { top: 0, rows: 24 };
 	}
 
@@ -133,8 +126,10 @@ export class Editor {
 		this.cursor.pos = new Pos(line, Math.min(this.cursor.pos.col, max_col));
 	}
 
-	// u: swaps the buffer with the remembered pre-change state, so pressing
-	// it again toggles the change back (vi's single undo level)
+	/**
+	 * U: swaps the buffer with the remembered pre-change state, so pressing
+	 * it again toggles the change back (vi's single undo level)
+	 */
 	undo(): void {
 		this.restore(
 			this.undo_state.take({ lines: [...this.buffer.lines], cursor: this.cursor.pos }),

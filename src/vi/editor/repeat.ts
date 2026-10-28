@@ -1,8 +1,8 @@
-import { performInsert, startSession, typeText, endSession } from "./insert.ts";
-import { applyOperatorRange, doOperatorCommand, doSimple, startSugarChange } from "./normal.ts";
+import type { OperatorCommand } from "../parser.ts";
 import { sugarRange } from "../operators.ts";
 import type { Editor } from "./editor.ts";
-import type { OperatorCommand } from "../parser.ts";
+import { performInsert, startSession, typeText, endSession } from "./insert.ts";
+import { applyOperatorRange, doOperatorCommand, doSimple, startSugarChange } from "./normal.ts";
 
 // .: re-executes the last change at the current cursor position
 export function repeatCommand(editor: Editor): void {

@@ -224,8 +224,10 @@ describe("wrap-aware vertical motion", () => {
 
 		const editor = editorWith(links + "\nbelow", 30);
 
-		// below the anchor line: its rendered form is one row, its raw form
-		// wraps to several
+		/**
+		 * Below the anchor line: its rendered form is one row, its raw form
+		 * wraps to several
+		 */
 		editor.placeCursor(new Pos(1, 10));
 		editor.key("k");
 

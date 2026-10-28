@@ -1,8 +1,8 @@
 import { Colour, TexGlyphMode, textureGlyphs, textGlyphs } from "@micahdb/tscon";
 import type { Glyphs, TexGlyphs, Terminal, Renderer } from "@micahdb/tscon";
 import { Link } from "@/components/link.ts";
-import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Editor } from "./editor/editor.ts";
+import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Viewport } from "./viewport.ts";
 
 const TILDE = textGlyphs("\\F0~", 1, false);
@@ -25,6 +25,8 @@ export type ViewDependencies = {
 type BlankSpan = { from_col: number; to_col: number };
 
 type InvertSpan = { from_col: number; to_col: number; blank_bg: number } | null;
+
+type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
 
 /**
  * A copy of one glyph row with two optional transforms: whitespace cells in
@@ -55,8 +57,10 @@ function preparedRow(glyphs: Glyphs, row: number, blanks: BlankSpan[], invert: I
 				continue;
 			}
 
-			// swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank
-			// sentinel paints as a solid block
+			/**
+			 * Swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank
+			 * sentinel paints as a solid block
+			 */
 			const fg = (cell >> 12) & 0xf;
 			const bg = (cell >> 8) & 0xf;
 
@@ -125,7 +129,7 @@ function sliceTextureGlyphs(
 export class View {
 	private readonly links = new Map<string, Link>();
 	private readonly texture_glyphs = new Map<string, TexGlyphs>();
-	private frame_regions: { anchor: ImageAnchor; first_display_row: number }[] = [];
+	private frame_regions: ImageRegion[] = [];
 
 	constructor(
 		private readonly terminal: Terminal,
@@ -144,8 +148,10 @@ export class View {
 		const pad = this.dependencies.pad_cols;
 		const first = layout.firstRowOfLine;
 
-		// the bar marks the classic print margin when the terminal is wide
-		// enough for column 80 to exist
+		/**
+		 * The bar marks the classic print margin when the terminal is wide
+		 * enough for column 80 to exist
+		 */
 		const bar_col = layout.wrapWidth > BAR_COLUMN ? BAR_COLUMN - 1 : null;
 
 		this.frame_regions = layout.images().map((anchor) => ({
@@ -164,8 +170,10 @@ export class View {
 
 			const prepared = this.preparedRowAt(display_row, null);
 
-			// only the first row of a wrapped line is on the physical line
-			// that owns column 80
+			/**
+			 * Only the first row of a wrapped line is on the physical line
+			 * that owns column 80
+			 */
 			if (bar_col !== null && display_row.row_in_line === 0) {
 				paintBar(prepared, bar_col);
 			}
@@ -181,9 +189,11 @@ export class View {
 		this.terminal.draw();
 	}
 
-	// the column spans whose whitespace cells give way to the texture on the
-	// given display row: the image region, plus the hidden anchor text on
-	// its own row
+	/**
+	 * The column spans whose whitespace cells give way to the texture on the
+	 * given display row: the image region, plus the hidden anchor text on
+	 * its own row
+	 */
 	private blankSpansAt(display_index: number): BlankSpan[] {
 		const spans: BlankSpan[] = [];
 
@@ -209,8 +219,10 @@ export class View {
 		);
 	}
 
-	// a copy of the display row's glyph row: whitespace in image regions
-	// zeroed, plus the optional invert span (selection or cursor)
+	/**
+	 * A copy of the display row's glyph row: whitespace in image regions
+	 * zeroed, plus the optional invert span (selection or cursor)
+	 */
 	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): Glyphs {
 		const { layout } = this.dependencies;
 		const first = layout.firstRowOfLine[display_row.line] ?? 0;
@@ -256,8 +268,10 @@ export class View {
 			const row_length = layout.visibleLength(display_row.line, display_row.row_in_line);
 			const from_col = display_index === first_display_row ? start_visible.col : 0;
 
-			// rows fully inside the selection highlight across the width, as
-			// vi highlights blank lines in full
+			/**
+			 * Rows fully inside the selection highlight across the width, as
+			 * vi highlights blank lines in full
+			 */
 			const full_width = Math.max(row_length, layout.wrapWidth);
 			const to_col = display_index === last_display_row ? end_visible.col + 1 : full_width;
 
@@ -271,8 +285,10 @@ export class View {
 		}
 	}
 
-	// the cursor is an inverted cell at its screen position, hidden while
-	// the command line is open
+	/**
+	 * The cursor is an inverted cell at its screen position, hidden while
+	 * the command line is open
+	 */
 	private drawCursor(usable: number): void {
 		const { editor, layout, viewport } = this.dependencies;
 
@@ -294,8 +310,10 @@ export class View {
 			blank_bg: CURSOR_BG,
 		});
 
-		// one cell only: a full-row blit would erase the selection
-		// overlay beneath the cursor
+		/**
+		 * One cell only: a full-row blit would erase the selection
+		 * overlay beneath the cursor
+		 */
 		this.terminal.blit(
 			prepared,
 			{ row: 0, col: visible.col, rows: 1, cols: 1 },
@@ -368,9 +386,11 @@ export class View {
 		return `${filename} ${insert_mode}${pending}${ruler}`;
 	}
 
-	// image regions composite under the text: the texture paints the canvas,
-	// then the terminal's text cells draw over it while blank cells stay
-	// transparent
+	/**
+	 * Image regions composite under the text: the texture paints the canvas,
+	 * then the terminal's text cells draw over it while blank cells stay
+	 * transparent
+	 */
 	private drawImages(usable: number): void {
 		const { viewport, textures } = this.dependencies;
 		const canvas = this.terminal.canvas;

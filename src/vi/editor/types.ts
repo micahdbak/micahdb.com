@@ -4,6 +4,12 @@ import type { OperatorName } from "../parser.ts";
 
 export type Mode = "normal" | "insert" | "replace" | "command_line";
 
+export type CommandLine = { prompt: string; text: string };
+
+export type ViewportState = { top: number; rows: number };
+
+export type Selection = { anchor: Pos; head: Pos };
+
 export type InsertLocation =
 	| "insert"
 	| "append"
@@ -12,18 +18,10 @@ export type InsertLocation =
 	| "open_below"
 	| "open_above";
 
-export type Session = {
-	location: InsertLocation;
-	count: number;
-	start: Pos;
-	replace: boolean;
-	change_base: ChangeBase | null;
-};
-
-export type CommandLine = { prompt: string; text: string };
-
-// the operator fields a change replays; ChangeBase adds where the change
-// came from a sugar command
+/**
+ * The operator fields a change replays; ChangeBase adds where the change
+ * came from a sugar command.
+ */
 export type OperatorRepeat = {
 	operator: OperatorName;
 	motion: MotionDescription | null;
@@ -33,6 +31,14 @@ export type OperatorRepeat = {
 };
 
 export type ChangeBase = OperatorRepeat & { sugar?: string };
+
+export type Session = {
+	location: InsertLocation;
+	count: number;
+	start: Pos;
+	replace: boolean;
+	change_base: ChangeBase | null;
+};
 
 /**
  * What . re-executes: an operator command, a change with its typed text, a
