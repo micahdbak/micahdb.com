@@ -1,6 +1,7 @@
+import type { ScreenPos } from "@micahdb/tscon";
 import type { Buffer, Pos } from "../buffer.ts";
 import type { SearchState } from "../search.ts";
-import type { DisplayRow, ScreenPos } from "../layout.ts";
+import type { DisplayRow } from "../layout.ts";
 
 export type MotionKind = "exclusive" | "inclusive" | "linewise";
 
