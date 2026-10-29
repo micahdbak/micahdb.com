@@ -115,11 +115,18 @@ function harness(width = WIDTH, content = DOCUMENT) {
 	const editor = new Editor(content, width);
 	const viewport = new Viewport();
 	const terminal = new MockTerminal();
-	const view = new View(terminal as never, { draw: () => {} } as never, {
+	const draws: Array<{ rows: number; cols: number; dst: { row: number; col: number } }> = [];
+	const renderer = {
+		draw: (_glyphs: unknown, _texture: unknown, dst: { row: number; col: number; rows: number; cols: number }) => {
+			draws.push({ rows: dst.rows, cols: dst.cols, dst });
+		},
+	};
+	const view = new View(terminal as never, renderer as never, {
 		editor,
 		layout: editor.layout,
 		viewport,
 		textures: new Map([["portrait", {}]]),
+		image_modes: {},
 		pad_cols: 2,
 		filename: "VI",
 	});
@@ -136,7 +143,7 @@ function harness(width = WIDTH, content = DOCUMENT) {
 		}
 	};
 
-	return { editor, terminal, viewport, frame };
+	return { editor, terminal, viewport, frame, draws };
 }
 
 describe("view rendering", () => {
@@ -279,6 +286,38 @@ describe("view rendering", () => {
 		for (let row = anchor_row + 1; row < anchor_row + image.rows; row++) {
 			expect(terminal.text(row).trim()).toBe("");
 		}
+	});
+
+	test("an image region draws whole while scrolled, never a squashed slice", () => {
+		const { editor, terminal, viewport, frame, draws } = harness();
+		const image = editor.layout.images()[0]!;
+
+		/**
+		 * Park the cursor a couple of rows below the image's top, so the
+		 * viewport scrolls until only the region's tail is on screen and
+		 * its top rows are clipped off
+		 */
+		editor.placeCursor(new Pos(image.line + 2, 0));
+
+		for (let i = 0; i < 4; i++) {
+			frame();
+		}
+
+		const first = editor.layout.firstRowOfLine[image.line] ?? 0;
+
+		// the region's top is on screen but its tail runs past the bottom
+		expect(first).toBeGreaterThanOrEqual(viewport.top);
+
+		const draw = draws[draws.length - 1]!;
+
+		/**
+		 * The full region is handed to the renderer with a negative row:
+		 * the shader clips it, and the packed cell indices stay whole so
+		 * the UV mapping samples the right part of the texture
+		 */
+		expect(draw.rows).toBe(image.rows);
+		expect(draw.cols).toBe(image.cols);
+		expect(draw.dst.row + draw.rows).toBeGreaterThan(terminal.canvas.rows);
 	});
 
 	test("a click activates the link, then moves the cursor onto its line", () => {

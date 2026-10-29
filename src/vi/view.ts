@@ -17,6 +17,7 @@ export type ViewDependencies = {
 	layout: Layout;
 	viewport: Viewport;
 	textures: Map<string, WebGLTexture>;
+	image_modes: Record<string, tscon.TexGlyphMode>;
 	pad_cols: number;
 	filename: string;
 };
@@ -41,32 +42,6 @@ function invertedCell(cell: number, blank_bg: number): number {
 	const bg = (cell >> 8) & 0xf;
 
 	return (bg << 12) | (fg << 8) | (cell & 0xff);
-}
-
-/**
- * A sub-rectangle of a texture-glyph grid, for image regions that only
- * partially overlap the canvas.
- */
-function sliceTextureGlyphs(
-	texture_glyphs: tscon.TexGlyphs,
-	first_row: number,
-	first_col: number,
-	rows: number,
-	cols: number
-): tscon.TexGlyphs {
-	const data = new Uint32Array(rows * cols);
-
-	for (let row = 0; row < rows; row++) {
-		for (let col = 0; col < cols; col++) {
-			const cell = texture_glyphs.data[(first_row + row) * texture_glyphs.cols + (first_col + col)];
-
-			if (cell !== undefined) {
-				data[row * cols + col] = cell;
-			}
-		}
-	}
-
-	return { data, rows, cols };
 }
 
 /**
@@ -131,7 +106,7 @@ export class View {
 		this.drawCursor(usable);
 		this.drawLinks(usable);
 		this.drawStatus();
-		this.drawImages(usable);
+		this.drawImages();
 		this.terminal.draw();
 	}
 
@@ -330,7 +305,7 @@ export class View {
 	 * then the terminal's text cells draw over it while blank cells stay
 	 * transparent
 	 */
-	private drawImages(usable: number): void {
+	private drawImages(): void {
 		const { viewport, textures } = this.dependencies;
 		const canvas = this.terminal.canvas;
 
@@ -338,6 +313,7 @@ export class View {
 			const screen_row = first_display_row - viewport.top;
 			const screen_col = anchor.col + this.dependencies.pad_cols;
 
+			// entirely off screen: nothing to draw
 			if (screen_row >= canvas.rows || screen_row + anchor.rows <= 0 || screen_col >= canvas.cols) {
 				continue;
 			}
@@ -348,38 +324,38 @@ export class View {
 				continue;
 			}
 
-			const texture_glyphs = this.textureGlyphsFor(anchor.name, anchor.rows, anchor.cols);
-			const first_row = Math.max(0, -screen_row);
-			const first_col = Math.max(0, -screen_col);
-			const last = Math.min(anchor.rows, usable - screen_row, canvas.rows - screen_row);
-			const rows = last - first_row;
-			const cols = Math.min(anchor.cols - first_col, canvas.cols - (screen_col + first_col));
-
-			if (rows <= 0 || cols <= 0) {
-				continue;
-			}
-
-			const slice = sliceTextureGlyphs(texture_glyphs, first_row, first_col, rows, cols);
-
-			this.renderer.draw(slice, texture, {
-				row: screen_row + first_row,
-				col: screen_col + first_col,
-				rows,
-				cols,
-			});
+			/**
+			 * The whole region is drawn every frame, even when it extends
+			 * past the canvas: the shader clips the off-screen cells, and
+			 * the packed row/column indices must stay whole for the UV
+			 * mapping to sample the right part of the texture. The text
+			 * (drawn after) covers any part that reaches the status row.
+			 */
+			this.renderer.draw(
+				this.textureGlyphsFor(anchor.name, anchor.rows, anchor.cols),
+				texture,
+				{
+					row: screen_row,
+					col: screen_col,
+					rows: anchor.rows,
+					cols: anchor.cols,
+				}
+			);
 		}
 	}
 
 
 	private textureGlyphsFor(name: string, rows: number, cols: number): tscon.TexGlyphs {
-		const cached = this.texture_glyphs.get(name);
+		const mode = this.dependencies.image_modes[name] ?? tscon.TexGlyphMode.SAMPLE;
+		const key = `${name}:${mode}`;
+		const cached = this.texture_glyphs.get(key);
 
 		if (cached !== undefined && cached.rows === rows && cached.cols === cols) {
 			return cached;
 		}
 
-		const built = tscon.textureGlyphs(rows, cols, tscon.TexGlyphMode.SAMPLE);
-		this.texture_glyphs.set(name, built);
+		const built = tscon.textureGlyphs(rows, cols, mode);
+		this.texture_glyphs.set(key, built);
 		return built;
 	}
 }

@@ -2,6 +2,7 @@ import * as tscon from "@micahdb/tscon";
 
 import { Editor } from "./editor/editor.ts";
 import { Input } from "./input.ts";
+import type { ImageAnchor, ImageLimits } from "./layout.ts";
 import { View } from "./view.ts";
 import { Viewport } from "./viewport.ts";
 
@@ -10,12 +11,24 @@ type TextureLoader = (gl: WebGL2RenderingContext) => WebGLTexture | Promise<WebG
 export type TextureSource = WebGLTexture | TextureLoader;
 
 export type ViOptions = {
-	canvas_el: HTMLCanvasElement;
+	/** The page's Canvas: constructed by the page so scene passes and
+	 *  visuals can share it with `Vi`. */
+	canvas: tscon.Canvas;
 	content: string;
 	filename: string;
 	textures?: Record<string, TextureSource>;
+	/** Per-region sampling mode, keyed by anchor name. Regions absent
+	 *  here sample photographically (`TexGlyphMode.SAMPLE`). */
+	image_modes?: Record<string, tscon.TexGlyphMode>;
+	/** Largest region an image anchor may claim. Defaults to 40 rows by
+	 *  80 columns; the document's payload is clamped to this. */
+	image_limits?: ImageLimits;
 	font_path?: string;
 	pad_cols?: number;
+	/** Called once per frame before the view renders, for scene passes
+	 *  that feed registry textures (e.g. rendering a 3D model into its
+	 *  render target). */
+	before_frame?: () => void;
 };
 
 /**
@@ -33,19 +46,23 @@ export class Vi {
 	private readonly input: Input;
 	private readonly view: View;
 	private readonly textures = new Map<string, WebGLTexture>();
+	private readonly image_modes: Record<string, tscon.TexGlyphMode>;
 
 	private readonly pad_cols: number;
+	private readonly before_frame: (() => void) | null;
 
 	private font: WebGLTexture | null = null;
 	private resized = true;
 
 	constructor(options: ViOptions) {
-		this.canvas = new tscon.Canvas(options.canvas_el);
+		this.canvas = options.canvas;
 		this.terminal = new tscon.Terminal(this.canvas);
 		this.renderer = new tscon.Renderer(this.canvas);
 
 		this.pad_cols = options.pad_cols ?? 2;
-		this.editor = new Editor(options.content, this.wrapWidth());
+		this.image_modes = options.image_modes ?? {};
+		this.before_frame = options.before_frame ?? null;
+		this.editor = new Editor(options.content, this.wrapWidth(), options.image_limits);
 		this.input = new Input(this.editor, this.canvas, (row, col) =>
 			this.editor.layout.screenToBuffer(this.viewport.top + row, col - this.pad_cols)
 		);
@@ -56,6 +73,7 @@ export class Vi {
 			layout: this.editor.layout,
 			viewport: this.viewport,
 			textures: this.textures,
+			image_modes: this.image_modes,
 			pad_cols: this.pad_cols,
 			filename: options.filename,
 		});
@@ -68,6 +86,15 @@ export class Vi {
 		this.loadFont(options.font_path);
 
 		this.frame();
+	}
+
+	/**
+	 * The image regions the document currently asks for, in the order it
+	 * declares them. Sizes are clamped by {@link ViOptions.image_limits}, so
+	 * the document can resize a texture but not beyond the limit.
+	 */
+	imageRegions(): ImageAnchor[] {
+		return this.editor.layout.images();
 	}
 
 	private wrapWidth(): number {
@@ -122,6 +149,10 @@ export class Vi {
 			canvas.user_font = this.font;
 			this.terminal.use_user_font = true;
 			this.renderer.use_user_font = true;
+		}
+
+		if (this.before_frame !== null) {
+			this.before_frame();
 		}
 
 		/**

@@ -8,6 +8,7 @@ export function vi_page() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
+		const canvas = new tscon.Canvas(canvas_el);
 		// the content file carries a title and separator for the static
 		// fallback; the document is everything below them
 		const raw = CONTENT as string;
@@ -16,7 +17,7 @@ export function vi_page() {
 		const content = raw.slice(second_nl + 1, -1);
 
 		new Vi({
-			canvas_el,
+			canvas,
 			content,
 			filename: "VI",
 			font_path: "/images/font.png",

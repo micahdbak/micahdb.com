@@ -1,6 +1,7 @@
 import { Buffer, Pos, Range } from "../buffer.ts";
 import { Cursor } from "../cursor.ts";
 import { Layout } from "../layout.ts";
+import type { ImageLimits } from "../layout.ts";
 import type { MotionContext, CharSearch } from "../motions/types.ts";
 import { feed } from "../parser.ts";
 import type { Pending } from "../parser.ts";
@@ -44,9 +45,9 @@ export class Editor {
 	message: string | null = null;
 	selection: Selection | null = null;
 
-	constructor(content: string, width: number) {
+	constructor(content: string, width: number, image_limits?: ImageLimits) {
 		this.buffer = new Buffer(content);
-		this.layout = new Layout(this.buffer, width);
+		this.layout = new Layout(this.buffer, width, image_limits);
 		this.cursor = new Cursor();
 		this.registers = new Registers();
 		this.undo_state = new Undo();

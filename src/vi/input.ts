@@ -137,6 +137,11 @@ export class Input {
 		}
 
 		switch (key) {
+			// captured so the browser does not move focus; vi inserts it
+			// as a real tab in insert and replace modes
+			case "Tab":
+				return "\t";
+
 			case "Enter":
 				return "enter";
 

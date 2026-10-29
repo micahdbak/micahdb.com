@@ -5,6 +5,12 @@ import { torusMesh } from "./meshes/torus.ts";
 import { BlinnPhongIndicesProgram } from "./programs/blinn_phong_indices.ts";
 
 export class TorusVisuals extends Visuals {
+	// the light orbits the view axis, this far in front of the torus and
+	// this far off it, so the ring's far inner wall is never lit and no
+	// glow shows through the hole
+	static readonly LIGHT_RADIUS = 4.0;
+	static readonly LIGHT_DEPTH = 5.0;
+
 	static readonly YAW_HALF_RANGE = Math.PI / 3;
 	static readonly PITCH_HALF_RANGE = Math.PI / 3;
 	static readonly TRACKING_K = 4;
@@ -30,9 +36,9 @@ export class TorusVisuals extends Visuals {
 		this.blinn_phong = new BlinnPhongIndicesProgram(gl, torusMesh(32, 24, 4, 1));
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
-			tscon.loadTexture(gl, "/images/torus/texture.jpg"),
-			tscon.loadTexture(gl, "/images/torus/normal.jpg"),
-			tscon.loadTexture(gl, "/images/torus/roughness.jpg")
+			tscon.loadTexture(gl, "/images/texture.png"),
+			tscon.loadTexture(gl, "/images/normal.png"),
+			tscon.loadTexture(gl, "/images/roughness.png")
 		]);
 
 		this.is_ready = true;
@@ -63,7 +69,11 @@ export class TorusVisuals extends Visuals {
 		tscon.Mat4.multiply(model_matrix, tmp, rz);
 
 		const light_phi = elapsed / 2.9;
-		const light = [6.0 * Math.cos(light_phi), 6.0 * Math.sin(light_phi), 2.0];
+		const light = [
+			TorusVisuals.LIGHT_RADIUS * Math.cos(light_phi),
+			TorusVisuals.LIGHT_RADIUS * Math.sin(light_phi),
+			TorusVisuals.LIGHT_DEPTH
+		];
 
 		this.blinn_phong.draw(
 			this.texture,
@@ -72,9 +82,9 @@ export class TorusVisuals extends Visuals {
 			model_matrix,
 			view_matrix,
 			projection_matrix,
-			0.5,
+			0.33,
 			light,
-			0.75
+			0.66
 		);
 	}
 }

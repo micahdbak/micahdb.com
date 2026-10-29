@@ -6,6 +6,13 @@ export type DisplayRow = { line: number; row_in_line: number };
 
 export type LinkAnchor = { line: number; row_in_line: number; col: number; options: string | null };
 
+/**
+ * The largest region an image anchor may claim. Anchor payloads are plain
+ * text, so the document can ask for any size; this bounds the grid the view
+ * builds and the region it draws.
+ */
+export type ImageLimits = { rows: number; cols: number };
+
 export type ImageAnchor = {
 	line: number;
 	row_in_line: number;
@@ -15,14 +22,53 @@ export type ImageAnchor = {
 	cols: number;
 };
 
-function imageExtent(payload: string): { name: string; rows: number; cols: number } | null {
+export const DEFAULT_IMAGE_LIMITS: ImageLimits = { rows: 40, cols: 80 };
+
+const CELL_COUNT = /^\d+$/;
+
+/**
+ * A region dimension read from an anchor payload: digits only, clamped into
+ * `0..bound`. Anything else -- absent, negative, fractional, words, Infinity
+ * -- is `0`, so malformed text can never claim a region or escape the limit.
+ */
+function cellCount(text: string, bound: number): number {
+	const digits = text.trim();
+
+	if (!CELL_COUNT.test(digits)) {
+		return 0;
+	}
+
+	return Math.min(Number(digits), bound);
+}
+
+/**
+ * The region an image anchor asks for, or `null` when it asks for nothing.
+ *
+ * Payloads are document text and can be anything, so every field is parsed
+ * defensively: a missing name, or a region with no height or no width, means
+ * no region at all rather than a degenerate one.
+ */
+function imageExtent(
+	payload: string,
+	limits: ImageLimits
+): { name: string; rows: number; cols: number } | null {
 	const [name = "", rows = "", cols = ""] = payload.split("|");
 
 	if (name === "") {
 		return null;
 	}
 
-	return { name, rows: Math.max(1, Number(rows) || 1), cols: Math.max(1, Number(cols) || 1) };
+	const extent = {
+		name,
+		rows: cellCount(rows, limits.rows),
+		cols: cellCount(cols, limits.cols),
+	};
+
+	if (extent.rows === 0 || extent.cols === 0) {
+		return null;
+	}
+
+	return extent;
 }
 
 /**
@@ -39,7 +85,8 @@ export class Layout {
 
 	constructor(
 		private readonly buffer: Buffer,
-		private wrap_width: number
+		private wrap_width: number,
+		private readonly image_limits: ImageLimits = DEFAULT_IMAGE_LIMITS
 	) {}
 
 	// the width lines are wrapped to, for view decorations like the column
@@ -194,7 +241,7 @@ export class Layout {
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
 			for (const anchor of this.compile(line).anchors[2] ?? []) {
-				const extent = imageExtent(anchor.options ?? "");
+				const extent = imageExtent(anchor.options ?? "", this.image_limits);
 
 				if (extent === null) {
 					continue;

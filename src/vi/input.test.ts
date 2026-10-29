@@ -20,7 +20,19 @@ function harness(content: string) {
 		canvas.dispatchEvent(new CustomEvent("wheel", { detail: { rows } }));
 	};
 
-	return { editor, wheel };
+	// bun has no KeyboardEvent: a plain cancelable Event carrying the
+	// fields Input reads is enough
+	const press = (key: string): Event => {
+		const event = new Event("keydown", { cancelable: true });
+
+		Object.assign(event, { key, ctrlKey: false, altKey: false, metaKey: false });
+
+		(globalThis as { window: EventTarget }).window.dispatchEvent(event);
+
+		return event;
+	};
+
+	return { editor, wheel, press };
 }
 
 describe("mouse wheel", () => {
@@ -58,5 +70,35 @@ describe("mouse wheel", () => {
 		wheel(2);
 
 		expect(editor.cursor.pos.line).toBe(0);
+	});
+});
+
+describe("tab", () => {
+	test("tab is captured so the browser keeps focus", () => {
+		const { press } = harness("abc");
+
+		const event = press("Tab");
+
+		// cancelled: the browser will not move focus off the canvas
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	test("tab inserts a real tab in insert mode", () => {
+		const { editor, press } = harness("abc");
+
+		editor.key("i");
+		press("Tab");
+
+		expect(editor.buffer.lineText(0)).toBe("\tabc");
+	});
+
+	test("tab is ignored in normal mode", () => {
+		const { editor, press } = harness("abc");
+
+		press("Tab");
+
+		expect(editor.mode).toBe("normal");
+		expect(editor.buffer.lineText(0)).toBe("abc");
+		expect(editor.cursor.pos.col).toBe(0);
 	});
 });
