@@ -315,7 +315,12 @@ function vertexNormal(
 // orthogonal to the normal (glTF tangents are VEC4; the w is handedness,
 // which the shader does not use). falls back to any unit vector perpendicular
 // to the normal when absent.
-function vertexTangent(tangents: Attribute | null, world: Float32Array, n: number[], i: number): number[] {
+function vertexTangent(
+	tangents: Attribute | null,
+	world: Float32Array,
+	n: number[],
+	i: number
+): number[] {
 	if (!tangents) {
 		const up = Math.abs(n[1]!) < 0.9 ? [0, 1, 0] : [1, 0, 0];
 		return normalize3(cross3(up, n));

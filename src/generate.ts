@@ -63,37 +63,17 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 	for (const [row, line] of lines.entries()) {
 		let col = 0;
 
-		for (let i = 0; i < line.length; i++) {
-			const c = line.charAt(i);
-			let escape = c === "\\";
-
-			// \\ : display a single back slash
-			if (escape && i + 1 < line.length && line.charAt(i + 1) === "\\") {
-				i++;
-				escape = false;
-			}
+		for (let i = 0; i < line.length; ) {
+			const scan = tscon.scanEscapeAt(line, i);
 
 			// anchor escape sequence
 			// \a0{Display Text|URL} : link
 			// \a9{Display Text|#anchor} : section anchor
-			if (escape && i + 2 < line.length && line.charAt(i + 1) === "a" && !isNaN(Number(line.charAt(i + 2)))) {
-				const num = Math.max(Math.min(Number(line[i + 2]), 9), 0);
-				let skip_chars = 2;
-				let options = null;
+			if (scan.kind === "anchor") {
+				if (scan.options !== null && (scan.group === 0 || scan.group === 9)) {
+					const [text = "", url = text] = scan.options.split("|");
 
-				if (i + 3 < line.length && line.charAt(i + 3) === "{") {
-					const closing_brace = line.indexOf("}", i + 3);
-
-					if (closing_brace > i + 3) {
-						options = line.slice(i + 4, closing_brace);
-						skip_chars = closing_brace - i;
-					}
-				}
-
-				if (options !== null && (num === 0 || num === 9)) {
-					const [text = "", url = text] = options.split("|");
-
-					if (num === 0) {
+					if (scan.group === 0) {
 						html.push(`<a href="${escapeHtml(url)}" class="f12">${escapeHtml(text)}</a>`);
 					} else {
 						const anchor_id = url.startsWith("#") ? url.slice(1) : url;
@@ -104,36 +84,21 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 					col += text.length;
 				}
 
-				i += skip_chars;
-
+				i += scan.chars;
 				continue;
 			}
 
 			// colour escape sequence
-			if (
-				escape &&
-				i + 2 < line.length &&
-				"fFbB".includes(line.charAt(i + 1)) &&
-				!isNaN(Number(line.charAt(i + 2)))
-			) {
-				const num = Math.max(Math.min(Number(line.charAt(i + 2)), 7), 0);
+			if (scan.kind === "colour") {
+				const num = Math.min(scan.num, 7) + (scan.bright ? 8 : 0);
 
-				switch (line[i + 1]) {
-					case "f":
-						fg = num;
-						break;
-					case "F":
-						fg = num + 8;
-						break;
-					case "b":
-						bg = num;
-						break;
-					case "B":
-						bg = num + 8;
-						break;
+				if (scan.attribute === "fg") {
+					fg = num;
+				} else {
+					bg = num;
 				}
 
-				i += 2;
+				i += scan.chars;
 
 				const desired: string[] = [];
 
@@ -152,12 +117,16 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 				continue;
 			}
 
+			// an escaped backslash displays one backslash
+			const visible = scan.chars === 2 ? "\\" : line.charAt(i);
+
 			// tab
-			if (c === "\t") {
+			if (visible === "\t") {
 				const tab_chars = tscon.TAB_WIDTH - (col % tscon.TAB_WIDTH);
 				col += tab_chars;
 				html.push(" ".repeat(tab_chars));
 
+				i += scan.chars;
 				continue;
 			}
 
@@ -165,8 +134,9 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 				break;
 			}
 
-			html.push(escapeHtml(c));
+			html.push(escapeHtml(visible));
 			col++;
+			i += scan.chars;
 		}
 
 		if (row < lines.length - 1) {
