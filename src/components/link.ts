@@ -1,5 +1,4 @@
-import { textGlyphs, Terminal, Colour } from "@micahdb/tscon";
-import type { Glyphs } from "@micahdb/tscon";
+import { Colour, Glyphs, Terminal, Wrap } from "@micahdb/tscon";
 
 export class Link {
 	private readonly terminal: Terminal;
@@ -56,7 +55,7 @@ export class Link {
 			const bgc = bg > Colour.GREY ? "B" : "b";
 
 			const text = `\\${fgc}${fgv}\\${bgc}${bgv}${this.text}`;
-			glyphs = textGlyphs(text, this.text.length, false);
+			glyphs = new Glyphs(text, this.text.length, { wrap: Wrap.TRUNCATE });
 			this.glyphs = glyphs;
 		}
 

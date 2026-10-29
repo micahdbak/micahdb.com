@@ -1,5 +1,4 @@
-import { Terminal, textGlyphs } from "@micahdb/tscon";
-import type { Glyphs } from "@micahdb/tscon";
+import { Glyphs, Terminal, Wrap } from "@micahdb/tscon";
 
 export class Pager {
 	private static readonly NAME = "pager"; // for mouse_owner
@@ -144,6 +143,6 @@ export class Pager {
 	private compileStatus(percent: number): Glyphs {
 		const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
 		const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
-		return textGlyphs(status_text, cols, false);
+		return new Glyphs(status_text, cols, { wrap: Wrap.TRUNCATE });
 	}
 }

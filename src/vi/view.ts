@@ -1,11 +1,11 @@
-import { Colour, TexGlyphMode, textureGlyphs, textGlyphs } from "@micahdb/tscon";
-import type { Glyphs, TexGlyphs, Terminal, Renderer } from "@micahdb/tscon";
+import { Colour, Glyphs, TexGlyphMode, Wrap, textureGlyphs } from "@micahdb/tscon";
+import type { TexGlyphs, Terminal, Renderer } from "@micahdb/tscon";
 import { Link } from "@/components/link.ts";
 import type { Editor } from "./editor/editor.ts";
 import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Viewport } from "./viewport.ts";
 
-const TILDE = textGlyphs("\\F0~", 1, false);
+const TILDE = new Glyphs("\\F0~", 1, { wrap: Wrap.TRUNCATE });
 const TILDE_AT = { row: 0, col: 0, rows: 1, cols: 1 };
 
 const SELECTION_BG = Colour.BRIGHT_BLACK;
@@ -26,51 +26,22 @@ type InvertSpan = { from_col: number; to_col: number; blank_bg: number } | null;
 
 type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
 
-/**
- * A copy of one glyph row with an optional invert span: the fg/bg nibbles
- * of each cell in the span swap, for the selection or the cursor, with
- * blank cells painted as solid blocks.
- */
-function preparedRow(glyphs: Glyphs, row: number, invert: InvertSpan): Glyphs {
-	const cols = glyphs.cols;
-	const data = glyphs.data.slice(row * cols, (row + 1) * cols);
-
-	if (invert !== null) {
-		for (let col = Math.max(0, invert.from_col); col < Math.min(cols, invert.to_col); col++) {
-			const cell = data[col];
-
-			if (cell === undefined) {
-				continue;
-			}
-
-			/**
-			 * Swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank
-			 * sentinel paints as a solid block
-			 */
-			const fg = (cell >> 12) & 0xf;
-			const bg = (cell >> 8) & 0xf;
-
-			if (cell === 0) {
-				data[col] = (Colour.BLACK << 12) | (invert.blank_bg << 8) | 32;
-				continue;
-			}
-
-			data[col] = (bg << 12) | (fg << 8) | (cell & 0xff);
-		}
-	}
-
-	return { data, rows: 1, cols, anchors: {} };
+// the column bar sits behind whatever text is in the column
+function barCell(cell: number): number {
+	return cell === 0 ? BAR_BG << 8 | 32 : (cell & 0xf0ff) | BAR_BG << 8;
 }
 
-// the column bar sits behind whatever text is in the column
-function paintBar(row: Glyphs, col: number): void {
-	const cell = row.data[col];
-
-	if (cell === undefined) {
-		return;
+// swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank sentinel
+// paints as a solid block
+function invertedCell(cell: number, blank_bg: number): number {
+	if (cell === 0) {
+		return (Colour.BLACK << 12) | (blank_bg << 8) | 32;
 	}
 
-	row.data[col] = cell === 0 ? BAR_BG << 8 | 32 : cell & 0xf0ff | BAR_BG << 8;
+	const fg = (cell >> 12) & 0xf;
+	const bg = (cell >> 8) & 0xf;
+
+	return (bg << 12) | (fg << 8) | (cell & 0xff);
 }
 
 /**
@@ -110,6 +81,7 @@ export class View {
 	private readonly links = new Map<string, Link>();
 	private readonly texture_glyphs = new Map<string, TexGlyphs>();
 	private frame_regions: ImageRegion[] = [];
+	private frame_bar_col: number | null = null;
 
 	constructor(
 		private readonly terminal: Terminal,
@@ -132,7 +104,7 @@ export class View {
 		 * The bar marks the classic print margin when the terminal is wide
 		 * enough for column 80 to exist
 		 */
-		const bar_col = layout.wrapWidth > BAR_COLUMN ? BAR_COLUMN - 1 : null;
+		this.frame_bar_col = layout.wrapWidth > BAR_COLUMN ? BAR_COLUMN - 1 : null;
 
 		this.frame_regions = layout.images().map((anchor) => ({
 			anchor,
@@ -148,17 +120,12 @@ export class View {
 				continue;
 			}
 
-			const prepared = this.preparedRowAt(display_row, null);
-
-			/**
-			 * Only the first row of a wrapped line is on the physical line
-			 * that owns column 80
-			 */
-			if (bar_col !== null && display_row.row_in_line === 0) {
-				paintBar(prepared, bar_col);
-			}
-
-			this.blitRow(prepared, row, pad);
+			this.blitRow(
+				this.preparedRowAt(display_row, null),
+				display_row.row_in_line,
+				row,
+				pad
+			);
 		}
 
 		this.drawSelection(usable);
@@ -169,21 +136,37 @@ export class View {
 		this.terminal.draw();
 	}
 
-	// blits one prepared glyph row to the screen
-	private blitRow(glyphs: Glyphs, row: number, col: number): void {
+	// blits one prepared row of a line grid to the screen
+	private blitRow(glyphs: Glyphs, row_in_line: number, screen_row: number, col: number): void {
 		this.terminal.blit(
 			glyphs,
-			{ row: 0, col: 0, rows: 1, cols: glyphs.cols },
-			{ row, col, rows: 1, cols: glyphs.cols }
+			{ row: row_in_line, col: 0, rows: 1, cols: glyphs.cols },
+			{ row: screen_row, col, rows: 1, cols: glyphs.cols }
 		);
 	}
 
-	// a copy of the display row's glyph row, with the optional invert span
-	// (selection or cursor)
+	/**
+	 * A copy of the display row's line grid with the optional invert span
+	 * (selection or cursor) and the column bar painted into its row
+	 */
 	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): Glyphs {
 		const glyphs = this.dependencies.layout.grid(display_row.line);
+		const row = display_row.row_in_line;
+		const bar_col = display_row.row_in_line === 0 ? this.frame_bar_col : null;
 
-		return preparedRow(glyphs, display_row.row_in_line, invert);
+		return glyphs.mapCells((cell, _, col) => {
+			let painted = cell;
+
+			if (col === bar_col) {
+				painted = barCell(painted);
+			}
+
+			if (invert !== null && col >= invert.from_col && col < invert.to_col) {
+				painted = invertedCell(painted, invert.blank_bg);
+			}
+
+			return painted;
+		}, { row, col: 0, rows: 1, cols: glyphs.cols });
 	}
 
 	// the fake visual selection: inverted cells over the drag range
@@ -229,13 +212,16 @@ export class View {
 			const full_width = Math.max(row_length, layout.wrapWidth);
 			const to_col = display_index === last_display_row ? end_visible.col + 1 : full_width;
 
-			const prepared = this.preparedRowAt(display_row, {
-				from_col,
-				to_col,
-				blank_bg: SELECTION_BG,
-			});
-
-			this.blitRow(prepared, screen_row, this.dependencies.pad_cols);
+			this.blitRow(
+				this.preparedRowAt(display_row, {
+					from_col,
+					to_col,
+					blank_bg: SELECTION_BG,
+				}),
+				display_row.row_in_line,
+				screen_row,
+				this.dependencies.pad_cols
+			);
 		}
 	}
 
@@ -270,7 +256,7 @@ export class View {
 		 */
 		this.terminal.blit(
 			prepared,
-			{ row: 0, col: visible.col, rows: 1, cols: 1 },
+			{ row: visible.row, col: visible.col, rows: 1, cols: 1 },
 			{ row: screen_row, col: this.dependencies.pad_cols + visible.col, rows: 1, cols: 1 }
 		);
 	}
@@ -298,16 +284,16 @@ export class View {
 
 			const glyphs = link.update(screen_row, anchor.col + this.dependencies.pad_cols);
 
-			this.blitRow(glyphs, screen_row, anchor.col + this.dependencies.pad_cols);
+			this.blitRow(glyphs, 0, screen_row, anchor.col + this.dependencies.pad_cols);
 		}
 	}
 
 	private drawStatus(): void {
 		const canvas = this.terminal.canvas;
 		const status_row = this.terminal.detail_text.length > 0 ? canvas.rows - 2 : canvas.rows - 1;
-		const status = textGlyphs(this.statusText(), canvas.cols, false);
+		const status = new Glyphs(this.statusText(), canvas.cols, { wrap: Wrap.TRUNCATE });
 
-		this.blitRow(status, status_row, 0);
+		this.blitRow(status, 0, status_row, 0);
 	}
 
 	private statusText(): string {

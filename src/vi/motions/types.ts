@@ -1,4 +1,4 @@
-import type { ScreenPos } from "@micahdb/tscon";
+import type { Cell } from "@micahdb/tscon";
 import type { Buffer, Pos } from "../buffer.ts";
 import type { SearchState } from "../search.ts";
 import type { DisplayRow } from "../layout.ts";
@@ -19,7 +19,7 @@ export type MotionResolver = (
 
 // the slice of Layout that motion resolution is allowed to see
 export type LayoutMotionView = {
-	bufferToScreen(position: Pos): ScreenPos;
+	bufferToScreen(position: Pos): Cell;
 	bufferAtVisibleCol(line: number, row_in_line: number, col: number): Pos;
 	displayRows: DisplayRow[];
 	firstRowOfLine: number[];

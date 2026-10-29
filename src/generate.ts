@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 
-import { Colour, PALETTE, textToLines, TAB_WIDTH } from "@micahdb/tscon";
+import { Colour, PALETTE, Wrap, textToLines, TAB_WIDTH } from "@micahdb/tscon";
 
 const CONTENT_DIR = "src/pages/content";
 const OUTPUT_DIR = "build";
@@ -40,12 +40,12 @@ function escapeHtml(s: string): string {
 }
 
 // converts formatted glyph text into HTML with minimal <span> usage
-function textToHtml(text: string, cols: number, wrap: boolean): string {
+function textToHtml(text: string, cols: number, wrap: Wrap): string {
 	if (cols <= 0) {
 		return "";
 	}
 
-	const lines = textToLines(text, cols, wrap);
+	const lines = textToLines(text, cols, { wrap });
 
 	if (lines.length === 0) {
 		return "";
@@ -219,7 +219,7 @@ function generate(src_dir: string, out_dir: string) {
 		const title = content.slice(0, first_nl);
 		content = content.slice(second_nl + 1, -1);
 
-		const body = textToHtml(content, COLS, true);
+		const body = textToHtml(content, COLS, Wrap.WORD);
 
 		const html = `\
 <!doctype HTML>

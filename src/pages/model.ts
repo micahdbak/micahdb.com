@@ -1,5 +1,5 @@
-import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs, textGlyphs, loadTexture } from "@micahdb/tscon";
-import type { Anchor, Glyphs } from "@micahdb/tscon";
+import { Canvas, Glyphs, Renderer, Terminal, TexGlyphMode, textureGlyphs, loadTexture } from "@micahdb/tscon";
+import type { Anchor } from "@micahdb/tscon";
 
 import { ModelVisuals } from "@/visuals/model.ts";
 import { Link } from "@/components/link.ts";
@@ -64,7 +64,7 @@ export function model() {
 
 		const TEXT_COLS = 40;
 
-		let content: Glyphs = textGlyphs(INFO, TEXT_COLS, true);
+		let content: Glyphs = new Glyphs(INFO, TEXT_COLS);
 
 		const build_links = (content: Glyphs): Link[] => {
 			const links: Link[] = [];

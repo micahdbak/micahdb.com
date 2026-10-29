@@ -1,8 +1,8 @@
 import {
 	Canvas,
+	Glyphs,
 	Terminal,
 	Renderer,
-	textGlyphs,
 	TexGlyphMode,
 	textureGlyphs,
 	loadTexture
@@ -69,7 +69,7 @@ export function main() {
 		content_str = content_str.slice(second_nl + 1, -1);
 
 		const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-		let content = textGlyphs(content_str, content_cols, true);
+		let content = new Glyphs(content_str, content_cols);
 
 		// links
 		const links: Link[] = [];
@@ -157,7 +157,7 @@ export function main() {
 				visuals.resize(canvas.rows, canvas.cols);
 
 				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-				content = textGlyphs(content_str, content_cols, true);
+				content = new Glyphs(content_str, content_cols);
 			}
 
 			if (font !== null && canvas.user_font === null) {

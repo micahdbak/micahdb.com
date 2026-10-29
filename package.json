@@ -13,7 +13,7 @@
     "deploy": "bun run build && gh-pages -d build"
   },
   "dependencies": {
-    "@micahdb/tscon": "^0.1.3"
+    "@micahdb/tscon": "^0.2.0"
   },
   "devDependencies": {
     "@types/bun": "^1.4.3",

@@ -1,5 +1,4 @@
-import { textGlyphs, Terminal } from "@micahdb/tscon";
-import type { Glyphs } from "@micahdb/tscon";
+import { Glyphs, Terminal, Wrap } from "@micahdb/tscon";
 
 enum SectionState {
 	NOT_HOVERED = 1,
@@ -123,7 +122,7 @@ export class Section {
 
 			const text = format + section_title + pilcrow;
 
-			glyphs = textGlyphs(text, len + 2, false);
+			glyphs = new Glyphs(text, len + 2, { wrap: Wrap.TRUNCATE });
 			this.glyphs = glyphs;
 		}
 

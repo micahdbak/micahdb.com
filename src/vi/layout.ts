@@ -1,5 +1,5 @@
-import { hasEscape, textGlyphs, textToLines, TextMap } from "@micahdb/tscon";
-import type { Glyphs, ScreenPos } from "@micahdb/tscon";
+import { Glyphs, Wrap, hasEscape, textToLines } from "@micahdb/tscon";
+import type { Cell } from "@micahdb/tscon";
 import { Pos } from "./buffer.ts";
 import type { Buffer } from "./buffer.ts";
 
@@ -16,58 +16,6 @@ export type ImageAnchor = {
 	cols: number;
 };
 
-// a valid image anchor in the source: its span and its payload
-type AnchorSpan = { start: number; length: number; payload: string };
-
-type ScannedAnchors = { images: AnchorSpan[]; links: AnchorSpan[]; broken: number[] };
-
-type LineMap = {
-	glyphs: Glyphs;
-	pieces: string[];
-	map: TextMap;
-	links: LinkAnchor[];
-	images: ImageAnchor[];
-};
-
-// valid image anchors (group 2, payload closed on the line) are hidden;
-// link anchors (group 0) are positioned where their text starts; broken
-// ones (payload never closes) render raw, backslash included
-function scanAnchorSpans(text: string): ScannedAnchors {
-	const images: AnchorSpan[] = [];
-	const links: AnchorSpan[] = [];
-	const broken: number[] = [];
-
-	for (let index = 0; index < text.length; index++) {
-		const anchor = text[index] === "\\" && text[index + 1] === "a";
-		const group = text[index + 2];
-
-		if (!anchor || !/\d/.test(group ?? "") || text[index + 3] !== "{") {
-			continue;
-		}
-
-		const closing = text.indexOf("}", index + 4);
-
-		if (closing === -1) {
-			broken.push(index);
-			continue;
-		}
-
-		const span = {
-			start: index,
-			length: closing - index + 1,
-			payload: text.slice(index + 4, closing),
-		};
-
-		if (group === "2") {
-			images.push(span);
-		} else if (group === "0") {
-			links.push(span);
-		}
-	}
-
-	return { images, links, broken };
-}
-
 function imageExtent(payload: string): { name: string; rows: number; cols: number } | null {
 	const [name = "", rows = "", cols = ""] = payload.split("|");
 
@@ -78,27 +26,15 @@ function imageExtent(payload: string): { name: string; rows: number; cols: numbe
 	return { name, rows: Math.max(1, Number(rows) || 1), cols: Math.max(1, Number(cols) || 1) };
 }
 
-// one compiled glyph row per piece; colour state restarts per row, which
-// is harmless: only whole-line colour runs are used
-function buildGrid(pieces: string[], width: number): Glyphs {
-	const data = new Uint16Array(pieces.length * width);
-
-	for (const [row, piece] of pieces.entries()) {
-		data.set(textGlyphs(piece, width, false).data, row * width);
-	}
-
-	return { data, rows: pieces.length, cols: width, anchors: {} };
-}
-
 /**
- * Owns the wrap of every logical line at the current width: the compiled
- * glyph grids, the flat display-row table, the two-way mapping between
- * buffer positions and visible screen positions, and the anchor scan for
- * links and images. A buffer line corresponds to exactly one source line;
- * anchor payloads must close on their own line.
+ * Owns the wrap of every logical line at the current width: each line's
+ * compiled {@link Glyphs} -- cells, anchors, and the source-to-cell map
+ * in one object -- plus the flat display-row table and the buffer/screen
+ * conversions over them. A buffer line corresponds to exactly one source
+ * line; anchor payloads must close on their own line.
  */
 export class Layout {
-	private readonly maps: (LineMap | undefined)[] = [];
+	private readonly lines: (Glyphs | undefined)[] = [];
 	private display_rows_cache: DisplayRow[] | null = null;
 	private raw_line: number | null = null;
 
@@ -119,12 +55,12 @@ export class Layout {
 		}
 
 		this.wrap_width = width;
-		this.maps.length = 0;
+		this.lines.length = 0;
 		this.display_rows_cache = null;
 	}
 
 	invalidate(line: number): void {
-		this.maps[line] = undefined;
+		this.lines[line] = undefined;
 		this.display_rows_cache = null;
 	}
 
@@ -149,16 +85,16 @@ export class Layout {
 	}
 
 	invalidateFrom(line: number): void {
-		this.maps.length = Math.min(this.maps.length, line);
+		this.lines.length = Math.min(this.lines.length, line);
 		this.display_rows_cache = null;
 	}
 
 	grid(line: number): Glyphs {
-		return this.compile(line).glyphs;
+		return this.compile(line);
 	}
 
 	lineRowCount(line: number): number {
-		return this.compile(line).pieces.length;
+		return this.compile(line).rows;
 	}
 
 	get displayRows(): DisplayRow[] {
@@ -169,7 +105,7 @@ export class Layout {
 		const rows: DisplayRow[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			for (let row_in_line = 0; row_in_line < this.compile(line).pieces.length; row_in_line++) {
+			for (let row_in_line = 0; row_in_line < this.compile(line).rows; row_in_line++) {
 				rows.push({ line, row_in_line });
 			}
 		}
@@ -191,9 +127,9 @@ export class Layout {
 		return rows;
 	}
 
-	// the visible position of a buffer position, wrap included
-	bufferToScreen(position: Pos): ScreenPos {
-		return this.compile(position.line).map.positionAt(position.col);
+	// the visible cell of a buffer position, wrap included
+	bufferToScreen(position: Pos): Cell {
+		return this.compile(position.line).cursorCell(position.col);
 	}
 
 	/**
@@ -203,7 +139,7 @@ export class Layout {
 	 * character.
 	 */
 	bufferAtVisibleCol(line: number, row_in_line: number, col: number): Pos {
-		return new Pos(line, this.compile(line).map.indexAt(row_in_line, col));
+		return new Pos(line, this.compile(line).cursorIndex(row_in_line, col));
 	}
 
 	screenToBuffer(screen_row: number, screen_col: number): Pos | null {
@@ -217,7 +153,7 @@ export class Layout {
 	}
 
 	visibleLength(line: number, row_in_line: number): number {
-		return this.compile(line).map.visibleLength(row_in_line);
+		return this.compile(line).rowCols(row_in_line);
 	}
 
 	// the number of display rows the line has while rendering raw, or null
@@ -229,14 +165,26 @@ export class Layout {
 			return null;
 		}
 
-		return textToLines(text.replaceAll("\\", "\\\\"), this.wrap_width, "hard").length;
+		return textToLines(text, this.wrap_width, { wrap: Wrap.HARD, raw: true }).length;
 	}
 
 	links(): LinkAnchor[] {
 		const links: LinkAnchor[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			links.push(...this.compile(line).links);
+			for (const anchor of this.compile(line).anchors[0] ?? []) {
+				// a bare \a0 without a payload is not a link
+				if (anchor.options === null) {
+					continue;
+				}
+
+				links.push({
+					line,
+					row_in_line: anchor.row,
+					col: anchor.col,
+					options: anchor.options,
+				});
+			}
 		}
 
 		return links;
@@ -246,14 +194,22 @@ export class Layout {
 		const images: ImageAnchor[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			images.push(...this.compile(line).images);
+			for (const anchor of this.compile(line).anchors[2] ?? []) {
+				const extent = imageExtent(anchor.options ?? "");
+
+				if (extent === null) {
+					continue;
+				}
+
+				images.push({ line, row_in_line: anchor.row, col: anchor.col, ...extent });
+			}
 		}
 
 		return images;
 	}
 
-	private compile(line: number): LineMap {
-		const cached = this.maps[line];
+	private compile(line: number): Glyphs {
+		const cached = this.lines[line];
 
 		if (cached !== undefined) {
 			return cached;
@@ -261,70 +217,17 @@ export class Layout {
 
 		const text = this.buffer.lineText(line);
 
-		// the raw line renders every escape literally, links and images
-		// included; every other line compiles anchors away -- an image anchor
-		// renders nothing, and its region starts at the anchor's captured
-		// position, over transparent cells
-		let link_spans: AnchorSpan[] = [];
-		let image_spans: AnchorSpan[] = [];
-		let compile_text = text;
+		// while the cursor rests on a line with escapes, that line renders
+		// raw: every escape visible as typed, no links or images. Every
+		// other line compiles escapes away -- links and image regions read
+		// back out of the compiled anchors, and a payload that never closes
+		// renders as raw text on its own
+		const compiled = new Glyphs(text, this.wrap_width, {
+			wrap: Wrap.HARD,
+			raw: line === this.raw_line && hasEscape(text),
+		});
 
-		if (line === this.raw_line && hasEscape(text)) {
-			compile_text = text.replaceAll("\\", "\\\\");
-		} else {
-			const scanned = scanAnchorSpans(text);
-
-			link_spans = scanned.links;
-			image_spans = scanned.images;
-
-			for (const start of [...scanned.broken].sort((a, b) => b - a)) {
-				compile_text = compile_text.slice(0, start) + "\\" + compile_text.slice(start);
-			}
-		}
-
-		const pieces = textToLines(compile_text, this.wrap_width, "hard");
-		const map: LineMap = {
-			glyphs: buildGrid(pieces, this.wrap_width),
-			pieces,
-			map: new TextMap(text, pieces),
-			links: [],
-			images: [],
-		};
-
-		// a link renders where its text starts -- the first character after
-		// the anchor -- which wrapping may place on a later row than the
-		// anchor itself
-		for (const span of link_spans) {
-			const text_start = map.map.buffer_to_visible[span.start + span.length];
-
-			if (text_start === undefined) {
-				continue;
-			}
-
-			map.links.push({
-				line,
-				row_in_line: text_start.row,
-				col: text_start.col,
-				options: span.payload,
-			});
-		}
-
-		// an image's region starts at the anchor's captured position: the
-		// cell of the glyph that follows it, or the line's end when nothing
-		// does
-		for (const span of image_spans) {
-			const extent = imageExtent(span.payload);
-
-			if (extent === null) {
-				continue;
-			}
-
-			const at = map.map.positionAt(span.start);
-
-			map.images.push({ line, row_in_line: at.row, col: at.col, ...extent });
-		}
-
-		this.maps[line] = map;
-		return map;
+		this.lines[line] = compiled;
+		return compiled;
 	}
 }
