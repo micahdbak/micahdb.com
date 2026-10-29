@@ -22,32 +22,18 @@ export type ViewDependencies = {
 	filename: string;
 };
 
-type BlankSpan = { from_col: number; to_col: number };
-
 type InvertSpan = { from_col: number; to_col: number; blank_bg: number } | null;
 
 type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
 
 /**
- * A copy of one glyph row with two optional transforms: whitespace cells in
- * the blank spans (image regions and hidden anchors) are zeroed so the
- * texture shows through them (real characters the user typed there survive
- * and render over the image), and the invert span swaps fg/bg nibbles for
- * the selection or cursor, painting blank cells as blocks.
+ * A copy of one glyph row with an optional invert span: the fg/bg nibbles
+ * of each cell in the span swap, for the selection or the cursor, with
+ * blank cells painted as solid blocks.
  */
-function preparedRow(glyphs: Glyphs, row: number, blanks: BlankSpan[], invert: InvertSpan): Glyphs {
+function preparedRow(glyphs: Glyphs, row: number, invert: InvertSpan): Glyphs {
 	const cols = glyphs.cols;
 	const data = glyphs.data.slice(row * cols, (row + 1) * cols);
-
-	for (const span of blanks) {
-		for (let col = Math.max(0, span.from_col); col < Math.min(cols, span.to_col); col++) {
-			const cell = data[col];
-
-			if (cell !== undefined && isBlankCell(cell)) {
-				data[col] = 0;
-			}
-		}
-	}
 
 	if (invert !== null) {
 		for (let col = Math.max(0, invert.from_col); col < Math.min(cols, invert.to_col); col++) {
@@ -74,12 +60,6 @@ function preparedRow(glyphs: Glyphs, row: number, blanks: BlankSpan[], invert: I
 	}
 
 	return { data, rows: 1, cols, anchors: {} };
-}
-
-// whitespace cells are the placeholder: only they give way to the texture
-function isBlankCell(cell: number): boolean {
-	const char = cell & 0xff;
-	return cell === 0 || char === 32 || char === 9;
 }
 
 // the column bar sits behind whatever text is in the column
@@ -189,27 +169,6 @@ export class View {
 		this.terminal.draw();
 	}
 
-	/**
-	 * The column spans whose whitespace cells give way to the texture on the
-	 * given display row: the image region, plus the hidden anchor text on
-	 * its own row
-	 */
-	private blankSpansAt(display_index: number): BlankSpan[] {
-		const spans: BlankSpan[] = [];
-
-		for (const { anchor, first_display_row } of this.frame_regions) {
-			if (display_index >= first_display_row && display_index < first_display_row + anchor.rows) {
-				spans.push({ from_col: anchor.col, to_col: anchor.col + anchor.cols });
-			}
-
-			if (display_index === first_display_row) {
-				spans.push({ from_col: anchor.col, to_col: anchor.col + anchor.anchor_cols });
-			}
-		}
-
-		return spans;
-	}
-
 	// blits one prepared glyph row to the screen
 	private blitRow(glyphs: Glyphs, row: number, col: number): void {
 		this.terminal.blit(
@@ -219,17 +178,12 @@ export class View {
 		);
 	}
 
-	/**
-	 * A copy of the display row's glyph row: whitespace in image regions
-	 * zeroed, plus the optional invert span (selection or cursor)
-	 */
+	// a copy of the display row's glyph row, with the optional invert span
+	// (selection or cursor)
 	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): Glyphs {
-		const { layout } = this.dependencies;
-		const first = layout.firstRowOfLine[display_row.line] ?? 0;
-		const display_index = first + display_row.row_in_line;
-		const glyphs = layout.grid(display_row.line);
+		const glyphs = this.dependencies.layout.grid(display_row.line);
 
-		return preparedRow(glyphs, display_row.row_in_line, this.blankSpansAt(display_index), invert);
+		return preparedRow(glyphs, display_row.row_in_line, invert);
 	}
 
 	// the fake visual selection: inverted cells over the drag range

@@ -17,7 +17,7 @@ function cellText(grid: { data: Uint16Array }, count: number): string {
 }
 
 describe("anchor rendering", () => {
-	test("a valid image anchor hides as spaces of its own length, one-to-one with the source", () => {
+	test("a valid image anchor is zero-width: it hides and maps to the following glyph", () => {
 		const buffer = new Buffer("ab" + BACKSLASH + "a2{pic|3|10}cd");
 		const layout = new Layout(buffer, 76);
 
@@ -28,16 +28,20 @@ describe("anchor rendering", () => {
 		}
 
 		expect(image.col).toBe(2);
-		expect(image.anchor_cols).toBe(13);
 		expect(image.name).toBe("pic");
 		expect(image.rows).toBe(3);
 		expect(image.cols).toBe(10);
 
-		// every buffer column maps to the same visible column
-		for (const col of [0, 5, 12, 16]) {
-			const visible = layout.bufferToScreen(new Pos(0, col));
-			expect(visible).toEqual({ row: 0, col });
+		// the anchor renders nothing: the line shows only its real text
+		expect(cellText(layout.grid(0), 4)).toBe("abcd");
+
+		// every anchor character maps forward to the following glyph's cell
+		for (const col of [2, 5, 14]) {
+			expect(layout.bufferToScreen(new Pos(0, col))).toEqual({ row: 0, col: 2 });
 		}
+
+		expect(layout.bufferToScreen(new Pos(0, 0))).toEqual({ row: 0, col: 0 });
+		expect(layout.bufferToScreen(new Pos(0, 16))).toEqual({ row: 0, col: 3 });
 	});
 
 	test("a broken anchor renders raw, backslash included", () => {

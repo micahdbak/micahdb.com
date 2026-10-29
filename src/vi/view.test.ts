@@ -258,13 +258,13 @@ describe("view rendering", () => {
 		expect(terminal.text(first_screen_row + 1)).toContain("the main_page");
 	});
 
-	test("an image region hides its anchor and leaves the blank rows transparent", () => {
+	test("an image region renders no placeholder cells; the blank rows stay transparent", () => {
 		const { editor, terminal, viewport, frame } = harness();
 		const image = editor.layout.images()[0]!;
 
 		/**
-		 * The cursor rests a few lines above, so the image is on screen but
-		 * renders in its hidden-anchor form
+		 * The cursor rests a few lines above, so the image is on screen in
+		 * its compiled form: the zero-width anchor renders nothing
 		 */
 		editor.placeCursor(new Pos(image.line - 3, 0));
 		frame();

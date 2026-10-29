@@ -14,7 +14,6 @@ export type ImageAnchor = {
 	name: string;
 	rows: number;
 	cols: number;
-	anchor_cols: number;
 };
 
 // a valid image anchor in the source: its span and its payload
@@ -262,10 +261,10 @@ export class Layout {
 
 		const text = this.buffer.lineText(line);
 
-		// valid image anchors hide as spaces of their own length: the cursor
-		// and every position map one-to-one with the source text, and the
-		// image renders at the anchor's position. The raw line renders every
-		// escape literally instead, links and images included.
+		// the raw line renders every escape literally, links and images
+		// included; every other line compiles anchors away -- an image anchor
+		// renders nothing, and its region starts at the anchor's captured
+		// position, over transparent cells
 		let link_spans: AnchorSpan[] = [];
 		let image_spans: AnchorSpan[] = [];
 		let compile_text = text;
@@ -277,13 +276,6 @@ export class Layout {
 
 			link_spans = scanned.links;
 			image_spans = scanned.images;
-
-			for (const span of [...image_spans].sort((a, b) => b.start - a.start)) {
-				const head = compile_text.slice(0, span.start);
-				const tail = compile_text.slice(span.start + span.length);
-
-				compile_text = head + " ".repeat(span.length) + tail;
-			}
 
 			for (const start of [...scanned.broken].sort((a, b) => b - a)) {
 				compile_text = compile_text.slice(0, start) + "\\" + compile_text.slice(start);
@@ -317,8 +309,9 @@ export class Layout {
 			});
 		}
 
-		// an image's region starts where its anchor's first character sits in
-		// the wrap
+		// an image's region starts at the anchor's captured position: the
+		// cell of the glyph that follows it, or the line's end when nothing
+		// does
 		for (const span of image_spans) {
 			const extent = imageExtent(span.payload);
 
@@ -328,7 +321,7 @@ export class Layout {
 
 			const at = map.map.positionAt(span.start);
 
-			map.images.push({ line, row_in_line: at.row, col: at.col, anchor_cols: span.length, ...extent });
+			map.images.push({ line, row_in_line: at.row, col: at.col, ...extent });
 		}
 
 		this.maps[line] = map;
