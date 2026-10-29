@@ -1,4 +1,4 @@
-import { loadTexture } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Vi } from "@/vi/vi.ts";
 
@@ -21,7 +21,7 @@ export function vi_page() {
 			filename: "VI",
 			font_path: "/images/font.png",
 			textures: {
-				portrait: (gl) => loadTexture(gl, "/images/portrait.jpeg"),
+				portrait: (gl) => tscon.loadTexture(gl, "/images/portrait.jpeg"),
 			},
 		});
 	} catch (err) {

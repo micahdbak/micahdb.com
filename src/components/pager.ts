@@ -1,10 +1,10 @@
-import { Glyphs, Terminal, Wrap } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 export class Pager {
 	private static readonly NAME = "pager"; // for mouse_owner
 	private static readonly STATUS_HELP = "Wheel, drag, [jk|↓↑] to scroll";
 
-	private readonly terminal: Terminal;
+	private readonly terminal: tscon.Terminal;
 
 	private wheel_rows: number;
 
@@ -23,9 +23,9 @@ export class Pager {
 
 	public row: number;
 
-	public status_glyphs: Glyphs;
+	public status_glyphs: tscon.Glyphs;
 
-	constructor(terminal: Terminal) {
+	constructor(terminal: tscon.Terminal) {
 		this.terminal = terminal;
 
 		this.wheel_rows = 0;
@@ -140,9 +140,9 @@ export class Pager {
 		}
 	}
 
-	private compileStatus(percent: number): Glyphs {
+	private compileStatus(percent: number): tscon.Glyphs {
 		const cols = ` ${Pager.STATUS_HELP} [${percent}%]:`.length;
 		const status_text = `\\f0\\B7 ${Pager.STATUS_HELP} [${percent}%]\\F7\\b0:`;
-		return new Glyphs(status_text, cols, { wrap: Wrap.TRUNCATE });
+		return new tscon.Glyphs(status_text, cols, { wrap: tscon.Wrap.TRUNCATE });
 	}
 }

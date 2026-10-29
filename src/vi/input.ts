@@ -1,4 +1,4 @@
-import type { Canvas } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 import { Pos } from "./buffer.ts";
 import type { Editor } from "./editor/editor.ts";
 import { moveDisplay } from "./editor/normal.ts";
@@ -9,7 +9,7 @@ import { moveDisplay } from "./editor/normal.ts";
  */
 export class Input {
 	private readonly editor: Editor;
-	private readonly canvas: Canvas;
+	private readonly canvas: tscon.Canvas;
 	private readonly screenToBuffer: (row: number, col: number) => Pos | null;
 
 	private dragging = false;
@@ -17,7 +17,7 @@ export class Input {
 
 	constructor(
 		editor: Editor,
-		canvas: Canvas,
+		canvas: tscon.Canvas,
 		screenToBuffer: (row: number, col: number) => Pos | null
 	) {
 		this.editor = editor;

@@ -1,7 +1,7 @@
+import * as tscon from "@micahdb/tscon";
 import VERTEX_SHADER from "@/shaders/skybox.vert" with { type: "text" };
 import FRAGMENT_SHADER from "@/shaders/skybox.frag" with { type: "text" };
 
-import { compileProgram, getAttribLocations, getUniformLocations } from "@micahdb/tscon";
 import { TriangleMesh } from "@/visuals/meshes/mesh.ts";
 import { cubeMesh } from "@/visuals/meshes/cube.ts";
 
@@ -20,15 +20,15 @@ export class SkyboxProgram extends Program {
 	private readonly vbo: WebGLBuffer;
 
 	constructor(gl: WebGL2RenderingContext) {
-		super(gl, compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER));
+		super(gl, tscon.compileProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER));
 
 		this.cube_mesh = cubeMesh();
 
-		this.attributes = getAttribLocations(gl, this.gl_program, {
+		this.attributes = tscon.getAttribLocations(gl, this.gl_program, {
 			position: "a_position"
 		}) as typeof this.attributes;
 
-		this.uniforms = getUniformLocations(gl, this.gl_program, {
+		this.uniforms = tscon.getUniformLocations(gl, this.gl_program, {
 			projection_matrix: "u_projection_matrix",
 			view_matrix: "u_view_matrix",
 			skybox_texture: "u_skybox_texture"

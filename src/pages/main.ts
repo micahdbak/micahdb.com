@@ -1,13 +1,4 @@
-import {
-	Canvas,
-	Glyphs,
-	Terminal,
-	Renderer,
-	TexGlyphMode,
-	textureGlyphs,
-	loadTexture
-} from "@micahdb/tscon";
-import type { Anchor } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 import { TorusVisuals } from "@/visuals/torus.ts";
 
 import { Pager } from "@/components/pager.ts";
@@ -26,16 +17,16 @@ export function main() {
 	try {
 		// initialize
 
-		const canvas = new Canvas(canvas_el);
-		const terminal = new Terminal(canvas);
-		const renderer = new Renderer(canvas);
+		const canvas = new tscon.Canvas(canvas_el);
+		const terminal = new tscon.Terminal(canvas);
+		const renderer = new tscon.Renderer(canvas);
 
 		// font
 
 		let font: WebGLTexture | null = null;
 
 		const load_font = async () => {
-			font = await loadTexture(canvas.gl, "/images/font.png");
+			font = await tscon.loadTexture(canvas.gl, "/images/font.png");
 		};
 		void load_font();
 
@@ -44,7 +35,7 @@ export function main() {
 		const visuals = new TorusVisuals(canvas);
 		void visuals.init();
 
-		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+		let visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.GLYPHS);
 		visuals.resize(canvas.rows, canvas.cols);
 
 		// pager
@@ -55,10 +46,10 @@ export function main() {
 
 		// portrait
 		let portrait: WebGLTexture | null = null;
-		const portrait_glyphs = textureGlyphs(4, 8, TexGlyphMode.SAMPLE);
+		const portrait_glyphs = tscon.textureGlyphs(4, 8, tscon.TexGlyphMode.SAMPLE);
 
 		const load_portrait = async () => {
-			portrait = await loadTexture(canvas.gl, "/images/portrait.jpeg");
+			portrait = await tscon.loadTexture(canvas.gl, "/images/portrait.jpeg");
 		};
 		void load_portrait();
 
@@ -69,7 +60,7 @@ export function main() {
 		content_str = content_str.slice(second_nl + 1, -1);
 
 		const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-		let content = new Glyphs(content_str, content_cols);
+		let content = new tscon.Glyphs(content_str, content_cols);
 
 		// links
 		const links: Link[] = [];
@@ -77,7 +68,7 @@ export function main() {
 		const link_anchors = content.anchors[0] ?? [];
 
 		for (let i = 0; i < link_anchors.length; i++) {
-			const anchor = link_anchors[i] as Anchor;
+			const anchor = link_anchors[i] as tscon.Anchor;
 
 			// \a0{Link Text|https://example.com}Link_Text
 			const [text = "", url = text] = (anchor.options || "Missing Link|#").split("|");
@@ -91,7 +82,7 @@ export function main() {
 		const section_anchors = content.anchors[9] ?? [];
 
 		for (let i = 0; i < section_anchors.length; i++) {
-			const anchor = section_anchors[i] as Anchor;
+			const anchor = section_anchors[i] as tscon.Anchor;
 
 			// \a0{Section Text|#section_hash}Section_Text
 			const [text = "", hash = "#"] = (anchor.options || "Missing Section").split("|");
@@ -153,11 +144,11 @@ export function main() {
 			if (resized) {
 				resized = false;
 
-				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.GLYPHS);
+				visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.GLYPHS);
 				visuals.resize(canvas.rows, canvas.cols);
 
 				const content_cols = Math.min(80, canvas.cols - PADDING_COLS * 2);
-				content = new Glyphs(content_str, content_cols);
+				content = new tscon.Glyphs(content_str, content_cols);
 			}
 
 			if (font !== null && canvas.user_font === null) {
@@ -205,7 +196,7 @@ export function main() {
 					break;
 				}
 
-				const { row, col } = link_anchors[i] as Anchor;
+				const { row, col } = link_anchors[i] as tscon.Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 
@@ -231,7 +222,7 @@ export function main() {
 					break;
 				}
 
-				const { row, col } = section_anchors[i] as Anchor;
+				const { row, col } = section_anchors[i] as tscon.Anchor;
 				const anchor_row = content_row + row;
 				const anchor_col = content_col + col;
 

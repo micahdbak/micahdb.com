@@ -1,4 +1,4 @@
-import { Canvas, Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 export abstract class Visuals {
 	// width/height of framebuffer object
@@ -13,14 +13,14 @@ export abstract class Visuals {
 	private elapsed: number;
 	private last_time: number;
 
-	protected readonly canvas: Canvas;
+	protected readonly canvas: tscon.Canvas;
 
 	protected is_ready: boolean;
 
 	// to be used with Renderer.draw
 	public readonly render_target: WebGLTexture;
 
-	constructor(canvas: Canvas) {
+	constructor(canvas: tscon.Canvas) {
 		this.canvas = canvas;
 
 		const gl = canvas.gl;
@@ -87,7 +87,7 @@ export abstract class Visuals {
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 
-		this.projection_matrix = Mat4.create();
+		this.projection_matrix = tscon.Mat4.create();
 		this.resize(canvas.rows, canvas.cols);
 
 		this.elapsed = 0;
@@ -107,7 +107,7 @@ export abstract class Visuals {
 		const fovy = aspect >= 1 ? base : 2 * Math.atan(t / aspect);
 		const near = 0.1;
 		const far = 100.0;
-		Mat4.perspective(this.projection_matrix, fovy, aspect, near, far);
+		tscon.Mat4.perspective(this.projection_matrix, fovy, aspect, near, far);
 	}
 
 	render() {

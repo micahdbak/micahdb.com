@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
-
-import { Colour, PALETTE, Wrap, textToLines, TAB_WIDTH } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 const CONTENT_DIR = "src/pages/content";
 const OUTPUT_DIR = "build";
@@ -40,19 +39,19 @@ function escapeHtml(s: string): string {
 }
 
 // converts formatted glyph text into HTML with minimal <span> usage
-function textToHtml(text: string, cols: number, wrap: Wrap): string {
+function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 	if (cols <= 0) {
 		return "";
 	}
 
-	const lines = textToLines(text, cols, { wrap });
+	const lines = tscon.textToLines(text, cols, { wrap });
 
 	if (lines.length === 0) {
 		return "";
 	}
 
-	const default_fg: number = Colour.WHITE;
-	const default_bg: number = Colour.BLACK;
+	const default_fg: number = tscon.Colour.WHITE;
+	const default_bg: number = tscon.Colour.BLACK;
 
 	let fg: number = default_fg;
 	let bg: number = default_bg;
@@ -155,7 +154,7 @@ function textToHtml(text: string, cols: number, wrap: Wrap): string {
 
 			// tab
 			if (c === "\t") {
-				const tab_chars = TAB_WIDTH - (col % TAB_WIDTH);
+				const tab_chars = tscon.TAB_WIDTH - (col % tscon.TAB_WIDTH);
 				col += tab_chars;
 				html.push(" ".repeat(tab_chars));
 
@@ -184,7 +183,7 @@ function textToHtml(text: string, cols: number, wrap: Wrap): string {
 function generateCss(): string {
 	const classes: string[] = [];
 
-	for (const [i, [r, g, b]] of PALETTE.entries()) {
+	for (const [i, [r, g, b]] of tscon.PALETTE.entries()) {
 		const hex = [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
 		classes.push(`.f${i} { color: #${hex}; }`);
 		classes.push(`.b${i} { background-color: #${hex}; }`);
@@ -219,7 +218,7 @@ function generate(src_dir: string, out_dir: string) {
 		const title = content.slice(0, first_nl);
 		content = content.slice(second_nl + 1, -1);
 
-		const body = textToHtml(content, COLS, Wrap.WORD);
+		const body = textToHtml(content, COLS, tscon.Wrap.WORD);
 
 		const html = `\
 <!doctype HTML>

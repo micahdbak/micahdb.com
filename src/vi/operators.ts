@@ -1,4 +1,4 @@
-import { TAB_WIDTH } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 import { Pos, Range } from "./buffer.ts";
 import type { Buffer } from "./buffer.ts";
 import type { MotionKind } from "./motions/types.ts";
@@ -20,7 +20,7 @@ function unshiftLine(text: string): string {
 	let index = 0;
 
 	while (index < text.length && (text[index] === " " || text[index] === "\t")) {
-		columns += text[index] === "\t" ? TAB_WIDTH - (columns % TAB_WIDTH) : 1;
+		columns += text[index] === "\t" ? tscon.TAB_WIDTH - (columns % tscon.TAB_WIDTH) : 1;
 		index++;
 	}
 
@@ -28,8 +28,8 @@ function unshiftLine(text: string): string {
 		return text;
 	}
 
-	const shifted = Math.floor((columns - 1) / TAB_WIDTH) * TAB_WIDTH;
-	return "\t".repeat(shifted / TAB_WIDTH) + text.slice(index);
+	const shifted = Math.floor((columns - 1) / tscon.TAB_WIDTH) * tscon.TAB_WIDTH;
+	return "\t".repeat(shifted / tscon.TAB_WIDTH) + text.slice(index);
 }
 
 function caseOf(ch: string, mode: "lower" | "upper" | "toggle"): string {

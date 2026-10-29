@@ -1,4 +1,4 @@
-import { Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { TriangleIndicesMesh } from "./mesh.ts";
 import type { Model } from "./model.ts";
@@ -256,7 +256,7 @@ function nodeMatrix(node: GltfNode): Float32Array {
 	const r = quatToMat3(node.rotation ?? [0, 0, 0, 1]);
 
 	// expand the 3x3 rotation into a 4x4 identity
-	const r4 = Mat4.create();
+	const r4 = tscon.Mat4.create();
 	r4[0] = r[0]!;
 	r4[1] = r[1]!;
 	r4[2] = r[2]!;
@@ -268,9 +268,9 @@ function nodeMatrix(node: GltfNode): Float32Array {
 	r4[10] = r[8]!;
 
 	// M = T * R * S
-	const m = Mat4.translation(t[0]!, t[1]!, t[2]!);
-	Mat4.multiply(m, m, r4);
-	Mat4.multiply(m, m, Mat4.scale(s[0]!, s[1]!, s[2]!));
+	const m = tscon.Mat4.translation(t[0]!, t[1]!, t[2]!);
+	tscon.Mat4.multiply(m, m, r4);
+	tscon.Mat4.multiply(m, m, tscon.Mat4.scale(s[0]!, s[1]!, s[2]!));
 
 	return m;
 }
@@ -365,8 +365,8 @@ function addPrimitive(
 		: null;
 
 	// normals need the inverse-transpose of the world matrix
-	const normal_matrix = Mat4.create();
-	Mat4.inverseTranspose3x3(normal_matrix, world);
+	const normal_matrix = tscon.Mat4.create();
+	tscon.Mat4.inverseTranspose3x3(normal_matrix, world);
 
 	// bake positions first: flat-normal fallback needs neighbouring vertices
 	const world_positions: number[][] = [];
@@ -427,8 +427,8 @@ function visitNode(
 		return vertex_offset;
 	}
 
-	const world = Mat4.create();
-	Mat4.multiply(world, parent, nodeMatrix(node));
+	const world = tscon.Mat4.create();
+	tscon.Mat4.multiply(world, parent, nodeMatrix(node));
 
 	if (node.mesh !== undefined) {
 		const gltf_mesh = json.meshes?.[node.mesh];
@@ -499,7 +499,7 @@ export async function loadGLB(url: string): Promise<Model> {
 
 	let vertex_offset = 0;
 
-	const identity = Mat4.create();
+	const identity = tscon.Mat4.create();
 	for (const node_index of scene.nodes ?? []) {
 		vertex_offset = visitNode(json, bin, mesh, bounds, node_index, identity, vertex_offset);
 	}

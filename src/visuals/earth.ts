@@ -1,4 +1,4 @@
-import { loadCubeMap, loadTexture, Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { sphereMesh } from "./meshes/sphere.ts";
@@ -30,7 +30,7 @@ export class EarthVisuals extends Visuals {
 
 		[this.cubemap, this.earth_texture, this.moon_texture, this.normal, this.roughness] =
 			await Promise.all([
-				loadCubeMap(gl, [
+				tscon.loadCubeMap(gl, [
 					"/images/earth/right.png",
 					"/images/earth/left.png",
 					"/images/earth/top.png",
@@ -38,10 +38,10 @@ export class EarthVisuals extends Visuals {
 					"/images/earth/front.png",
 					"/images/earth/back.png"
 				]),
-				loadTexture(gl, "/images/earth/texture.jpg"),
-				loadTexture(gl, "/images/earth/moon_texture.jpg"),
-				loadTexture(gl, "/images/normal.png"),
-				loadTexture(gl, "/images/roughness.png")
+				tscon.loadTexture(gl, "/images/earth/texture.jpg"),
+				tscon.loadTexture(gl, "/images/earth/moon_texture.jpg"),
+				tscon.loadTexture(gl, "/images/normal.png"),
+				tscon.loadTexture(gl, "/images/roughness.png")
 			]);
 
 		if (this.cubemap !== null) {
@@ -57,8 +57,8 @@ export class EarthVisuals extends Visuals {
 		const view_x = 5.0 * Math.cos(cycle);
 		const view_z = 5.0 * Math.sin(cycle);
 
-		const view_matrix = Mat4.create();
-		Mat4.lookAt(
+		const view_matrix = tscon.Mat4.create();
+		tscon.Mat4.lookAt(
 			view_matrix,
 			new Float32Array([view_x, 0.5, view_z]),
 			new Float32Array([0.0, 0.0, 0.0]),
@@ -71,15 +71,15 @@ export class EarthVisuals extends Visuals {
 
 		// earth
 
-		const earth_model = Mat4.create();
-		const upright = Mat4.rotation("x", Math.PI / 2);
-		const upright2 = Mat4.rotation("z", Math.PI);
-		Mat4.multiply(upright, upright2, upright);
-		const earth_spin = Mat4.rotation(
+		const earth_model = tscon.Mat4.create();
+		const upright = tscon.Mat4.rotation("x", Math.PI / 2);
+		const upright2 = tscon.Mat4.rotation("z", Math.PI);
+		tscon.Mat4.multiply(upright, upright2, upright);
+		const earth_spin = tscon.Mat4.rotation(
 			"y",
 			(2.0 * Math.PI * (elapsed % EarthVisuals.EARTH_SPIN_PERIOD)) / EarthVisuals.EARTH_SPIN_PERIOD
 		);
-		Mat4.multiply(earth_model, earth_spin, upright);
+		tscon.Mat4.multiply(earth_model, earth_spin, upright);
 
 		this.blinn_phong.draw(
 			this.earth_texture,
@@ -100,13 +100,13 @@ export class EarthVisuals extends Visuals {
 		const moon_x = 3.0 * Math.cos(moon_angle);
 		const moon_z = 3.0 * Math.sin(moon_angle);
 
-		const moon_model = Mat4.create();
-		Mat4.multiply(
+		const moon_model = tscon.Mat4.create();
+		tscon.Mat4.multiply(
 			moon_model,
-			Mat4.translation(moon_x, 0.0, moon_z),
-			Mat4.rotation("y", -moon_angle)
+			tscon.Mat4.translation(moon_x, 0.0, moon_z),
+			tscon.Mat4.rotation("y", -moon_angle)
 		);
-		Mat4.multiply(moon_model, moon_model, Mat4.scale(0.27, 0.27, 0.27));
+		tscon.Mat4.multiply(moon_model, moon_model, tscon.Mat4.scale(0.27, 0.27, 0.27));
 
 		this.blinn_phong.draw(
 			this.moon_texture,

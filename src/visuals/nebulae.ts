@@ -1,4 +1,4 @@
-import { Canvas, loadCubeMap, Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { SkyboxProgram } from "./programs/skybox.ts";
@@ -13,7 +13,7 @@ export class NebulaeVisuals extends Visuals {
 
 	private cubemap!: WebGLTexture;
 
-	constructor(canvas: Canvas) {
+	constructor(canvas: tscon.Canvas) {
 		super(canvas);
 		this.yaw = 0;
 		this.pitch = 0;
@@ -24,7 +24,7 @@ export class NebulaeVisuals extends Visuals {
 
 		this.skybox = new SkyboxProgram(gl);
 
-		this.cubemap = await loadCubeMap(gl, [
+		this.cubemap = await tscon.loadCubeMap(gl, [
 			"/images/nebulae/right.png",
 			"/images/nebulae/left.png",
 			"/images/nebulae/top.png",
@@ -44,7 +44,8 @@ export class NebulaeVisuals extends Visuals {
 		const range_delta = base_pitch_half - base_yaw_half;
 
 		// 1:2 cells -> 2 cols == 1 row physically; >1 wide, <1 tall.
-		const aspect = (this.canvas.cols * Canvas.CELL_WIDTH) / (this.canvas.rows * Canvas.CELL_HEIGHT);
+		const aspect = (this.canvas.cols * tscon.Canvas.CELL_WIDTH)
+			/ (this.canvas.rows * tscon.Canvas.CELL_HEIGHT);
 		const tallness = 1 / (1 + aspect);
 
 		const yaw_half_range = base_yaw_half + range_delta * tallness;
@@ -66,22 +67,22 @@ export class NebulaeVisuals extends Visuals {
 		const view_x = 5.0 * Math.cos(cycle);
 		const view_z = 5.0 * Math.sin(cycle);
 
-		const view_matrix = Mat4.create();
-		Mat4.lookAt(
+		const view_matrix = tscon.Mat4.create();
+		tscon.Mat4.lookAt(
 			view_matrix,
 			new Float32Array([view_x, 0.5, view_z]),
 			new Float32Array([0.0, 0.0, 0.0]),
 			new Float32Array([0.0, -1.0, 0.0])
 		);
 
-		const yaw_matrix = Mat4.rotation("y", this.yaw);
-		const pitch_matrix = Mat4.rotation("x", -this.pitch);
+		const yaw_matrix = tscon.Mat4.rotation("y", this.yaw);
+		const pitch_matrix = tscon.Mat4.rotation("x", -this.pitch);
 
-		const offset_matrix = Mat4.create();
-		Mat4.multiply(offset_matrix, yaw_matrix, pitch_matrix);
+		const offset_matrix = tscon.Mat4.create();
+		tscon.Mat4.multiply(offset_matrix, yaw_matrix, pitch_matrix);
 
-		const final_view_matrix = Mat4.create();
-		Mat4.multiply(final_view_matrix, offset_matrix, view_matrix);
+		const final_view_matrix = tscon.Mat4.create();
+		tscon.Mat4.multiply(final_view_matrix, offset_matrix, view_matrix);
 
 		this.skybox.draw(this.cubemap, projection_matrix, final_view_matrix);
 	}

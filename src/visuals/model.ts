@@ -1,4 +1,4 @@
-import { Canvas, loadTexture, Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { loadGLB } from "./meshes/gltf.ts";
@@ -28,7 +28,7 @@ export class ModelVisuals extends Visuals {
 	private height = 1;
 
 	constructor(
-		canvas: Canvas,
+		canvas: tscon.Canvas,
 		url: string,
 		texture_path: string,
 		normal_path: string,
@@ -55,12 +55,12 @@ export class ModelVisuals extends Visuals {
 		this.height = model.size[1] * this.scale;
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
-			loadTexture(gl, this.texture_path),
-			loadTexture(gl, this.normal_path),
-			loadTexture(gl, this.roughness_path)
+			tscon.loadTexture(gl, this.texture_path),
+			tscon.loadTexture(gl, this.normal_path),
+			tscon.loadTexture(gl, this.roughness_path)
 		]);
 
-		// loadTexture gives LINEAR filtering with mipmaps; pixel art wants hard
+		// tscon.loadTexture gives LINEAR filtering with mipmaps; pixel art wants hard
 		// texel edges, so switch to nearest-neighbour sampling instead
 		for (const tex of [this.texture, this.normal, this.roughness]) {
 			gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -84,8 +84,8 @@ export class ModelVisuals extends Visuals {
 			distance * Math.sin(elevation),
 			distance * Math.sin(phi) * Math.cos(elevation)
 		];
-		const view_matrix = Mat4.create();
-		Mat4.lookAt(
+		const view_matrix = tscon.Mat4.create();
+		tscon.Mat4.lookAt(
 			view_matrix,
 			new Float32Array(eye),
 			new Float32Array([0.0, 0.0, 0.0]),
@@ -94,10 +94,14 @@ export class ModelVisuals extends Visuals {
 
 		// model = S * T(-center): recentered, uniformly scaled, and static
 		// (the camera provides the motion)
-		const translate = Mat4.translation(-this.center[0], -this.center[1], -this.center[2]);
+		const translate = tscon.Mat4.translation(-this.center[0], -this.center[1], -this.center[2]);
 
-		const scale_translate = Mat4.create();
-		Mat4.multiply(scale_translate, Mat4.scale(this.scale, this.scale, this.scale), translate);
+		const scale_translate = tscon.Mat4.create();
+		tscon.Mat4.multiply(
+			scale_translate,
+			tscon.Mat4.scale(this.scale, this.scale, this.scale),
+			translate
+		);
 
 		const model_matrix = scale_translate;
 

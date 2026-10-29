@@ -1,5 +1,4 @@
-import { Canvas, Glyphs, Renderer, Terminal, TexGlyphMode, textureGlyphs, loadTexture } from "@micahdb/tscon";
-import type { Anchor } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { ModelVisuals } from "@/visuals/model.ts";
 import { Link } from "@/components/link.ts";
@@ -33,16 +32,16 @@ export function model() {
 	try {
 		// initialize
 
-		const canvas = new Canvas(canvas_el);
-		const terminal = new Terminal(canvas);
-		const renderer = new Renderer(canvas);
+		const canvas = new tscon.Canvas(canvas_el);
+		const terminal = new tscon.Terminal(canvas);
+		const renderer = new tscon.Renderer(canvas);
 
 		// font
 
 		let font: WebGLTexture | null = null;
 
 		const load_font = async () => {
-			font = await loadTexture(canvas.gl, "/images/font.png");
+			font = await tscon.loadTexture(canvas.gl, "/images/font.png");
 		};
 		void load_font();
 
@@ -57,22 +56,22 @@ export function model() {
 		);
 		void visuals.init();
 
-		const visuals_glyphs = textureGlyphs(MODEL_ROWS, MODEL_COLS, TexGlyphMode.SAMPLE);
+		const visuals_glyphs = tscon.textureGlyphs(MODEL_ROWS, MODEL_COLS, tscon.TexGlyphMode.SAMPLE);
 		visuals.resize(MODEL_ROWS, MODEL_COLS);
 
 		// info text
 
 		const TEXT_COLS = 40;
 
-		let content: Glyphs = new Glyphs(INFO, TEXT_COLS);
+		let content: tscon.Glyphs = new tscon.Glyphs(INFO, TEXT_COLS);
 
-		const build_links = (content: Glyphs): Link[] => {
+		const build_links = (content: tscon.Glyphs): Link[] => {
 			const links: Link[] = [];
 
 			const link_anchors = content.anchors[0] ?? [];
 
 			for (let i = 0; i < link_anchors.length; i++) {
-				const anchor = link_anchors[i] as Anchor;
+				const anchor = link_anchors[i] as tscon.Anchor;
 
 				// \a0{Link Text|https://example.com}Link_Text
 				const [text = "", url = text] = (anchor.options || "Missing Link|#").split("|");

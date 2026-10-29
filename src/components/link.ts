@@ -1,15 +1,15 @@
-import { Colour, Glyphs, Terminal, Wrap } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 export class Link {
-	private readonly terminal: Terminal;
+	private readonly terminal: tscon.Terminal;
 	private readonly url: string;
 
-	private glyphs: Glyphs | null = null;
+	private glyphs: tscon.Glyphs | null = null;
 	private glyphs_are_hovered: null | boolean;
 
 	public readonly text: string;
 
-	constructor(terminal: Terminal, text: string, url: string) {
+	constructor(terminal: tscon.Terminal, text: string, url: string) {
 		this.terminal = terminal;
 		this.text = text;
 		this.url = url;
@@ -18,7 +18,7 @@ export class Link {
 		this.glyphs_are_hovered = null;
 	}
 
-	update(row: number, col: number): Glyphs {
+	update(row: number, col: number): tscon.Glyphs {
 		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length);
 		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length);
 
@@ -45,17 +45,17 @@ export class Link {
 		if (glyphs === null || is_hovered !== this.glyphs_are_hovered) {
 			this.glyphs_are_hovered = is_hovered;
 
-			const fg = is_hovered ? Colour.BLACK : Colour.BRIGHT_BLUE;
-			const bg = is_hovered ? Colour.BRIGHT_BLUE : Colour.BLACK;
+			const fg = is_hovered ? tscon.Colour.BLACK : tscon.Colour.BRIGHT_BLUE;
+			const bg = is_hovered ? tscon.Colour.BRIGHT_BLUE : tscon.Colour.BLACK;
 
 			const fgv = fg % 8;
 			const bgv = bg % 8;
 
-			const fgc = fg > Colour.GREY ? "F" : "f";
-			const bgc = bg > Colour.GREY ? "B" : "b";
+			const fgc = fg > tscon.Colour.GREY ? "F" : "f";
+			const bgc = bg > tscon.Colour.GREY ? "B" : "b";
 
 			const text = `\\${fgc}${fgv}\\${bgc}${bgv}${this.text}`;
-			glyphs = new Glyphs(text, this.text.length, { wrap: Wrap.TRUNCATE });
+			glyphs = new tscon.Glyphs(text, this.text.length, { wrap: tscon.Wrap.TRUNCATE });
 			this.glyphs = glyphs;
 		}
 

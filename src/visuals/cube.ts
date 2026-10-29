@@ -1,4 +1,4 @@
-import { Canvas, loadTexture, Mat4 } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Visuals } from "./visuals.ts";
 import { BlinnPhongProgram } from "./programs/blinn_phong.ts";
@@ -18,7 +18,7 @@ export class CubeVisuals extends Visuals {
 	private yaw: number;
 	private pitch: number;
 
-	constructor(canvas: Canvas) {
+	constructor(canvas: tscon.Canvas) {
 		super(canvas);
 		this.yaw = 0;
 		this.pitch = 0;
@@ -30,9 +30,9 @@ export class CubeVisuals extends Visuals {
 		this.blinn_phong = new BlinnPhongProgram(gl, cubeMesh());
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
-			loadTexture(gl, "/images/texture.png"),
-			loadTexture(gl, "/images/normal.png"),
-			loadTexture(gl, "/images/roughness.png")
+			tscon.loadTexture(gl, "/images/texture.png"),
+			tscon.loadTexture(gl, "/images/normal.png"),
+			tscon.loadTexture(gl, "/images/roughness.png")
 		]);
 
 		this.is_ready = true;
@@ -59,8 +59,8 @@ export class CubeVisuals extends Visuals {
 		this.pitch += (target_pitch - this.pitch) * alpha;
 
 		// camera placed in front of the origin, looking at the cube's front face
-		const view_matrix = Mat4.create();
-		Mat4.lookAt(
+		const view_matrix = tscon.Mat4.create();
+		tscon.Mat4.lookAt(
 			view_matrix,
 			new Float32Array([0.0, 0.0, 8.0]),
 			new Float32Array([0.0, 0.0, 0.0]),
@@ -68,10 +68,10 @@ export class CubeVisuals extends Visuals {
 		);
 
 		// rotate the cube so its front face tracks the cursor
-		const yaw_matrix = Mat4.rotation("y", -this.yaw);
-		const pitch_matrix = Mat4.rotation("x", this.pitch);
-		const model_matrix = Mat4.create();
-		Mat4.multiply(model_matrix, yaw_matrix, pitch_matrix);
+		const yaw_matrix = tscon.Mat4.rotation("y", -this.yaw);
+		const pitch_matrix = tscon.Mat4.rotation("x", this.pitch);
+		const model_matrix = tscon.Mat4.create();
+		tscon.Mat4.multiply(model_matrix, yaw_matrix, pitch_matrix);
 
 		this.blinn_phong.draw(
 			this.texture,

@@ -1,4 +1,4 @@
-import { Canvas, Terminal, Renderer, TexGlyphMode, textureGlyphs, loadTexture } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
 
@@ -8,16 +8,16 @@ export function donut() {
 	try {
 		// initialize
 
-		const canvas = new Canvas(canvas_el);
-		const terminal = new Terminal(canvas);
-		const renderer = new Renderer(canvas);
+		const canvas = new tscon.Canvas(canvas_el);
+		const terminal = new tscon.Terminal(canvas);
+		const renderer = new tscon.Renderer(canvas);
 
 		// font
 
 		let font: WebGLTexture | null = null;
 
 		const load_font = async () => {
-			font = await loadTexture(canvas.gl, "/images/font.png");
+			font = await tscon.loadTexture(canvas.gl, "/images/font.png");
 		};
 		void load_font();
 
@@ -26,7 +26,7 @@ export function donut() {
 		const visuals = new TorusVisuals(canvas);
 		void visuals.init();
 
-		let visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.BG_GLYPHS);
+		let visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
 		visuals.resize(canvas.rows, canvas.cols);
 
 		// main draw loop
@@ -50,7 +50,7 @@ export function donut() {
 			if (resized) {
 				resized = false;
 
-				visuals_glyphs = textureGlyphs(canvas.rows, canvas.cols, TexGlyphMode.BG_GLYPHS);
+				visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
 				visuals.resize(canvas.rows, canvas.cols);
 			}
 

@@ -1,4 +1,4 @@
-import { Glyphs, Terminal, Wrap } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 enum SectionState {
 	NOT_HOVERED = 1,
@@ -8,18 +8,18 @@ enum SectionState {
 }
 
 export class Section {
-	private readonly terminal: Terminal;
+	private readonly terminal: tscon.Terminal;
 	private readonly text: string;
 
 	private state: null | SectionState;
 	private anchored_when: null | number;
 	private anchored_by_click: boolean;
 
-	private glyphs: Glyphs | null = null;
+	private glyphs: tscon.Glyphs | null = null;
 
 	public readonly hash: string;
 
-	constructor(terminal: Terminal, text: string, hash: string) {
+	constructor(terminal: tscon.Terminal, text: string, hash: string) {
 		this.terminal = terminal;
 		this.text = text;
 		this.hash = hash;
@@ -29,7 +29,7 @@ export class Section {
 		this.anchored_by_click = false;
 	}
 
-	update(row: number, col: number): Glyphs {
+	update(row: number, col: number): tscon.Glyphs {
 		// note: + 2 is for the string " ¶" to be included in the hover
 		const is_hovered = this.terminal.canvas.mouseAt(row, col, 1, this.text.length + 2);
 		const was_hovered = this.terminal.canvas.mouseDownAt(row, col, 1, this.text.length + 2);
@@ -122,7 +122,7 @@ export class Section {
 
 			const text = format + section_title + pilcrow;
 
-			glyphs = new Glyphs(text, len + 2, { wrap: Wrap.TRUNCATE });
+			glyphs = new tscon.Glyphs(text, len + 2, { wrap: tscon.Wrap.TRUNCATE });
 			this.glyphs = glyphs;
 		}
 

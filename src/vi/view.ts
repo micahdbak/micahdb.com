@@ -1,16 +1,15 @@
-import { Colour, Glyphs, TexGlyphMode, Wrap, textureGlyphs } from "@micahdb/tscon";
-import type { TexGlyphs, Terminal, Renderer } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 import { Link } from "@/components/link.ts";
 import type { Editor } from "./editor/editor.ts";
 import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Viewport } from "./viewport.ts";
 
-const TILDE = new Glyphs("\\F0~", 1, { wrap: Wrap.TRUNCATE });
+const TILDE = new tscon.Glyphs("\\F0~", 1, { wrap: tscon.Wrap.TRUNCATE });
 const TILDE_AT = { row: 0, col: 0, rows: 1, cols: 1 };
 
-const SELECTION_BG = Colour.BRIGHT_BLACK;
-const CURSOR_BG = Colour.WHITE;
-const BAR_BG = Colour.BRIGHT_BLACK;
+const SELECTION_BG = tscon.Colour.BRIGHT_BLACK;
+const CURSOR_BG = tscon.Colour.WHITE;
+const BAR_BG = tscon.Colour.BRIGHT_BLACK;
 const BAR_COLUMN = 80;
 
 export type ViewDependencies = {
@@ -35,7 +34,7 @@ function barCell(cell: number): number {
 // paints as a solid block
 function invertedCell(cell: number, blank_bg: number): number {
 	if (cell === 0) {
-		return (Colour.BLACK << 12) | (blank_bg << 8) | 32;
+		return (tscon.Colour.BLACK << 12) | (blank_bg << 8) | 32;
 	}
 
 	const fg = (cell >> 12) & 0xf;
@@ -49,12 +48,12 @@ function invertedCell(cell: number, blank_bg: number): number {
  * partially overlap the canvas.
  */
 function sliceTextureGlyphs(
-	texture_glyphs: TexGlyphs,
+	texture_glyphs: tscon.TexGlyphs,
 	first_row: number,
 	first_col: number,
 	rows: number,
 	cols: number
-): TexGlyphs {
+): tscon.TexGlyphs {
 	const data = new Uint32Array(rows * cols);
 
 	for (let row = 0; row < rows; row++) {
@@ -79,13 +78,13 @@ function sliceTextureGlyphs(
  */
 export class View {
 	private readonly links = new Map<string, Link>();
-	private readonly texture_glyphs = new Map<string, TexGlyphs>();
+	private readonly texture_glyphs = new Map<string, tscon.TexGlyphs>();
 	private frame_regions: ImageRegion[] = [];
 	private frame_bar_col: number | null = null;
 
 	constructor(
-		private readonly terminal: Terminal,
-		private readonly renderer: Renderer,
+		private readonly terminal: tscon.Terminal,
+		private readonly renderer: tscon.Renderer,
 		private readonly dependencies: ViewDependencies
 	) {}
 
@@ -137,7 +136,7 @@ export class View {
 	}
 
 	// blits one prepared row of a line grid to the screen
-	private blitRow(glyphs: Glyphs, row_in_line: number, screen_row: number, col: number): void {
+	private blitRow(glyphs: tscon.Glyphs, row_in_line: number, screen_row: number, col: number): void {
 		this.terminal.blit(
 			glyphs,
 			{ row: row_in_line, col: 0, rows: 1, cols: glyphs.cols },
@@ -149,7 +148,7 @@ export class View {
 	 * A copy of the display row's line grid with the optional invert span
 	 * (selection or cursor) and the column bar painted into its row
 	 */
-	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): Glyphs {
+	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): tscon.Glyphs {
 		const glyphs = this.dependencies.layout.grid(display_row.line);
 		const row = display_row.row_in_line;
 		const bar_col = display_row.row_in_line === 0 ? this.frame_bar_col : null;
@@ -291,7 +290,7 @@ export class View {
 	private drawStatus(): void {
 		const canvas = this.terminal.canvas;
 		const status_row = this.terminal.detail_text.length > 0 ? canvas.rows - 2 : canvas.rows - 1;
-		const status = new Glyphs(this.statusText(), canvas.cols, { wrap: Wrap.TRUNCATE });
+		const status = new tscon.Glyphs(this.statusText(), canvas.cols, { wrap: tscon.Wrap.TRUNCATE });
 
 		this.blitRow(status, 0, status_row, 0);
 	}
@@ -372,14 +371,14 @@ export class View {
 	}
 
 
-	private textureGlyphsFor(name: string, rows: number, cols: number): TexGlyphs {
+	private textureGlyphsFor(name: string, rows: number, cols: number): tscon.TexGlyphs {
 		const cached = this.texture_glyphs.get(name);
 
 		if (cached !== undefined && cached.rows === rows && cached.cols === cols) {
 			return cached;
 		}
 
-		const built = textureGlyphs(rows, cols, TexGlyphMode.SAMPLE);
+		const built = tscon.textureGlyphs(rows, cols, tscon.TexGlyphMode.SAMPLE);
 		this.texture_glyphs.set(name, built);
 		return built;
 	}

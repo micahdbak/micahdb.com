@@ -1,4 +1,4 @@
-import { Canvas, Terminal, Renderer, loadTexture } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 
 import { Editor } from "./editor/editor.ts";
 import { Input } from "./input.ts";
@@ -24,9 +24,9 @@ export type ViOptions = {
  * options; everything below the canvas is this class's business.
  */
 export class Vi {
-	private readonly canvas: Canvas;
-	private readonly terminal: Terminal;
-	private readonly renderer: Renderer;
+	private readonly canvas: tscon.Canvas;
+	private readonly terminal: tscon.Terminal;
+	private readonly renderer: tscon.Renderer;
 
 	private readonly editor: Editor;
 	private readonly viewport = new Viewport();
@@ -40,9 +40,9 @@ export class Vi {
 	private resized = true;
 
 	constructor(options: ViOptions) {
-		this.canvas = new Canvas(options.canvas_el);
-		this.terminal = new Terminal(this.canvas);
-		this.renderer = new Renderer(this.canvas);
+		this.canvas = new tscon.Canvas(options.canvas_el);
+		this.terminal = new tscon.Terminal(this.canvas);
+		this.renderer = new tscon.Renderer(this.canvas);
 
 		this.pad_cols = options.pad_cols ?? 2;
 		this.editor = new Editor(options.content, this.wrapWidth());
@@ -93,7 +93,7 @@ export class Vi {
 			return;
 		}
 
-		void loadTexture(this.canvas.gl, path)
+		void tscon.loadTexture(this.canvas.gl, path)
 			.then((texture) => {
 				this.font = texture;
 			})

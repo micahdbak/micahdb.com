@@ -1,5 +1,4 @@
-import { Glyphs, Wrap, hasEscape, textToLines } from "@micahdb/tscon";
-import type { Cell } from "@micahdb/tscon";
+import * as tscon from "@micahdb/tscon";
 import { Pos } from "./buffer.ts";
 import type { Buffer } from "./buffer.ts";
 
@@ -28,13 +27,13 @@ function imageExtent(payload: string): { name: string; rows: number; cols: numbe
 
 /**
  * Owns the wrap of every logical line at the current width: each line's
- * compiled {@link Glyphs} -- cells, anchors, and the source-to-cell map
+ * compiled {@link tscon.Glyphs} -- cells, anchors, and the source-to-cell map
  * in one object -- plus the flat display-row table and the buffer/screen
  * conversions over them. A buffer line corresponds to exactly one source
  * line; anchor payloads must close on their own line.
  */
 export class Layout {
-	private readonly lines: (Glyphs | undefined)[] = [];
+	private readonly lines: (tscon.Glyphs | undefined)[] = [];
 	private display_rows_cache: DisplayRow[] | null = null;
 	private raw_line: number | null = null;
 
@@ -89,7 +88,7 @@ export class Layout {
 		this.display_rows_cache = null;
 	}
 
-	grid(line: number): Glyphs {
+	grid(line: number): tscon.Glyphs {
 		return this.compile(line);
 	}
 
@@ -128,7 +127,7 @@ export class Layout {
 	}
 
 	// the visible cell of a buffer position, wrap included
-	bufferToScreen(position: Pos): Cell {
+	bufferToScreen(position: Pos): tscon.Cell {
 		return this.compile(position.line).cursorCell(position.col);
 	}
 
@@ -161,11 +160,11 @@ export class Layout {
 	rawRowCount(line: number): number | null {
 		const text = this.buffer.lineText(line);
 
-		if (!hasEscape(text)) {
+		if (!tscon.hasEscape(text)) {
 			return null;
 		}
 
-		return textToLines(text, this.wrap_width, { wrap: Wrap.HARD, raw: true }).length;
+		return tscon.textToLines(text, this.wrap_width, { wrap: tscon.Wrap.HARD, raw: true }).length;
 	}
 
 	links(): LinkAnchor[] {
@@ -208,7 +207,7 @@ export class Layout {
 		return images;
 	}
 
-	private compile(line: number): Glyphs {
+	private compile(line: number): tscon.Glyphs {
 		const cached = this.lines[line];
 
 		if (cached !== undefined) {
@@ -222,9 +221,9 @@ export class Layout {
 		// other line compiles escapes away -- links and image regions read
 		// back out of the compiled anchors, and a payload that never closes
 		// renders as raw text on its own
-		const compiled = new Glyphs(text, this.wrap_width, {
-			wrap: Wrap.HARD,
-			raw: line === this.raw_line && hasEscape(text),
+		const compiled = new tscon.Glyphs(text, this.wrap_width, {
+			wrap: tscon.Wrap.HARD,
+			raw: line === this.raw_line && tscon.hasEscape(text),
 		});
 
 		this.lines[line] = compiled;
