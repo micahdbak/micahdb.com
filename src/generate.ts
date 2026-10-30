@@ -14,6 +14,7 @@ function reconcileSpans(
 	tags: string[];
 } {
 	let i = 0;
+
 	while (i < open_spans.length && i < desired.length && open_spans[i] === desired[i]) {
 		i++;
 	}
@@ -26,7 +27,7 @@ function reconcileSpans(
 
 	const spans = open_spans.slice(0, i);
 
-	for (const cls of desired.slice(open_spans.length)) {
+	for (const cls of desired.slice(i)) {
 		spans.push(cls);
 		tags.push(`<span class="${cls}">`);
 	}
