@@ -8,3 +8,8 @@ declare module "*/INDEX" {
 	const content: string;
 	export default content;
 }
+
+declare module "*/TSCON" {
+	const content: string;
+	export default content;
+}

@@ -1,6 +1,7 @@
 import * as tscon from "@micahdb/tscon";
 import { main } from "./pages/main.ts";
 import { donut } from "./pages/donut.ts";
+import { tscon_page } from "./pages/tscon.ts";
 import { vi_page } from "./pages/vi.ts";
 
 // cp437.html
@@ -29,6 +30,9 @@ if (window.location.pathname === "/cp437.html") {
 				break;
 			case "/vi.html":
 				vi_page();
+				break;
+			case "/tscon.html":
+				tscon_page();
 				break;
 			default:
 				main();

@@ -1,7 +1,9 @@
-vi
+vi Tutorial
 ----
 
-\F3 W E L C O M E   T O   V I   T U T O R\F7
+\F0-------------------------------------------------------------------------------
+WELCOME TO VI TUTOR
+\F0-------------------------------------------------------------------------------
 
 Welcome. This page is a text editor. The file you are looking at IS the
 document: move through it, change it, break it. When you reload the page the
@@ -22,8 +24,9 @@ the last of it. Practice freely; the page is restored on reload.
 
 When a lesson says to move to a line, use h j k l or click on it.
 
-------------------------------------------------------------------------
-\F3 LESSON 1.1 -- MOVING THE CURSOR\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 1.1 -- MOVING THE CURSOR
+\F0-------------------------------------------------------------------------------
 
   j moves down        k moves up
   h moves left        l moves right
@@ -54,8 +57,9 @@ When a lesson says to move to a line, use h j k l or click on it.
   + or Enter   first non-blank of the line below
   -            first non-blank of the line above
 
-------------------------------------------------------------------------
-\F3 LESSON 1.2 -- DELETING\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 1.2 -- DELETING
+\F0-------------------------------------------------------------------------------
 
   x   delete the character under the cursor
   X   delete the character before the cursor
@@ -78,8 +82,9 @@ When a lesson says to move to a line, use h j k l or click on it.
 A note on dw at the end of a line: vi deletes to the end of the line rather
 than joining the next line onto this one. Lines are only joined by J.
 
-------------------------------------------------------------------------
-\F3 LESSON 1.3 -- OPERATORS AND MOTIONS\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 1.3 -- OPERATORS AND MOTIONS
+\F0-------------------------------------------------------------------------------
 
 The d of deletion can be followed by any motion; the operator deletes from
 the cursor to where the motion lands.
@@ -103,8 +108,9 @@ the cursor to where the motion lands.
 3. dG deletes to the end of the file. Try it on this tutorial -- then
    press u and watch every line come back at once.
 
-------------------------------------------------------------------------
-\F3 LESSON 2.1 -- INSERT MODE\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 2.1 -- INSERT MODE
+\F0-------------------------------------------------------------------------------
 
 Everything so far has happened in command mode. These commands leave it:
 typed once, from command mode, they put you in insert mode, where keys
@@ -144,8 +150,9 @@ A liberty: the arrow keys also move the cursor in insert mode. The old
 terminals sent arrows as escape sequences, and vi made room for them; so
 does this page.
 
-------------------------------------------------------------------------
-\F3 LESSON 2.2 -- UNDO, JOIN, REPEAT\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 2.2 -- UNDO, JOIN, REPEAT
+\F0-------------------------------------------------------------------------------
 
   u   undo the last change. vi keeps ONE level of undo: pressing u again
       toggles the change back. This is not a bug; it is 1976.
@@ -172,8 +179,9 @@ does this page.
 
 ---> change this word and this word and this word.
 
-------------------------------------------------------------------------
-\F3 LESSON 3.1 -- THE COMMAND LINE, PART ONE: GOING PLACES\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 3.1 -- THE COMMAND LINE, PART ONE: GOING PLACES
+\F0-------------------------------------------------------------------------------
 
 Press : to enter command-line mode. The status line becomes a prompt:
 whatever you type appears after it. Enter executes the whole line, Esc
@@ -186,8 +194,9 @@ cancels it, and the up and down arrows walk the history.
    for the first line, and :0 and Enter for the top (this tutorial has
    no line zero, so vi settles for line one).
 
-------------------------------------------------------------------------
-\F3 LESSON 3.2 -- THE COMMAND LINE, PART TWO: SUBSTITUTE\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 3.2 -- THE COMMAND LINE, PART TWO: SUBSTITUTE
+\F0-------------------------------------------------------------------------------
 
   :s/old/new        replace the first "old" on the current line
   :s/old/new/       trailing slash allowed; same thing
@@ -220,8 +229,9 @@ plain text, case-sensitive -- not regular expressions.
 Unknown commands answer "E492: Not an editor command", as they have since
 time immemorial.
 
-------------------------------------------------------------------------
-\F3 LESSON 4.1 -- REGISTERS AND PUT\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 4.1 -- REGISTERS AND PUT
+\F0-------------------------------------------------------------------------------
 
 Every delete and yank lands in the unnamed register, and p and P put it
 back:
@@ -249,8 +259,9 @@ back:
    lines anywhere in the file, move somewhere new, and press "ap: the
    yanked line returns below the cursor, untouched by the deletions.
 
-------------------------------------------------------------------------
-\F3 LESSON 4.2 -- SEARCHING\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 4.2 -- SEARCHING
+\F0-------------------------------------------------------------------------------
 
   /text   search forward          ?text   search backward
   n       repeat in the same direction    N  opposite direction
@@ -271,8 +282,9 @@ Search wraps around the end of the file; when it does, vi says so.
 
 ---> one two three four five, and a fifth "four" for luck.
 
-------------------------------------------------------------------------
-\F3 LESSON 4.3 -- MARKS\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 4.3 -- MARKS
+\F0-------------------------------------------------------------------------------
 
   mx   mark this spot under the name x (a-z)
   `x   jump to the exact marked position
@@ -286,8 +298,9 @@ Search wraps around the end of the file; when it does, vi says so.
 
 ---> the centre of the universe (as marked)
 
-------------------------------------------------------------------------
-\F3 LESSON 5.1 -- SCREEN MOTIONS AND THE WRAP\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 5.1 -- SCREEN MOTIONS AND THE WRAP
+\F0-------------------------------------------------------------------------------
 
   Ctrl-F  forward one screen     Ctrl-B  back one screen
   Ctrl-D  forward half a screen  Ctrl-U  back half a screen
@@ -308,8 +321,9 @@ cursor never jumps over the continuation. The bar on column 80 marks the
 classic print margin; it only shows when the terminal is wide enough, and
 continuation rows of a wrapped line have none.
 
-------------------------------------------------------------------------
-\F3 LESSON 5.2 -- SENTENCES, PARAGRAPHS, AND MATCHING\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 5.2 -- SENTENCES, PARAGRAPHS, AND MATCHING
+\F0-------------------------------------------------------------------------------
 
   (   previous sentence       )  next sentence
   {   previous paragraph      }  next paragraph
@@ -326,8 +340,9 @@ blank line.
 
 ---> (never [do "this" {sort of} thing] much)
 
-------------------------------------------------------------------------
-\F3 LESSON 6.1 -- OPERATORS, SYSTEMATICALLY\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 6.1 -- OPERATORS, SYSTEMATICALLY
+\F0-------------------------------------------------------------------------------
 
 The real grammar of vi: [count] operator [count] motion. The counts
 multiply: 2d3w deletes six words. Operators so far: d c < > y and the case
@@ -363,8 +378,9 @@ motions:
 
 ---> shift me right. (Then left.)
 
-------------------------------------------------------------------------
-\F3 LESSON 7.1 -- THE MOUSE (ANACHRONISMS WELCOME)\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 7.1 -- THE MOUSE (ANACHRONISMS WELCOME)
+\F0-------------------------------------------------------------------------------
 
 The original vi had no mouse. Ours humours you:
 
@@ -378,8 +394,9 @@ The original vi had no mouse. Ours humours you:
 
 Clicking works on every lesson line above. Go on; nothing is fragile here.
 
-------------------------------------------------------------------------
-\F3 LESSON 8.1 -- RICH TEXT, EDITED RAW\F7
+\F0-------------------------------------------------------------------------------
+\f7LESSON 8.1 -- RICH TEXT, EDITED RAW
+\F0-------------------------------------------------------------------------------
 
 This document can hold links and images. They are written as anchors in
 the source text and rendered when the cursor is elsewhere. Underscores
@@ -391,22 +408,13 @@ stand in for spaces in the text of a link, so it never splits across rows:
    all -- so you can edit the source directly. Move away, and it
    renders as links again.
 
-2. With the cursor on some other line, click a link: it opens, and the
-   vi cursor moves with you.
-
-3. Images are anchors too. Rest the cursor on the anchor line below to
-   see its source; move away and the picture returns.
-
-\a2{portrait|5|14}
-
-
-
-
+2. With the cursor on some other line, click a link: it opens.
 
 That is the whole trick of this page: one file, one format, edits and all.
 
-------------------------------------------------------------------------
-\F3 S U M M A R Y\F7
+\F0-------------------------------------------------------------------------------
+\f7SUMMARY
+\F0-------------------------------------------------------------------------------
 
   move      h j k l  w b e ge  W B E gE  0 ^ $ |  + - Enter  G
   screens   Ctrl-F Ctrl-B Ctrl-D Ctrl-U   H M L
@@ -425,4 +433,5 @@ listed above behaves as the UNIX original does, save the few liberties
 confessed along the way, and all of it lives only until reload. When in
 doubt, press Esc, then u.
 
-\a0{main page|/index.html}main_page. (This one leaves vi running in your heart.)
+See also: \a0{tscon tutor|/tscon.html}tscon_tutor, \a0{index|/index.html}index
+

@@ -22,9 +22,6 @@ export function vi_page() {
 			content,
 			filename: "VI",
 			font_path: "/images/font.png",
-			textures: {
-				portrait: (gl) => tscon.loadTexture(gl, "/images/portrait.jpeg"),
-			},
 		});
 	} catch (err) {
 		console.error(err);
