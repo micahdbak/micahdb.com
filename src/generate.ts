@@ -7,6 +7,13 @@ const CONTENT_DIR = "src/pages/content";
 const OUTPUT_DIR = "build";
 const COLS = 80;
 
+/** The colour state one source line carries across its wrapped display rows. */
+interface Colours {
+	fg: number;
+	bg: number;
+	spans: string[];
+}
+
 function reconcileSpans(
 	open_spans: string[],
 	desired: string[]
@@ -36,6 +43,30 @@ function reconcileSpans(
 	return { spans, tags };
 }
 
+// moves the open spans to `desired`, returning the tags that get them there
+function recolour(colours: Colours, desired: string[]): string {
+	const { spans, tags } = reconcileSpans(colours.spans, desired);
+
+	colours.spans = spans;
+
+	return tags.join("");
+}
+
+// the classes that paint the current colours; the defaults need none
+function spanClasses({ fg, bg }: Colours): string[] {
+	const classes: string[] = [];
+
+	if (bg !== tscon.Colour.BLACK) {
+		classes.push(`b${bg}`);
+	}
+
+	if (fg !== tscon.Colour.WHITE) {
+		classes.push(`f${fg}`);
+	}
+
+	return classes;
+}
+
 function escapeHtml(s: string): string {
 	return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
@@ -46,122 +77,130 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 		return "";
 	}
 
-	const lines = tscon.textToLines(text, cols, { wrap });
+	return text
+		.split("\n")
+		.map((source) => sourceToHtml(source, cols, wrap))
+		.join("\n");
+}
 
-	if (lines.length === 0) {
-		return "";
-	}
+// one buffer line as HTML rows. The emulator compiles a line at a time, so a
+// line starts at the default colours whatever the line above left set
+function sourceToHtml(source: string, cols: number, wrap: tscon.Wrap): string {
+	const colours: Colours = { fg: tscon.Colour.WHITE, bg: tscon.Colour.BLACK, spans: [] };
+	const lines = tscon.textToLines(source, cols, { wrap });
 
-	const default_fg: number = tscon.Colour.WHITE;
-	const default_bg: number = tscon.Colour.BLACK;
+	// a blank line is still a row, even though it wraps to nothing
+	const display = lines.length === 0 ? [""] : lines;
 
-	let fg: number = default_fg;
-	let bg: number = default_bg;
+	return display
+		.map((line, at) => {
+			const html = rowToHtml(line, cols, colours);
 
-	let open_spans: string[] = [];
+			// the colours a line leaves set close with it
+			return at === display.length - 1 ? html + recolour(colours, []) : html;
+		})
+		.join("\n");
+}
 
+// one display row of source text, with its colours left open for the next row
+function rowToHtml(line: string, cols: number, colours: Colours): string {
 	const html: string[] = [];
 
-	for (const [row, line] of lines.entries()) {
-		let col = 0;
+	let col = 0;
 
-		for (let i = 0; i < line.length; ) {
-			const scan = tscon.scanEscapeAt(line, i);
+	for (let i = 0; i < line.length; ) {
+		const scan = tscon.scanEscapeAt(line, i);
 
-			// anchor escape sequence
-			// \a0{Display Text|URL} : link
-			// \a9{Display Text|#anchor} : section anchor
-			if (scan.kind === "anchor") {
-				if (scan.options !== null && (scan.group === 0 || scan.group === 9)) {
-					const [text = "", url = text] = scan.options.split("|");
+		// anchor escape sequence
+		// \a0{Display Text|URL} : link
+		// \a9{Display Text|#anchor} : section anchor
+		if (scan.kind === "anchor") {
+			if (scan.options !== null && (scan.group === 0 || scan.group === 9)) {
+				const [text = "", url = text] = scan.options.split("|");
 
-					if (scan.group === 0) {
-						html.push(`<a href="${escapeHtml(url)}" class="f12">${escapeHtml(text)}</a>`);
-					} else {
-						const anchor_id = url.startsWith("#") ? url.slice(1) : url;
-						html.push(`<span id="${escapeHtml(anchor_id)}" class="f15">${escapeHtml(text)}</span>`);
-					}
+				if (scan.group === 0) {
+					// the emulator's Link component overdraws links in bright cyan
+					const link_colour = `f${tscon.Colour.BRIGHT_CYAN}`;
 
-					i += text.length;
-					col += text.length;
-				}
-
-				i += scan.chars;
-				continue;
-			}
-
-			// colour escape sequence
-			if (scan.kind === "colour") {
-				const num = Math.min(scan.num, 7) + (scan.bright ? 8 : 0);
-
-				if (scan.attribute === "fg") {
-					fg = num;
+					html.push(
+						`<a href="${escapeHtml(url)}" class="${link_colour}">${escapeHtml(text)}</a>`
+					);
 				} else {
-					bg = num;
+					const anchor_id = url.startsWith("#") ? url.slice(1) : url;
+
+					html.push(`<span id="${escapeHtml(anchor_id)}">${escapeHtml(text)}</span>`);
 				}
 
-				i += scan.chars;
-
-				const desired: string[] = [];
-
-				if (bg !== default_bg) {
-					desired.push(`b${bg}`);
-				}
-
-				if (fg !== default_fg) {
-					desired.push(`f${fg}`);
-				}
-
-				const { spans, tags } = reconcileSpans(open_spans, desired);
-				open_spans = spans;
-				html.push(...tags);
-
-				continue;
+				i += text.length;
+				col += text.length;
 			}
 
-			// an escaped backslash displays one backslash
-			const visible = scan.chars === 2 ? "\\" : line.charAt(i);
-
-			// tab
-			if (visible === "\t") {
-				const tab_chars = tscon.TAB_WIDTH - (col % tscon.TAB_WIDTH);
-				col += tab_chars;
-				html.push(" ".repeat(tab_chars));
-
-				i += scan.chars;
-				continue;
-			}
-
-			if (col + 1 > cols) {
-				break;
-			}
-
-			html.push(escapeHtml(visible));
-			col++;
 			i += scan.chars;
+			continue;
 		}
 
-		if (row < lines.length - 1) {
-			html.push("\n");
+		// colour escape sequence
+		if (scan.kind === "colour") {
+			const value = Math.min(scan.num, 7) + (scan.bright ? 8 : 0);
+
+			if (scan.attribute === "fg") {
+				colours.fg = value;
+			} else {
+				colours.bg = value;
+			}
+
+			i += scan.chars;
+			html.push(recolour(colours, spanClasses(colours)));
+
+			continue;
 		}
+
+		// an escaped backslash displays one backslash
+		const visible = scan.chars === 2 ? "\\" : line.charAt(i);
+
+		// tab
+		if (visible === "\t") {
+			const tab_chars = Math.min(tscon.TAB_WIDTH - (col % tscon.TAB_WIDTH), cols - col);
+
+			col += tab_chars;
+			html.push(" ".repeat(Math.max(tab_chars, 0)));
+
+			i += scan.chars;
+			continue;
+		}
+
+		if (col + 1 > cols) {
+			break;
+		}
+
+		html.push(escapeHtml(visible));
+		col++;
+		i += scan.chars;
 	}
-
-	// close any spans still open at the end
-	html.push(...reconcileSpans(open_spans, []).tags);
 
 	return html.join("");
 }
 
 function generateCss(): string {
-	const classes: string[] = [];
+	const rules: string[] = [];
+	const hex = (colour: readonly [number, number, number]) =>
+		"#" + colour.map((c) => c.toString(16).padStart(2, "0")).join("");
 
 	for (const [i, [r, g, b]] of PALETTE.colours.entries()) {
-		const hex = [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
-		classes.push(`.f${i} { color: #${hex}; }`);
-		classes.push(`.b${i} { background-color: #${hex}; }`);
+		const value = hex([r, g, b]);
+
+		rules.push(`.f${i} { color: ${value}; }`);
+		rules.push(`.b${i} { background-color: ${value}; }`);
 	}
 
-	return classes.join("\n") + "\n";
+	// text with no escapes draws in the cell grid's default colours, so the
+	// fallback states them rather than inheriting the page's
+	const foreground = hex(PALETTE.colours[tscon.Colour.WHITE]!);
+	const background = hex(PALETTE.colours[tscon.Colour.BLACK]!);
+
+	rules.push(`#raw pre { color: ${foreground}; background-color: ${background}; }`);
+
+	return rules.join("\n") + "\n";
 }
 
 function generate(src_dir: string, out_dir: string) {
