@@ -8,8 +8,6 @@ export type CommandLine = { prompt: string; text: string };
 
 export type ViewportState = { top: number; rows: number };
 
-export type Selection = { anchor: Pos; head: Pos };
-
 export type InsertLocation =
 	| "insert"
 	| "append"

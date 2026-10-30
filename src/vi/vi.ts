@@ -63,7 +63,7 @@ export class Vi {
 		this.image_modes = options.image_modes ?? {};
 		this.before_frame = options.before_frame ?? null;
 		this.editor = new Editor(options.content, this.wrapWidth(), options.image_limits);
-		this.input = new Input(this.editor, this.canvas, (row, col) =>
+		this.input = new Input(this.editor, this.canvas, this.viewport, (row, col) =>
 			this.editor.layout.screenToBuffer(this.viewport.top + row, col - this.pad_cols)
 		);
 		this.input.attach();
@@ -142,6 +142,7 @@ export class Vi {
 
 		if (this.resized) {
 			this.resized = false;
+			this.viewport.resetFollow();
 			this.editor.layout.setWidth(this.wrapWidth());
 		}
 
@@ -169,7 +170,16 @@ export class Vi {
 		const cursor_screen = this.editor.layout.bufferToScreen(this.editor.cursor.pos);
 		const first = this.editor.layout.firstRowOfLine[this.editor.cursor.pos.line] ?? 0;
 		const cursor_display_row = first + cursor_screen.row;
-		this.viewport.follow(cursor_display_row, this.editor.layout.displayRows.length, canvas.rows);
+
+		/**
+		 * A pan owns the viewport: remember the cursor's row without following
+		 * it, so the fling is not pulled back to the stationary cursor
+		 */
+		if (this.input.isPanning()) {
+			this.viewport.holdCursor(cursor_display_row);
+		} else {
+			this.viewport.follow(cursor_display_row, this.editor.layout.displayRows.length, canvas.rows);
+		}
 
 		this.editor.viewport.top = this.viewport.top;
 

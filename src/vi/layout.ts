@@ -198,10 +198,6 @@ export class Layout {
 		return this.bufferAtVisibleCol(display_row.line, display_row.row_in_line, screen_col);
 	}
 
-	visibleLength(line: number, row_in_line: number): number {
-		return this.compile(line).rowCols(row_in_line);
-	}
-
 	// the number of display rows the line has while rendering raw, or null
 	// when the line has no escapes and never changes
 	rawRowCount(line: number): number | null {

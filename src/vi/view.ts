@@ -7,7 +7,6 @@ import type { Viewport } from "./viewport.ts";
 const TILDE = new tscon.Glyphs("\\F0~", 1, { wrap: tscon.Wrap.TRUNCATE });
 const TILDE_AT = { row: 0, col: 0, rows: 1, cols: 1 };
 
-const SELECTION_BG = tscon.Colour.BRIGHT_BLACK;
 const CURSOR_BG = tscon.Colour.WHITE;
 const BAR_BG = tscon.Colour.BRIGHT_BLACK;
 const BAR_COLUMN = 80;
@@ -46,10 +45,10 @@ function invertedCell(cell: number, blank_bg: number): number {
 
 /**
  * Renders one frame: the visible slice of display rows, the tilde rows past
- * the end of the buffer, the selection and cursor overlays, the links, the
- * status / command line, then the image regions under the text, and finally
- * the terminal frame -- text draws over images, and blank cells stay
- * transparent so the textures show through.
+ * the end of the buffer, the cursor overlay, the links, the status / command
+ * line, then the image regions under the text, and finally the terminal
+ * frame -- text draws over images, and blank cells stay transparent so the
+ * textures show through.
  */
 export class View {
 	private readonly links = new Map<string, Link>();
@@ -102,7 +101,6 @@ export class View {
 			);
 		}
 
-		this.drawSelection(usable);
 		this.drawCursor(usable);
 		this.drawLinks(usable);
 		this.drawStatus();
@@ -121,7 +119,7 @@ export class View {
 
 	/**
 	 * A copy of the display row's line grid with the optional invert span
-	 * (selection or cursor) and the column bar painted into its row
+	 * (the cursor) and the column bar painted into its row
 	 */
 	private preparedRowAt(display_row: DisplayRow, invert: InvertSpan): tscon.Glyphs {
 		const glyphs = this.dependencies.layout.grid(display_row.line);
@@ -141,62 +139,6 @@ export class View {
 
 			return painted;
 		}, { row, col: 0, rows: 1, cols: glyphs.cols });
-	}
-
-	// the fake visual selection: inverted cells over the drag range
-	private drawSelection(usable: number): void {
-		const { editor, layout, viewport } = this.dependencies;
-		const selection = editor.selection;
-
-		if (selection === null) {
-			return;
-		}
-
-		const forward = selection.anchor.before(selection.head);
-		const start = forward ? selection.anchor : selection.head;
-		const end = forward ? selection.head : selection.anchor;
-
-		const start_visible = layout.bufferToScreen(start);
-		const end_visible = layout.bufferToScreen(end);
-		const first = layout.firstRowOfLine;
-		const first_display_row = (first[start.line] ?? 0) + start_visible.row;
-		const last_display_row = (first[end.line] ?? 0) + end_visible.row;
-		const display = layout.displayRows;
-
-		for (let display_index = first_display_row; display_index <= last_display_row; display_index++) {
-			const display_row = display[display_index];
-
-			if (display_row === undefined) {
-				break;
-			}
-
-			const screen_row = display_index - viewport.top;
-
-			if (screen_row < 0 || screen_row >= usable) {
-				continue;
-			}
-
-			const row_length = layout.visibleLength(display_row.line, display_row.row_in_line);
-			const from_col = display_index === first_display_row ? start_visible.col : 0;
-
-			/**
-			 * Rows fully inside the selection highlight across the width, as
-			 * vi highlights blank lines in full
-			 */
-			const full_width = Math.max(row_length, layout.wrapWidth);
-			const to_col = display_index === last_display_row ? end_visible.col + 1 : full_width;
-
-			this.blitRow(
-				this.preparedRowAt(display_row, {
-					from_col,
-					to_col,
-					blank_bg: SELECTION_BG,
-				}),
-				display_row.row_in_line,
-				screen_row,
-				this.dependencies.pad_cols
-			);
-		}
 	}
 
 	/**
@@ -224,10 +166,7 @@ export class View {
 			blank_bg: CURSOR_BG,
 		});
 
-		/**
-		 * One cell only: a full-row blit would erase the selection
-		 * overlay beneath the cursor
-		 */
+		// one cell only: the rest of the prepared row is not part of the cursor
 		this.terminal.blit(
 			prepared,
 			{ row: visible.row, col: visible.col, rows: 1, cols: 1 },

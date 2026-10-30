@@ -12,7 +12,7 @@ import type { Snapshot } from "../undo.ts";
 import { commandLineKey } from "./command_line.ts";
 import { insertKey } from "./insert.ts";
 import { applyOperatorRange, doMotion, doOperatorCommand, doSimple } from "./normal.ts";
-import type { CommandLine, Mode, Repeat, Selection, Session, ViewportState } from "./types.ts";
+import type { CommandLine, Mode, Repeat, Session, ViewportState } from "./types.ts";
 
 /**
  * The editor state machine: modes, the command parser, insert sessions,
@@ -43,7 +43,6 @@ export class Editor {
 	session: Session | null = null;
 	repeat_last: Repeat | null = null;
 	message: string | null = null;
-	selection: Selection | null = null;
 
 	constructor(content: string, width: number, image_limits?: ImageLimits) {
 		this.buffer = new Buffer(content);
@@ -59,7 +58,6 @@ export class Editor {
 	// one keystroke, in whatever mode is active
 	key(key: string): void {
 		this.message = null;
-		this.selection = null;
 
 		if (this.mode === "command_line") {
 			commandLineKey(this, key);

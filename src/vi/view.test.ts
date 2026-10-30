@@ -225,26 +225,6 @@ describe("view rendering", () => {
 		expect((cell >> 12) & 0xf).toBe(0);
 	});
 
-	test("a selection highlights every row it spans, including the cursor's", () => {
-		const { editor, terminal, viewport, frame } = harness();
-		const link_line = editor.layout.links()[0]!.line;
-
-		editor.placeCursor(new Pos(link_line, 5));
-		frame();
-		frame();
-
-		editor.selection = { anchor: new Pos(link_line - 1, 0), head: new Pos(link_line, 20) };
-		frame();
-
-		const first = (editor.layout.firstRowOfLine[link_line - 1] ?? 0) - viewport.top;
-		const last_row = editor.layout.firstRowOfLine[link_line] ?? 0;
-		const after = last_row + editor.layout.lineRowCount(link_line) - viewport.top;
-
-		expect(terminal.invertedCount(first)).toBeGreaterThan(0);
-		expect(terminal.invertedCount(first + 1)).toBeGreaterThan(0);
-		expect(terminal.invertedCount(after)).toBe(0);
-	});
-
 	test("links light their text at the position the wrap put it on", () => {
 		const { editor, terminal, viewport, frame } = harness(20);
 		const link_line = editor.layout.links()[0]!.line;
@@ -322,7 +302,7 @@ describe("view rendering", () => {
 
 	test("a click activates the link, then moves the cursor onto its line", () => {
 		const { editor, terminal, viewport, frame } = harness();
-		const input = new Input(editor, terminal.canvas as never, (row, col) =>
+		const input = new Input(editor, terminal.canvas as never, viewport, (row, col) =>
 			editor.layout.screenToBuffer(viewport.top + row, col - 2)
 		);
 

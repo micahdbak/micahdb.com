@@ -369,10 +369,10 @@ motions:
 The original vi had no mouse. Ours humours you:
 
   * Click to move the cursor.
-  * Press and drag to highlight a range. The highlight is only a
-    highlight: on release it is gone, and a following d acts on the cursor
-    position, as in real vi. Selection is the mouse's alone; vi has no v
-    key for it. That arrived with vim, which is another story.
+  * Press and drag to scroll the document. The vi cursor is placed where
+    the press began and keeps its source line as the view moves, so the
+    drag reads ahead without losing the cursor's place in the file. A
+    flick keeps the view moving, then it settles.
   * The wheel moves the cursor a row at a time, like j and k. The screen
     follows the cursor; the wheel never scrolls on its own.
 
@@ -425,4 +425,4 @@ listed above behaves as the UNIX original does, save the few liberties
 confessed along the way, and all of it lives only until reload. When in
 doubt, press Esc, then u.
 
-\a0{main_page|/index.html}Back to the main page. (This one leaves vi running in your heart.)
+\a0{main page|/index.html}main_page. (This one leaves vi running in your heart.)
