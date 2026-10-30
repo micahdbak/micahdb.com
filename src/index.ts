@@ -6,7 +6,7 @@ import { vi_page } from "./pages/vi.ts";
 
 // cp437.html
 async function render() {
-	const canvas = document.getElementById("2d") as HTMLCanvasElement;
+	const canvas = document.getElementById("atlas") as HTMLCanvasElement;
 	const font = "160px 'JetBrains Mono'";
 	await tscon.renderCp437(canvas, font);
 }
