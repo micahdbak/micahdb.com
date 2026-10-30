@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "build:public": "mkdir -p build && cp -r ./public/* ./build",
     "build:html": "bun run src/generate.ts",
-    "build": "bun run typecheck && bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
+    "build:favicon": "bun run scripts/favicon.ts",
+    "build": "bun run typecheck && bun run build:favicon && bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
     "dev": "bun run build:public && bun run build:html && bun build ./src/index.ts --outdir ./build --watch",
     "deploy": "bun run build && gh-pages -d build"
   },
