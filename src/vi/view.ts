@@ -8,8 +8,12 @@ const TILDE = new tscon.Glyphs("\\F0~", 1, { wrap: tscon.Wrap.TRUNCATE });
 const TILDE_AT = { row: 0, col: 0, rows: 1, cols: 1 };
 
 const CURSOR_BG = tscon.Colour.WHITE;
-const BAR_BG = tscon.Colour.BRIGHT_BLACK;
+const BAR_COLOUR = tscon.Colour.BRIGHT_BLACK;
 const BAR_COLUMN = 80;
+
+// CP437 vertical line; blank cells in the bar column draw it rather than fill
+// a background many steps brighter than Neovim's bar
+const BAR_GLYPH = 0xb3;
 
 export type ViewDependencies = {
 	editor: Editor;
@@ -27,7 +31,11 @@ type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
 
 // the column bar sits behind whatever text is in the column
 function barCell(cell: number): number {
-	return cell === 0 ? BAR_BG << 8 | 32 : (cell & 0xf0ff) | BAR_BG << 8;
+	if (cell === 0 || (cell & 0xff) === 32) {
+		return BAR_COLOUR << 12 | BAR_GLYPH;
+	}
+
+	return cell & 0xf0ff | BAR_COLOUR << 8;
 }
 
 // swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank sentinel

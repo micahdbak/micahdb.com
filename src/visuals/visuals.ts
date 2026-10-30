@@ -9,6 +9,7 @@ export abstract class Visuals {
 	private readonly fbo: WebGLFramebuffer;
 
 	private readonly projection_matrix: Float32Array;
+	private readonly background: readonly [number, number, number];
 
 	private elapsed: number;
 	private last_time: number;
@@ -20,8 +21,12 @@ export abstract class Visuals {
 	// to be used with Renderer.draw
 	public readonly render_target: WebGLTexture;
 
-	constructor(canvas: tscon.Canvas) {
+	constructor(
+		canvas: tscon.Canvas,
+		background: readonly [number, number, number]
+	) {
 		this.canvas = canvas;
+		this.background = background;
 
 		const gl = canvas.gl;
 
@@ -122,8 +127,7 @@ export abstract class Visuals {
 		gl.viewport(0, 0, this.target_width, this.target_height);
 		gl.enable(gl.DEPTH_TEST);
 
-		//gl.clearColor(this.canvas.palette[0], this.canvas.palette[1], this.canvas.palette[2], 1.0);
-		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.clearColor(...this.background, 1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		if (this.is_ready) {

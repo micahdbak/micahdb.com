@@ -124,6 +124,19 @@ describe("view rendering", () => {
 		expect(bar_bg(continuation)).toBe(0);
 	});
 
+	test("blank cells in the bar column draw the glyph alone", () => {
+		const { frame, cell } = harness(WIDTH, "tail");
+
+		frame();
+
+		const line = cell(0, BAR_SCREEN_COL);
+
+		// CP437 vertical line, in the bar colour, on the page background
+		expect(line & 0xff).toBe(0xb3);
+		expect((line >> 12) & 0xf).toBe(8);
+		expect((line >> 8) & 0xf).toBe(0);
+	});
+
 	test("the cursor paints as a block, not garbage", () => {
 		const { editor, viewport, frame, cell } = harness();
 

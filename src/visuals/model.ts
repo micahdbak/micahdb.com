@@ -1,4 +1,5 @@
 import * as tscon from "@micahdb/tscon";
+import { paletteColour } from "@/palette.ts";
 
 import { Visuals } from "./visuals.ts";
 import { loadGLB } from "./meshes/gltf.ts";
@@ -34,7 +35,7 @@ export class ModelVisuals extends Visuals {
 		normal_path: string,
 		roughness_path: string
 	) {
-		super(canvas);
+		super(canvas, paletteColour(canvas, tscon.Colour.BLACK));
 		this.url = url;
 		this.texture_path = texture_path;
 		this.normal_path = normal_path;

@@ -25,7 +25,7 @@ export class TorusVisuals extends Visuals {
 	private pitch: number;
 
 	constructor(canvas: tscon.Canvas) {
-		super(canvas);
+		super(canvas, [0.0, 0.0, 0.0]);
 		this.yaw = 0;
 		this.pitch = 0;
 	}
