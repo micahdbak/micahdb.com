@@ -83,8 +83,8 @@ export class Link {
 			|| spans_changed
 			|| is_hovered !== this.hovered
 		) {
-			const fg = is_hovered ? tscon.Colour.BLACK : tscon.Colour.BRIGHT_BLUE;
-			const bg = is_hovered ? tscon.Colour.BRIGHT_BLUE : tscon.Colour.BLACK;
+			const fg = is_hovered ? tscon.Colour.BLACK : tscon.Colour.BRIGHT_CYAN;
+			const bg = is_hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BLACK;
 
 			let offset = 0;
 
@@ -120,6 +120,8 @@ export class Link {
 			a.click();
 		} else if (this.url.startsWith("#")) {
 			window.location.hash = this.url;
+		} else if (this.url.startsWith("/")) {
+			window.location.href = this.url;
 		} else {
 			// opens in new tab
 			window.open(this.url, "_blank");

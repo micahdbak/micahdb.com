@@ -2,6 +2,7 @@ import * as tscon from "@micahdb/tscon";
 import { Link } from "@/components/link.ts";
 import type { Editor } from "./editor/editor.ts";
 import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
+import type { Pending } from "./parser.ts";
 import type { Viewport } from "./viewport.ts";
 
 const TILDE = new tscon.Glyphs("\\F0~", 1, { wrap: tscon.Wrap.TRUNCATE });
@@ -243,23 +244,32 @@ export class View {
 			return `\\F1${escapeText(editor.message)}`;
 		}
 
-		const position = editor.cursor.pos;
-		const total = editor.buffer.lineCount();
-		const percent = Math.round(((position.line + 1) / Math.max(1, total)) * 100);
-		const modified = editor.buffer.modified ? " [Modified]" : "";
-		const pending = editor.pending !== null ? "-- pending -- " : "";
-		let insert_mode = "";
+		let label = "NORMAL";
+		let mode_bg = 4;
 
 		if (editor.mode === "insert") {
-			insert_mode = "-- INSERT -- ";
+			label = "INSERT";
+			mode_bg = 2;
 		} else if (editor.mode === "replace") {
-			insert_mode = "-- REPLACE -- ";
+			label = "REPLACE";
+			mode_bg = 1;
 		}
 
-		const filename = `\\F0 "${this.dependencies.filename}"${modified}`;
-		const ruler = `\\f7${position.line + 1},${position.col + 1} -- ${total} lines -- ${percent}%`;
+		const position = editor.cursor.pos;
+		const total = editor.buffer.lineCount();
+		const modified = editor.buffer.modified ? " [+]" : "";
 
-		return `${filename} ${insert_mode}${pending}${ruler}`;
+		const separator = "\\F0 • \\f7";
+		const block = `\\f0\\b${mode_bg} ${label} `;
+		const rest = "\\f7\\b0";
+		const file = `"${this.dependencies.filename}"${modified}`;
+		const ruler = `Ln ${position.line + 1}, Col ${position.col + 1}`;
+		const percent = rulerPercent(position.line + 1, total);
+		const lines = `${total} line${total === 1 ? "" : "s"}${separator}${percent}`;
+		const pending = pendingText(editor.pending);
+		const showcmd = pending.length > 0 ? `${separator}${pending}` : "";
+
+		return `${block}${rest} ${file}${separator}${ruler}${separator}${lines}${showcmd} `;
 	}
 
 	/**
@@ -320,6 +330,67 @@ export class View {
 		this.texture_glyphs.set(key, built);
 		return built;
 	}
+}
+
+/**
+ * The ruler's position as vim words it: All for a one-line buffer, Top and
+ * Bot at the ends, and a percentage in between
+ */
+function rulerPercent(line: number, total: number): string {
+	if (total <= 1) {
+		return "All";
+	}
+
+	if (line <= 1) {
+		return "Top";
+	}
+
+	if (line >= total) {
+		return "Bot";
+	}
+
+	return `${Math.round((line / total) * 100)}%`;
+}
+
+// the partial command so far, echoing the keys as vim's showcmd does
+function pendingText(pending: Pending | null): string {
+	if (pending === null) {
+		return "";
+	}
+
+	const parts: string[] = [];
+
+	if (pending.register !== null) {
+		parts.push(`"${pending.register}`);
+	} else if (pending.register_pending) {
+		parts.push('"');
+	}
+
+	if (pending.count1 !== null) {
+		parts.push(`${pending.count1}`);
+	}
+
+	if (pending.operator !== null) {
+		parts.push(pending.operator);
+	}
+
+	if (pending.count2 !== null) {
+		parts.push(`${pending.count2}`);
+	}
+
+	if (pending.g_pending) {
+		parts.push("g");
+	}
+
+	if (pending.char_command !== null) {
+		parts.push(pending.char_command);
+	}
+
+	if (pending.mark_mode !== null) {
+		parts.push(pending.mark_mode);
+	}
+
+	return parts.join("");
 }
 
 function escapeText(text: string): string {
