@@ -51,7 +51,7 @@ function invertedCell(cell: number, blank_bg: number): number {
  * textures show through.
  */
 export class View {
-	private readonly links = new Map<string, Link>();
+	private readonly links: Link[] = [];
 	private readonly texture_glyphs = new Map<string, tscon.TexGlyphs>();
 	private frame_regions: ImageRegion[] = [];
 	private frame_bar_col: number | null = null;
@@ -177,28 +177,43 @@ export class View {
 	private drawLinks(usable: number): void {
 		const { layout, viewport } = this.dependencies;
 		const first = layout.firstRowOfLine;
+		const pad = this.dependencies.pad_cols;
+		const anchors = layout.links();
 
-		for (const anchor of layout.links()) {
-			const display_index = (first[anchor.line] ?? 0) + anchor.row_in_line;
-			const screen_row = display_index - viewport.top;
-
-			if (screen_row < 0 || screen_row >= usable) {
-				continue;
-			}
-
+		for (const [index, anchor] of anchors.entries()) {
 			const [text = "", url = text] = (anchor.options ?? "").split("|");
-			const key = anchor.options ?? "";
-			let link = this.links.get(key);
+			let link = this.links[index];
 
-			if (link === undefined) {
+			if (link === undefined || link.text !== text || link.url !== url) {
 				link = new Link(this.terminal, text, url);
-				this.links.set(key, link);
+				this.links[index] = link;
 			}
 
-			const glyphs = link.update(screen_row, anchor.col + this.dependencies.pad_cols);
+			const line = layout.grid(anchor.line);
+			const line_screen_row = (first[anchor.line] ?? 0) - viewport.top;
+			const glyphs = link.update(line, anchor.index, line_screen_row, pad);
 
-			this.blitRow(glyphs, 0, screen_row, anchor.col + this.dependencies.pad_cols);
+			for (const span of link.spans) {
+				const screen_row = line_screen_row + span.row;
+
+				if (screen_row < 0 || screen_row >= usable) {
+					continue;
+				}
+
+				this.terminal.blit(
+					glyphs,
+					{ row: span.row, col: span.from, rows: 1, cols: span.to - span.from },
+					{
+						row: screen_row,
+						col: pad + span.from,
+						rows: 1,
+						cols: span.to - span.from
+					}
+				);
+			}
 		}
+
+		this.links.length = anchors.length;
 	}
 
 	private drawStatus(): void {

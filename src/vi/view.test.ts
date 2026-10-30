@@ -222,6 +222,151 @@ describe("view rendering", () => {
 		expect(draw.dst.row + draw.dst.rows).toBeGreaterThan(canvas.rows);
 	});
 
+	test("link payload glyphs overdraw the wrapped source glyphs", () => {
+		const content =
+			"\\a0{Docs Page|https://example.com}Docs_Page\nother";
+		const { editor, viewport, frame, cell } = harness(20, content);
+
+		editor.placeCursor(new Pos(1, 0));
+		frame();
+		frame();
+
+		const link = editor.layout.links()[0]!;
+		const spans = editor.layout
+			.grid(link.line)
+			.spansFor(link.index, link.index + "Docs Page".length);
+		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+		const span = spans[0]!;
+		const space = cell(line_screen_row + span.row, 2 + span.from + 4);
+
+		expect(space & 0xff).toBe(32);
+		expect((space >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+		expect((space >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+	});
+
+	test("a hard-wrapped link is styled on every wrapped row", () => {
+		const content =
+			"pre \\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text post\nother";
+		const { editor, viewport, frame, cell, text } = harness(20, content);
+
+		editor.placeCursor(new Pos(1, 0));
+		frame();
+		frame();
+
+		const link = editor.layout.links()[0]!;
+		const line = editor.layout.grid(link.line);
+		const spans = line.spansFor(link.index, link.index + 19);
+		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+
+		expect(spans.length).toBeGreaterThan(1);
+
+		for (const span of spans) {
+			const value = cell(line_screen_row + span.row, 2 + span.from);
+
+			expect((value >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+			expect((value >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+		}
+
+		expect(text(line_screen_row).trimStart()).toStartWith("pre ");
+		expect(text(line_screen_row + spans[spans.length - 1]!.row)).toEndWith("post");
+	});
+
+	test("a tab before a hard-wrapped link keeps spans aligned", () => {
+		const content =
+			"x\t\\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text tail\nother";
+		const { editor, viewport, frame, cell } = harness(20, content);
+
+		editor.placeCursor(new Pos(1, 0));
+		frame();
+		frame();
+
+		const link = editor.layout.links()[0]!;
+		const line = editor.layout.grid(link.line);
+		const spans = line.spansFor(link.index, link.index + 19);
+		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+
+		expect(spans).toEqual([
+			{ row: 0, from: 8, to: 20 },
+			{ row: 1, from: 0, to: 7 },
+		]);
+
+		for (const span of spans) {
+			const value = cell(line_screen_row + span.row, 2 + span.from);
+
+			expect((value >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+			expect((value >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+		}
+	});
+
+	test("hover and click work on a wrapped link's continuation row", () => {
+		const content =
+			"pre \\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text post\nother";
+		const { editor, host, canvas, viewport, terminal, frame, cell } = harness(20, content);
+
+		editor.placeCursor(new Pos(1, 0));
+		frame();
+		frame();
+
+		const link = editor.layout.links()[0]!;
+		const line = editor.layout.grid(link.line);
+		const spans = line.spansFor(link.index, link.index + 19);
+		const span = spans[spans.length - 1]!;
+		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+		const row = line_screen_row + span.row;
+		const col = 2 + span.from;
+		const point = pointAtCell(host, canvas, row, col);
+
+		host.pointerAtCell(row, col, canvas.rows, canvas.cols);
+		frame();
+
+		const hovered = cell(row, col);
+
+		expect((hovered >> 12) & 0xf).toBe(tscon.Colour.BLACK);
+		expect((hovered >> 8) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+		expect(canvas.class_name).toBe("pointer");
+		expect(terminal.detail_text).toContain("https://example.com");
+
+		const opened: string[] = [];
+		(globalThis as { window: unknown }).window = {
+			open: (url: string) => opened.push(url),
+		};
+
+		host.pointerDown(point.x, point.y);
+		frame();
+		host.pointerUp(point.x, point.y);
+		frame();
+
+		expect(opened).toEqual(["https://example.com"]);
+	});
+
+	test("identical links on one line keep independent hover state", () => {
+		const content =
+			"\\a0{Same|https://example.com}Same and \\a0{Same|https://example.com}Same\nother";
+		const { editor, host, canvas, viewport, frame, cell } = harness(20, content);
+
+		editor.placeCursor(new Pos(1, 0));
+		frame();
+		frame();
+
+		const links = editor.layout.links();
+		const line = editor.layout.grid(links[0]!.line);
+		const first_spans = line.spansFor(links[0]!.index, links[0]!.index + 4);
+		const second_spans = line.spansFor(links[1]!.index, links[1]!.index + 4);
+		const line_screen_row = (editor.layout.firstRowOfLine[links[0]!.line] ?? 0) - viewport.top;
+		const second = second_spans[0]!;
+
+		host.pointerAtCell(line_screen_row + second.row, 2 + second.from, canvas.rows, canvas.cols);
+		frame();
+
+		const first_cell = cell(line_screen_row + first_spans[0]!.row, 2 + first_spans[0]!.from);
+		const second_cell = cell(line_screen_row + second.row, 2 + second.from);
+
+		expect((first_cell >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+		expect((first_cell >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+		expect((second_cell >> 12) & 0xf).toBe(tscon.Colour.BLACK);
+		expect((second_cell >> 8) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+	});
+
 	test("a click activates the link, then moves the cursor onto its line", () => {
 		const { editor, host, canvas, viewport, frame } = harness();
 		const input = new Input(editor, canvas, viewport, (row, col) =>

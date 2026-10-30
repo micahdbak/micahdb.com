@@ -1,4 +1,5 @@
 import * as tscon from "@micahdb/tscon";
+import { PALETTE } from "@/palette.ts";
 
 import { Vi } from "@/vi/vi.ts";
 import { ModelVisuals } from "@/visuals/model.ts";
@@ -17,7 +18,7 @@ export function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = tscon.Canvas.from(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
 
 		// both visuals render into their own render targets every frame;
 		// the document's image anchors sample them photographically

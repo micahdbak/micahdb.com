@@ -1,4 +1,5 @@
 import * as tscon from "@micahdb/tscon";
+import { PALETTE } from "@/palette.ts";
 
 import { TorusVisuals } from "@/visuals/torus.ts";
 
@@ -8,7 +9,7 @@ export function donut() {
 	try {
 		// initialize
 
-		const canvas = tscon.Canvas.from(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
 		const terminal = new tscon.Terminal(canvas);
 		const renderer = new tscon.Renderer(canvas);
 

@@ -4,7 +4,13 @@ import type { Buffer } from "./buffer.ts";
 
 export type DisplayRow = { line: number; row_in_line: number };
 
-export type LinkAnchor = { line: number; row_in_line: number; col: number; options: string | null };
+export type LinkAnchor = {
+	line: number;
+	row_in_line: number;
+	col: number;
+	index: number;
+	options: string | null;
+};
 
 /**
  * The largest region an image anchor may claim. Anchor payloads are plain
@@ -224,6 +230,7 @@ export class Layout {
 					line,
 					row_in_line: anchor.row,
 					col: anchor.col,
+					index: anchor.index,
 					options: anchor.options,
 				});
 			}

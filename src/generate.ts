@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import * as tscon from "@micahdb/tscon";
+import { PALETTE } from "./palette.ts";
 
 const CONTENT_DIR = "src/pages/content";
 const OUTPUT_DIR = "build";
@@ -154,7 +155,7 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 function generateCss(): string {
 	const classes: string[] = [];
 
-	for (const [i, [r, g, b]] of tscon.PALETTE.entries()) {
+	for (const [i, [r, g, b]] of PALETTE.colours.entries()) {
 		const hex = [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
 		classes.push(`.f${i} { color: #${hex}; }`);
 		classes.push(`.b${i} { background-color: #${hex}; }`);

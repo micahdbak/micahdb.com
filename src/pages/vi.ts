@@ -1,4 +1,5 @@
 import * as tscon from "@micahdb/tscon";
+import { PALETTE } from "@/palette.ts";
 
 import { Vi } from "@/vi/vi.ts";
 
@@ -8,7 +9,7 @@ export function vi_page() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = tscon.Canvas.from(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
 		// the content file carries a title and separator for the static
 		// fallback; the document is everything below them
 		const raw = CONTENT as string;

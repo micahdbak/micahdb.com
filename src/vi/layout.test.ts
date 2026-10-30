@@ -210,6 +210,21 @@ describe("raw line editing", () => {
 		expect(cellText(compiled_again, 7)).toBe("heading");
 	});
 
+	test("raw tabs keep their tab-stop width", () => {
+		const buffer = new Buffer("x\t" + BACKSLASH + "F3heading" + BACKSLASH + "F7");
+		const layout = new Layout(buffer, 20);
+
+		layout.setRawLine(0);
+
+		const grid = layout.grid(0);
+
+		// x at column 0, tab advances to column 8, the escape starts there
+		expect(grid.renderedCell(2)).toEqual({ row: 0, col: 8 });
+		expect(grid.cursorCell(1)).toEqual({ row: 0, col: 1 });
+		expect(grid.cursorIndex(0, 4)).toBe(1);
+		expect(layout.rawRowCount(0)).toBe(grid.rows);
+	});
+
 	test("a colour-only line reports a raw row count", () => {
 		const buffer = new Buffer(BACKSLASH + "F3heading" + BACKSLASH + "F7");
 		const layout = new Layout(buffer, 76);
