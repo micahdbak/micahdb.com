@@ -48,21 +48,18 @@ export class Input {
 			moveDisplay(this.editor, Math.abs(rows), rows > 0);
 		});
 
-		window.addEventListener(
-			"keydown",
-			(event: KeyboardEvent) => {
-				const token = this.token(event);
+		this.canvas.addEventListener("keydown", (event: Event) => {
+			const key = (event as CustomEvent<tscon.Key>).detail;
+			const token = this.token(key);
 
-				if (token === null) {
-					return;
-				}
+			if (token === null) {
+				return;
+			}
 
-				event.preventDefault();
-				event.stopPropagation();
-				this.editor.key(token);
-			},
-			{ capture: true }
-		);
+			key.prevent_default();
+			event.stopImmediatePropagation();
+			this.editor.key(token);
+		});
 	}
 
 	// polled once per frame, before rendering
@@ -199,15 +196,15 @@ export class Input {
 	}
 
 	// keystroke tokens: printable characters as-is, named tokens for the rest
-	private token(event: KeyboardEvent): string | null {
+	private token(event: tscon.Key): string | null {
 		const key = event.key;
 
-		if (event.ctrlKey && !event.altKey && !event.metaKey) {
+		if (event.ctrl && !event.alt && !event.meta) {
 			const ctrl = { f: "<c-f>", b: "<c-b>", d: "<c-d>", u: "<c-u>" }[key.toLowerCase()];
 			return ctrl ?? null;
 		}
 
-		if (event.metaKey || event.altKey || event.ctrlKey) {
+		if (event.meta || event.alt || event.ctrl) {
 			return null;
 		}
 

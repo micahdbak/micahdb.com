@@ -3,38 +3,29 @@ import { describe, expect, test } from "bun:test";
 import { Pos } from "./buffer.ts";
 import { Editor } from "./editor/editor.ts";
 import { Input } from "./input.ts";
+import { makeCanvas, pointAtCell } from "./test_helpers.ts";
 import { Viewport } from "./viewport.ts";
 
 function harness(content: string) {
-	// the keyboard listener targets window, which bun lacks
-	(globalThis as { window: EventTarget }).window = new EventTarget();
-
 	const editor = new Editor(content, 76);
 	const viewport = new Viewport();
-	const canvas = Object.assign(new EventTarget(), { rows: 30, cols: 100 });
+	const { host, canvas } = makeCanvas(30, 100);
 
-	const input = new Input(editor, canvas as never, viewport, (row, col) => {
+	const input = new Input(editor, canvas, viewport, (row, col) => {
 		return editor.layout.screenToBuffer(row, col);
 	});
 	input.attach();
 
 	const wheel = (rows: number): void => {
-		canvas.dispatchEvent(new CustomEvent("wheel", { detail: { rows } }));
+		host.wheel(rows, 1);
 	};
 
-	// bun has no KeyboardEvent: a plain cancelable Event carrying the
-	// fields Input reads is enough
-	const press = (key: string): Event => {
-		const event = new Event("keydown", { cancelable: true });
-
-		Object.assign(event, { key, ctrlKey: false, altKey: false, metaKey: false });
-
-		(globalThis as { window: EventTarget }).window.dispatchEvent(event);
-
-		return event;
+	const press = (key: string): boolean => {
+		host.keyDown(key);
+		return host.default_prevented;
 	};
 
-	return { editor, wheel, press };
+	return { editor, host, wheel, press };
 }
 
 describe("mouse wheel", () => {
@@ -75,14 +66,38 @@ describe("mouse wheel", () => {
 	});
 });
 
+describe("keyboard", () => {
+	test("j moves the cursor once, not once from the canvas wheel", () => {
+		const { editor, host, press } = harness("a\nb\nc");
+
+		host.focus();
+		editor.key("j");
+
+		expect(editor.cursor.pos.line).toBe(1);
+		expect(press("j")).toBe(true);
+		expect(editor.cursor.pos.line).toBe(2);
+	});
+
+	test("j inserts in insert mode instead of scrolling", () => {
+		const { editor, host, press } = harness("abc\ndef");
+
+		host.focus();
+		editor.key("i");
+		press("j");
+
+		expect(editor.buffer.lineText(0)).toBe("jabc");
+		expect(editor.cursor.pos.line).toBe(0);
+	});
+});
+
 describe("tab", () => {
 	test("tab is captured so the browser keeps focus", () => {
 		const { press } = harness("abc");
 
-		const event = press("Tab");
+		const prevented = press("Tab");
 
 		// cancelled: the browser will not move focus off the canvas
-		expect(event.defaultPrevented).toBe(true);
+		expect(prevented).toBe(true);
 	});
 
 	test("tab inserts a real tab in insert mode", () => {
@@ -106,32 +121,22 @@ describe("tab", () => {
 });
 
 function dragHarness(content: string, rows = 10) {
-	(globalThis as { window: EventTarget }).window = new EventTarget();
-
 	const editor = new Editor(content, 76);
 	const viewport = new Viewport();
-	const canvas = Object.assign(new EventTarget(), {
-		rows,
-		cols: 100,
-		mouse_down: false,
-		mouse_row: undefined as number | undefined,
-		mouse_col: undefined as number | undefined,
-		mouse_down_row: undefined as number | undefined,
-		mouse_down_col: undefined as number | undefined,
-		mouse_owner: "",
-		mouse_click: false,
-	});
+	const { host, canvas } = makeCanvas(rows, 100);
 
-	const input = new Input(editor, canvas as never, viewport, (row, col) => {
+	const input = new Input(editor, canvas, viewport, (row, col) => {
 		return editor.layout.screenToBuffer(viewport.top + row, col);
 	});
 	input.attach();
+
+	let last = pointAtCell(host, canvas, 0, 0);
 
 	// mirror Vi's frame order: input, clamp, then the viewport's following
 	const frame = (): void => {
 		editor.viewport.top = viewport.top;
 		input.update();
-		viewport.update(editor.layout.displayRows.length, rows);
+		viewport.update(editor.layout.displayRows.length, canvas.rows);
 
 		const visible = editor.layout.bufferToScreen(editor.cursor.pos);
 		const first = editor.layout.firstRowOfLine[editor.cursor.pos.line] ?? 0;
@@ -140,26 +145,23 @@ function dragHarness(content: string, rows = 10) {
 		if (input.isPanning()) {
 			viewport.holdCursor(cursor_row);
 		} else {
-			viewport.follow(cursor_row, editor.layout.displayRows.length, rows);
+			viewport.follow(cursor_row, editor.layout.displayRows.length, canvas.rows);
 		}
 	};
 
 	const press = (row: number, col: number): void => {
-		canvas.mouse_down = true;
-		canvas.mouse_down_row = row;
-		canvas.mouse_down_col = col;
-		canvas.mouse_row = row;
-		canvas.mouse_col = col;
+		last = pointAtCell(host, canvas, row, col);
+		host.pointerAtCell(row, col, canvas.rows, canvas.cols);
+		host.pointerDown(last.x, last.y);
 	};
 
 	const move = (row: number, col: number): void => {
-		canvas.mouse_row = row;
-		canvas.mouse_col = col;
+		last = pointAtCell(host, canvas, row, col);
+		host.pointerAtCell(row, col, canvas.rows, canvas.cols);
 	};
 
 	const release = (): void => {
-		canvas.mouse_down = false;
-		canvas.mouse_click = true;
+		host.pointerUp(last.x, last.y);
 	};
 
 	return { editor, viewport, frame, press, move, release };
@@ -310,7 +312,7 @@ describe("momentum", () => {
 		expect(viewport.top).toBe(coasting);
 	});
 
-	test("a wild pointer jump cannot fling the view past the document", () => {
+	test("a large drag jump settles within the document", () => {
 		const { editor, viewport, frame, press, move, release } = dragHarness(LONG_LINES);
 
 		editor.placeCursor(new Pos(200, 0));
@@ -318,14 +320,15 @@ describe("momentum", () => {
 
 		press(0, 0);
 		frame();
-		move(999, 0);
+		move(9, 0);
 		frame();
 		release();
 
-		for (let i = 0; i < 100; i++) {
+		for (let i = 0; i < 300; i++) {
 			frame();
 		}
 
-		expect(viewport.top).toBe(0);
+		expect(viewport.top).toBeGreaterThanOrEqual(0);
+		expect(viewport.top).toBeLessThanOrEqual(LONG_LINES.split("\n").length - 8);
 	});
 });

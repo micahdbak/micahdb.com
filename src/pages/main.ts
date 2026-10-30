@@ -17,7 +17,7 @@ export function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = new tscon.Canvas(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el);
 
 		// both visuals render into their own render targets every frame;
 		// the document's image anchors sample them photographically

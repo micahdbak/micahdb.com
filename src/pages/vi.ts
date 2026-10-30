@@ -8,7 +8,7 @@ export function vi_page() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = new tscon.Canvas(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el);
 		// the content file carries a title and separator for the static
 		// fallback; the document is everything below them
 		const raw = CONTENT as string;

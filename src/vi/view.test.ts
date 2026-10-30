@@ -1,10 +1,18 @@
 import { describe, expect, test } from "bun:test";
+import * as tscon from "@micahdb/tscon";
 
+import CONTENT from "../pages/content/VI" with { type: "text" };
 import { Pos } from "./buffer.ts";
 import { Editor } from "./editor/editor.ts";
 import { Input } from "./input.ts";
+import {
+	RecordingRenderer,
+	makeCanvas,
+	pointAtCell,
+	screenCell,
+	screenText,
+} from "./test_helpers.ts";
 import { View } from "./view.ts";
-import CONTENT from "../pages/content/VI" with { type: "text" };
 import { Viewport } from "./viewport.ts";
 
 // the pinned render width: wide enough for the column bar to show
@@ -13,100 +21,6 @@ const WIDTH = 100;
 // padding (2) plus the bar's visible column (79)
 const BAR_SCREEN_COL = 81;
 
-/**
- * A mock terminal that records what the view blits, so the full render
- * pipeline is testable without a browser
- */
-class MockTerminal {
-	canvas = {
-		rows: 30,
-		cols: WIDTH + 4,
-		mouse_click: false,
-		class_name: "",
-		mouse_down: false,
-		mouse_owner: "",
-		mouse_row: undefined as number | undefined,
-		mouse_col: undefined as number | undefined,
-		mouse_down_row: undefined as number | undefined,
-		mouse_down_col: undefined as number | undefined,
-		mouseAt: (row: number, col: number, rows: number, cols: number): boolean =>
-			this.pointerIn(row, col, rows, cols),
-		mouseDownAt: (row: number, col: number, rows: number, cols: number): boolean =>
-			this.pointerIn(row, col, rows, cols),
-	};
-	detail_text = "";
-	cells = new Uint16Array(30 * (WIDTH + 4));
-
-	/**
-	 * Hit-tests the single pointer cell against a component's rect, like
-	 * the real canvas does
-	 */
-	private pointerIn(row: number, col: number, rows: number, cols: number): boolean {
-		const { mouse_row, mouse_col } = this.canvas;
-
-		if (mouse_row === undefined || mouse_col === undefined) {
-			return false;
-		}
-
-		return mouse_row >= row && mouse_row < row + rows && mouse_col >= col && mouse_col < col + cols;
-	}
-
-	blit(
-		glyphs: { data: Uint16Array; cols: number },
-		src: { row: number; col: number; rows: number; cols: number },
-		dst: { row: number; col: number }
-	): void {
-		for (let r = 0; r < src.rows; r++) {
-			for (let c = 0; c < src.cols; c++) {
-				const cell = glyphs.data[(src.row + r) * glyphs.cols + (src.col + c)];
-
-				if (cell !== undefined) {
-					this.cells[(dst.row + r) * this.canvas.cols + (dst.col + c)] = cell;
-				}
-			}
-		}
-	}
-
-	draw(): void {}
-	clear(): void {
-		this.cells.fill(0);
-	}
-
-	text(row: number, cols = this.canvas.cols): string {
-		let text = "";
-
-		for (let col = 0; col < cols; col++) {
-			const cell = this.cells[row * this.canvas.cols + col] ?? 0;
-			text += (cell & 0xff) >= 33 ? String.fromCharCode(cell & 0xff) : " ";
-		}
-
-		return text.replace(/ +$/, "");
-	}
-
-	invertedCount(row: number): number {
-		let count = 0;
-
-		for (let col = 0; col < this.canvas.cols; col++) {
-			const cell = this.cells[row * this.canvas.cols + col] ?? 0;
-
-			// the column bar is a decoration, not an overlay
-			if (cell === 0 || col === BAR_SCREEN_COL) {
-				continue;
-			}
-
-			const fg = (cell >> 12) & 0xf;
-			const bg = (cell >> 8) & 0xf;
-
-			// the default text is white-on-black; inverted cells are not
-			if (!(fg === 15 && bg === 0) && !(fg === 0 && bg === 0)) {
-				count++;
-			}
-		}
-
-		return count;
-	}
-}
-
 const DOCUMENT = (CONTENT as string).slice(
 	(CONTENT as string).indexOf("\n", (CONTENT as string).indexOf("\n") + 1) + 1
 );
@@ -114,41 +28,49 @@ const DOCUMENT = (CONTENT as string).slice(
 function harness(width = WIDTH, content = DOCUMENT) {
 	const editor = new Editor(content, width);
 	const viewport = new Viewport();
-	const terminal = new MockTerminal();
-	const draws: Array<{ rows: number; cols: number; dst: { row: number; col: number } }> = [];
-	const renderer = {
-		draw: (_glyphs: unknown, _texture: unknown, dst: { row: number; col: number; rows: number; cols: number }) => {
-			draws.push({ rows: dst.rows, cols: dst.cols, dst });
-		},
-	};
-	const view = new View(terminal as never, renderer as never, {
+	const { host, gl, canvas } = makeCanvas(30, width + 4);
+	const terminal = new tscon.Terminal(canvas);
+	const renderer = new RecordingRenderer(canvas);
+	const view = new View(terminal, renderer, {
 		editor,
 		layout: editor.layout,
 		viewport,
-		textures: new Map([["portrait", {}]]),
+		textures: new Map([["portrait", {} as WebGLTexture]]),
 		image_modes: {},
 		pad_cols: 2,
 		filename: "VI",
 	});
 
 	const frame = (): void => {
+		canvas.clear();
+		terminal.clear();
 		view.render();
 
-		viewport.update(editor.layout.displayRows.length, 30);
+		viewport.update(editor.layout.displayRows.length, canvas.rows);
 		const visible = editor.layout.bufferToScreen(editor.cursor.pos);
 		const first = editor.layout.firstRowOfLine[editor.cursor.pos.line] ?? 0;
 
 		if (visible !== null) {
-			viewport.follow(first + visible.row, editor.layout.displayRows.length, 30);
+			viewport.follow(first + visible.row, editor.layout.displayRows.length, canvas.rows);
 		}
 	};
 
-	return { editor, terminal, viewport, frame, draws };
+	return {
+		editor,
+		host,
+		canvas,
+		terminal,
+		renderer,
+		viewport,
+		frame,
+		text: (row: number, cols?: number) => screenText(gl, canvas, row, cols),
+		cell: (row: number, col: number) => screenCell(gl, canvas, row, col),
+	};
 }
 
 describe("view rendering", () => {
 	test("each wrapped row of a raw line renders its own text", () => {
-		const { editor, terminal, viewport, frame } = harness(76);
+		const { editor, viewport, frame, text } = harness(76);
 		const link_line = editor.layout.links()[0]!.line;
 		const raw_text = editor.buffer.lineText(link_line);
 
@@ -171,7 +93,7 @@ describe("view rendering", () => {
 		const rows = [0, 1, 2].map((offset) => {
 			const display_index = (editor.layout.firstRowOfLine[link_line] ?? 0) + offset;
 
-			return terminal.text(display_index - viewport.top);
+			return text(display_index - viewport.top);
 		});
 
 		const rendered = rows.join("").replace(/\s/g, "");
@@ -181,29 +103,29 @@ describe("view rendering", () => {
 
 	test("the column bar paints behind text on first rows only", () => {
 		const content = "x".repeat(150) + "\n" + "tail";
-		const { terminal, frame } = harness(WIDTH, content);
+		const { frame, cell } = harness(WIDTH, content);
 
 		frame();
 
-		const bar_bg = (cell: number) => (cell >> 8) & 0xf;
+		const bar_bg = (value: number) => (value >> 8) & 0xf;
 
 		/**
 		 * The long line's first display row runs under the bar, which paints
 		 * the 80th column behind the text
 		 */
-		const in_text = terminal.cells[BAR_SCREEN_COL]!;
+		const in_text = cell(0, BAR_SCREEN_COL);
 
 		expect(String.fromCharCode(in_text & 0xff)).toBe("x");
 		expect(bar_bg(in_text)).toBe(8);
 
 		// the wrapped continuation row is not on the physical line
-		const continuation = terminal.cells[terminal.canvas.cols + BAR_SCREEN_COL]!;
+		const continuation = cell(1, BAR_SCREEN_COL);
 
 		expect(bar_bg(continuation)).toBe(0);
 	});
 
 	test("the cursor paints as a block, not garbage", () => {
-		const { editor, terminal, viewport, frame } = harness();
+		const { editor, viewport, frame, cell } = harness();
 
 		const at = new Pos(3, 2);
 		const expected = editor.buffer.charAt(at)!;
@@ -215,18 +137,18 @@ describe("view rendering", () => {
 		const visible = editor.layout.bufferToScreen(at);
 		const display_index = (editor.layout.firstRowOfLine[at.line] ?? 0) + visible.row;
 		const screen_row = display_index - viewport.top;
-		const cell = terminal.cells[screen_row * terminal.canvas.cols + visible.col + 2]!;
+		const value = cell(screen_row, visible.col + 2);
 
 		/**
 		 * The cell under the cursor is the document's own character,
 		 * inverted, not a garbage glyph
 		 */
-		expect(String.fromCharCode(cell & 0xff)).toBe(expected);
-		expect((cell >> 12) & 0xf).toBe(0);
+		expect(String.fromCharCode(value & 0xff)).toBe(expected);
+		expect((value >> 12) & 0xf).toBe(0);
 	});
 
 	test("links light their text at the position the wrap put it on", () => {
-		const { editor, terminal, viewport, frame } = harness(20);
+		const { editor, viewport, frame, text } = harness(20);
 		const link_line = editor.layout.links()[0]!.line;
 
 		/**
@@ -241,12 +163,12 @@ describe("view rendering", () => {
 		const first_screen_row = editor.layout.firstRowOfLine[link_line]! - viewport.top;
 
 		// hard wrap at 20: "GitHub, LinkedIn, an" / "d the main_page."
-		expect(terminal.text(first_screen_row)).toContain("GitHub, LinkedIn");
-		expect(terminal.text(first_screen_row + 1)).toContain("the main_page");
+		expect(text(first_screen_row)).toContain("GitHub, LinkedIn");
+		expect(text(first_screen_row + 1)).toContain("the main_page");
 	});
 
 	test("an image region renders no placeholder cells; the blank rows stay transparent", () => {
-		const { editor, terminal, viewport, frame } = harness();
+		const { editor, viewport, frame, text } = harness();
 		const image = editor.layout.images()[0]!;
 
 		/**
@@ -260,16 +182,16 @@ describe("view rendering", () => {
 		const anchor_row = editor.layout.firstRowOfLine[image.line]! - viewport.top;
 
 		// the anchor row renders no anchor text
-		expect(terminal.text(anchor_row).trim()).toBe("");
+		expect(text(anchor_row).trim()).toBe("");
 
 		// the region rows render no placeholder characters
 		for (let row = anchor_row + 1; row < anchor_row + image.rows; row++) {
-			expect(terminal.text(row).trim()).toBe("");
+			expect(text(row).trim()).toBe("");
 		}
 	});
 
 	test("an image region draws whole while scrolled, never a squashed slice", () => {
-		const { editor, terminal, viewport, frame, draws } = harness();
+		const { editor, canvas, renderer, viewport, frame } = harness();
 		const image = editor.layout.images()[0]!;
 
 		/**
@@ -288,21 +210,21 @@ describe("view rendering", () => {
 		// the region's top is on screen but its tail runs past the bottom
 		expect(first).toBeGreaterThanOrEqual(viewport.top);
 
-		const draw = draws[draws.length - 1]!;
+		const draw = renderer.draws[renderer.draws.length - 1]!;
 
 		/**
 		 * The full region is handed to the renderer with a negative row:
 		 * the shader clips it, and the packed cell indices stay whole so
 		 * the UV mapping samples the right part of the texture
 		 */
-		expect(draw.rows).toBe(image.rows);
-		expect(draw.cols).toBe(image.cols);
-		expect(draw.dst.row + draw.rows).toBeGreaterThan(terminal.canvas.rows);
+		expect(draw.dst.rows).toBe(image.rows);
+		expect(draw.dst.cols).toBe(image.cols);
+		expect(draw.dst.row + draw.dst.rows).toBeGreaterThan(canvas.rows);
 	});
 
 	test("a click activates the link, then moves the cursor onto its line", () => {
-		const { editor, terminal, viewport, frame } = harness();
-		const input = new Input(editor, terminal.canvas as never, viewport, (row, col) =>
+		const { editor, host, canvas, viewport, frame } = harness();
+		const input = new Input(editor, canvas, viewport, (row, col) =>
 			editor.layout.screenToBuffer(viewport.top + row, col - 2)
 		);
 
@@ -318,13 +240,15 @@ describe("view rendering", () => {
 		frame();
 
 		// press and release on the link's screen cell
-		terminal.canvas.mouse_down = true;
-		terminal.canvas.mouse_row = link_display_row - viewport.top;
-		terminal.canvas.mouse_col = link.col + 2;
+		const row = link_display_row - viewport.top;
+		const col = link.col + 2;
+		const point = pointAtCell(host, canvas, row, col);
+
+		host.pointerAtCell(row, col, canvas.rows, canvas.cols);
+		host.pointerDown(point.x, point.y);
 		frame();
 
-		terminal.canvas.mouse_down = false;
-		terminal.canvas.mouse_click = true;
+		host.pointerUp(point.x, point.y);
 		input.update();
 		frame();
 		input.placeClick();

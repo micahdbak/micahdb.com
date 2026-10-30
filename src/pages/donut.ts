@@ -8,7 +8,7 @@ export function donut() {
 	try {
 		// initialize
 
-		const canvas = new tscon.Canvas(canvas_el);
+		const canvas = tscon.Canvas.from(canvas_el);
 		const terminal = new tscon.Terminal(canvas);
 		const renderer = new tscon.Renderer(canvas);
 
