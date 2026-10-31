@@ -1,0 +1,106 @@
+<!doctype HTML>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>tscon Tutorial</title>
+<meta name="description" content="Micah Baker's software development portfolio." />
+<meta name="author" content="Micah Baker" />
+<meta property="og:title" content="micahdb.com - TSCON" />
+<meta property="og:description" content="Micah Baker's software development portfolio." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://micahdb.com/" />
+<meta property="og:image" content="https://micahdb.com/images/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+<link rel="icon" href="/favicon.ico" sizes="48x48" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="stylesheet" href="/index.css" />
+<link rel="stylesheet" href="/palette.css" />
+<script type="module" src="/index.js"></script>
+</head>
+<body>
+<div id="raw">
+<pre>
+
+<span class="f8">-------------------------------------------------------------------------------</span>
+TSCON TUTOR
+<span class="f8">-------------------------------------------------------------------------------</span>
+
+tscon is what you're looking at: it is the underlying rendering engine.
+
+All colours, links, and textures are set with tscon escape codes.
+
+Escape codes are rendered when the vi cursor is not on that line.
+
+Hover over a line to see what codes it uses, and to edit those escape codes.
+
+<span class="f8">-------------------------------------------------------------------------------</span>
+<span class="f7">ESCAPE CODES</span>
+<span class="f8">-------------------------------------------------------------------------------</span>
+
+An escape code starts with a backslash, and influences subsequent characters:
+
+  \\    one literal backslash
+
+  \fX   foreground colour, dark (X = 0-7)
+  \FX   foreground colour, bright X (X = 0-7)
+  \bX   background colour, dark (X = 0-7)
+  \BX   background colour, bright (X = 0-7)
+
+  Background colours:           Foreground colours:
+\b0<span class="b1"><span class="f0">\b1</span></span><span class="b2"><span class="f0">\b2</span></span><span class="b3"><span class="f0">\b3</span></span><span class="b4"><span class="f0">\b4</span></span><span class="b5"><span class="f0">\b5</span></span><span class="b6"><span class="f0">\b6</span></span><span class="b7"><span class="f0">\b7</span><span class="f7"></span></span><span class="f7">        </span><span class="b8"><span class="f7"></span><span class="f0">\f0</span></span><span class="f0"></span><span class="f1">\f1</span><span class="f2">\f2</span><span class="f3">\f3</span><span class="f4">\f4</span><span class="f5">\f5</span><span class="f6">\f6</span><span class="f7">\f7</span>
+<span class="b8">\B0</span><span class="b9"><span class="f0">\B1</span></span><span class="b10"><span class="f0">\B2</span></span><span class="b11"><span class="f0">\B3</span></span><span class="b12"><span class="f0">\B4</span></span><span class="b13"><span class="f0">\B5</span></span><span class="b14"><span class="f0">\B6</span></span><span class="b15"><span class="f0">\B7</span><span class="f7"></span></span><span class="f7">        </span><span class="f8">\F0</span><span class="f9">\F1</span><span class="f10">\F2</span><span class="f11">\F3</span><span class="f12">\F4</span><span class="f13">\F5</span><span class="f14">\F6</span>\F7<span class="f7"></span>
+
+  \aX           anchor in group X (X = 0-9)
+  \aX{options}  anchor in group X with options (X = 0-9)
+
+An anchor can be used to make links, or to render page-specific textures.
+
+Here is an <a href="https://example.com" class="f14">example</a> link.
+
+And here is a photo (of me):
+
+
+
+
+
+
+
+
+<span class="f8">-------------------------------------------------------------------------------</span>
+<span class="f7">THE CHARACTER SET (IBM CODE PAGE 437)</span>
+<span class="f8">-------------------------------------------------------------------------------</span>
+
+These are the characters this page can display. The labels are hexadecimal
+row starts; 00 and FF are blank. Any character outside this grid is blank.
+
+<span class="f8"> 00</span><span class="f7">  ☺☻♥♦♣♠•◘○◙♂♀♪♫☼</span>
+<span class="f8"> 10</span><span class="f7"> ►◄↕‼¶§▬↨↑↓→←∟↔▲▼</span>
+<span class="f8"> 20</span><span class="f7">  !"#$%&amp;'()*+,-./</span>
+<span class="f8"> 30</span><span class="f7"> 0123456789:;&lt;=&gt;?</span>
+<span class="f8"> 40</span><span class="f7"> @ABCDEFGHIJKLMNO</span>
+<span class="f8"> 50</span><span class="f7"> PQRSTUVWXYZ[\]^_</span>
+<span class="f8"> 60</span><span class="f7"> `abcdefghijklmno</span>
+<span class="f8"> 70</span><span class="f7"> pqrstuvwxyz{|}~⌂</span>
+<span class="f8"> 80</span><span class="f7"> ÇüéâäàåçêëèïîìÄÅ</span>
+<span class="f8"> 90</span><span class="f7"> ÉæÆôöòûùÿÖÜ¢£¥₧ƒ</span>
+<span class="f8"> A0</span><span class="f7"> áíóúñÑªº¿⌐¬½¼¡«»</span>
+<span class="f8"> B0</span><span class="f7"> ░▒▓│┤╡╢╖╕╣║╗╝╜╛┐</span>
+<span class="f8"> C0</span><span class="f7"> └┴┬├─┼╞╟╚╔╩╦╠═╬╧</span>
+<span class="f8"> D0</span><span class="f7"> ╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀</span>
+<span class="f8"> E0</span><span class="f7"> αßΓπΣσµτΦΘΩδ∞φε∩</span>
+<span class="f8"> F0</span><span class="f7"> ≡±≥≤⌠⌡÷≈°∙·√ⁿ²■</span>
+
+See also: <a href="/vi.html" class="f14">vi tutor</a>, <a href="/index.html" class="f14">index</a>
+
+</pre>
+</div>
+<canvas id="webgl" class="hidden"></canvas>
+</body>
+</html>
