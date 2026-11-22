@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import * as tscon from "@micahdb/tscon";
 
 import CONTENT from "../pages/content/VI" with { type: "text" };
@@ -24,6 +24,13 @@ const BAR_SCREEN_COL = 81;
 const DOCUMENT = (CONTENT as string).slice(
 	(CONTENT as string).indexOf("\n", (CONTENT as string).indexOf("\n") + 1) + 1
 );
+
+const IMAGE_DOCUMENT = [
+	"intro",
+	"\\a2{portrait|6|12}",
+	...Array<string>(5).fill(""),
+	...Array.from({ length: 30 }, (_, index) => `line ${index + 1}`),
+].join("\n");
 
 function harness(width = WIDTH, content = DOCUMENT) {
 	const editor = new Editor(content, width);
@@ -69,6 +76,17 @@ function harness(width = WIDTH, content = DOCUMENT) {
 }
 
 describe("view rendering", () => {
+	const original_window = Object.getOwnPropertyDescriptor(globalThis, "window");
+
+	afterEach(() => {
+		if (original_window === undefined) {
+			Reflect.deleteProperty(globalThis, "window");
+			return;
+		}
+
+		Object.defineProperty(globalThis, "window", original_window);
+	});
+
 	test("each wrapped row of a raw line renders its own text", () => {
 		const { editor, viewport, frame, text } = harness(76);
 		const link_line = editor.layout.links()[0]!.line;
@@ -107,34 +125,30 @@ describe("view rendering", () => {
 
 		frame();
 
-		const bar_bg = (value: number) => (value >> 8) & 0xf;
-
 		/**
 		 * The long line's first display row runs under the bar, which paints
 		 * the 80th column behind the text
 		 */
 		const in_text = cell(0, BAR_SCREEN_COL);
 
-		expect(String.fromCharCode(in_text & 0xff)).toBe("x");
-		expect(bar_bg(in_text)).toBe(8);
+		expect(String.fromCharCode(tscon.unpackCell(in_text).char_code)).toBe("x");
+		expect(tscon.unpackCell(in_text).background).toBe(tscon.Colour.BLACK);
 
 		// the wrapped continuation row is not on the physical line
 		const continuation = cell(1, BAR_SCREEN_COL);
 
-		expect(bar_bg(continuation)).toBe(0);
+		expect(continuation).toBe(0);
 	});
 
-	test("blank cells in the bar column draw the glyph alone", () => {
+	test("blank cells in the bar column fill the ruler background", () => {
 		const { frame, cell } = harness(WIDTH, "tail");
 
 		frame();
 
 		const line = cell(0, BAR_SCREEN_COL);
 
-		// CP437 vertical line, in the bar colour, on the page background
-		expect(line & 0xff).toBe(0xb3);
-		expect((line >> 12) & 0xf).toBe(8);
-		expect((line >> 8) & 0xf).toBe(0);
+		expect(tscon.unpackCell(line).char_code).toBe(32);
+		expect(tscon.unpackCell(line).background).toBe(tscon.Colour.BLACK);
 	});
 
 	test("the cursor paints as a block, not garbage", () => {
@@ -156,8 +170,8 @@ describe("view rendering", () => {
 		 * The cell under the cursor is the document's own character,
 		 * inverted, not a garbage glyph
 		 */
-		expect(String.fromCharCode(value & 0xff)).toBe(expected);
-		expect((value >> 12) & 0xf).toBe(0);
+		expect(String.fromCharCode(tscon.unpackCell(value).char_code)).toBe(expected);
+		expect(tscon.unpackCell(value).foreground).toBe(tscon.Colour.BG);
 	});
 
 	test("links light their text at the position the wrap put it on", () => {
@@ -180,59 +194,37 @@ describe("view rendering", () => {
 		expect(text(first_screen_row + 1)).toContain("the main_page");
 	});
 
-	test("an image region renders no placeholder cells; the blank rows stay transparent", () => {
-		const { editor, viewport, frame, text } = harness();
-		const image = editor.layout.images()[0]!;
-
-		/**
-		 * The cursor rests a few lines above, so the image is on screen in
-		 * its compiled form: the zero-width anchor renders nothing
-		 */
-		editor.placeCursor(new Pos(image.line - 3, 0));
-		frame();
+	test("image region cells leave the texture visible", () => {
+		const { renderer, frame, cell } = harness(WIDTH, IMAGE_DOCUMENT);
 		frame();
 
-		const anchor_row = editor.layout.firstRowOfLine[image.line]! - viewport.top;
+		expect(renderer.draws).toHaveLength(1);
 
-		// the anchor row renders no anchor text
-		expect(text(anchor_row).trim()).toBe("");
+		const { dst } = renderer.draws[0]!;
+		expect(dst).toEqual({ row: 1, col: 2, rows: 6, cols: 12 });
 
-		// the region rows render no placeholder characters
-		for (let row = anchor_row + 1; row < anchor_row + image.rows; row++) {
-			expect(text(row).trim()).toBe("");
+		for (let row = dst.row; row < dst.row + dst.rows; row++) {
+
+			for (let col = dst.col; col < dst.col + dst.cols; col++) {
+				expect(cell(row, col)).toBe(0);
+			}
+
 		}
 	});
 
-	test("an image region draws whole while scrolled, never a squashed slice", () => {
-		const { editor, canvas, renderer, viewport, frame } = harness();
-		const image = editor.layout.images()[0]!;
+	test("a partly off-screen image is drawn with its full sampling grid", () => {
+		const { editor, canvas, renderer, viewport, frame } = harness(WIDTH, IMAGE_DOCUMENT);
+		frame();
 
-		/**
-		 * Park the cursor a couple of rows below the image's top, so the
-		 * viewport scrolls until only the region's tail is on screen and
-		 * its top rows are clipped off
-		 */
-		editor.placeCursor(new Pos(image.line + 2, 0));
+		viewport.scrollTo(3, editor.layout.displayRows.length, canvas.rows);
+		expect(viewport.top).toBe(3);
+		frame();
 
-		for (let i = 0; i < 4; i++) {
-			frame();
-		}
+		expect(renderer.draws).toHaveLength(2);
 
-		const first = editor.layout.firstRowOfLine[image.line] ?? 0;
-
-		// the region's top is on screen but its tail runs past the bottom
-		expect(first).toBeGreaterThanOrEqual(viewport.top);
-
-		const draw = renderer.draws[renderer.draws.length - 1]!;
-
-		/**
-		 * The full region is handed to the renderer with a negative row:
-		 * the shader clips it, and the packed cell indices stay whole so
-		 * the UV mapping samples the right part of the texture
-		 */
-		expect(draw.dst.rows).toBe(image.rows);
-		expect(draw.dst.cols).toBe(image.cols);
-		expect(draw.dst.row + draw.dst.rows).toBeGreaterThan(canvas.rows);
+		const { dst, glyphs } = renderer.draws[1]!;
+		expect(dst).toEqual({ row: -2, col: 2, rows: 6, cols: 12 });
+		expect(glyphs).toEqual(tscon.textureGlyphs(6, 12, tscon.TexGlyphMode.SAMPLE));
 	});
 
 	test("link payload glyphs overdraw the wrapped source glyphs", () => {
@@ -252,9 +244,9 @@ describe("view rendering", () => {
 		const span = spans[0]!;
 		const space = cell(line_screen_row + span.row, 2 + span.from + 4);
 
-		expect(space & 0xff).toBe(32);
-		expect((space >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
-		expect((space >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+		expect(tscon.unpackCell(space).char_code).toBe(32);
+		expect(tscon.unpackCell(space).foreground).toBe(tscon.Colour.BRIGHT_CYAN);
+		expect(tscon.unpackCell(space).background).toBe(tscon.Colour.BG);
 	});
 
 	test("a hard-wrapped link is styled on every wrapped row", () => {
@@ -276,8 +268,8 @@ describe("view rendering", () => {
 		for (const span of spans) {
 			const value = cell(line_screen_row + span.row, 2 + span.from);
 
-			expect((value >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
-			expect((value >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+			expect(tscon.unpackCell(value).foreground).toBe(tscon.Colour.BRIGHT_CYAN);
+			expect(tscon.unpackCell(value).background).toBe(tscon.Colour.BG);
 		}
 
 		expect(text(line_screen_row).trimStart()).toStartWith("pre ");
@@ -306,8 +298,8 @@ describe("view rendering", () => {
 		for (const span of spans) {
 			const value = cell(line_screen_row + span.row, 2 + span.from);
 
-			expect((value >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
-			expect((value >> 8) & 0xf).toBe(tscon.Colour.BLACK);
+			expect(tscon.unpackCell(value).foreground).toBe(tscon.Colour.BRIGHT_CYAN);
+			expect(tscon.unpackCell(value).background).toBe(tscon.Colour.BG);
 		}
 	});
 
@@ -334,8 +326,8 @@ describe("view rendering", () => {
 
 		const hovered = cell(row, col);
 
-		expect((hovered >> 12) & 0xf).toBe(tscon.Colour.BLACK);
-		expect((hovered >> 8) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+		expect(tscon.unpackCell(hovered).foreground).toBe(tscon.Colour.BLACK);
+		expect(tscon.unpackCell(hovered).background).toBe(tscon.Colour.BRIGHT_CYAN);
 		expect(canvas.class_name).toBe("pointer");
 		expect(terminal.detail_text).toContain("https://example.com");
 
@@ -374,10 +366,10 @@ describe("view rendering", () => {
 		const first_cell = cell(line_screen_row + first_spans[0]!.row, 2 + first_spans[0]!.from);
 		const second_cell = cell(line_screen_row + second.row, 2 + second.from);
 
-		expect((first_cell >> 12) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
-		expect((first_cell >> 8) & 0xf).toBe(tscon.Colour.BLACK);
-		expect((second_cell >> 12) & 0xf).toBe(tscon.Colour.BLACK);
-		expect((second_cell >> 8) & 0xf).toBe(tscon.Colour.BRIGHT_BLUE);
+		expect(tscon.unpackCell(first_cell).foreground).toBe(tscon.Colour.BRIGHT_CYAN);
+		expect(tscon.unpackCell(first_cell).background).toBe(tscon.Colour.BG);
+		expect(tscon.unpackCell(second_cell).foreground).toBe(tscon.Colour.BLACK);
+		expect(tscon.unpackCell(second_cell).background).toBe(tscon.Colour.BRIGHT_CYAN);
 	});
 
 	test("a click activates the link, then moves the cursor onto its line", () => {

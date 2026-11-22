@@ -6,7 +6,7 @@ import { Layout } from "./layout.ts";
 const BACKSLASH = String.fromCharCode(92);
 
 // the first `count` characters of a grid's first row
-function cellText(grid: { data: Uint16Array }, count: number): string {
+function cellText(grid: { data: Uint32Array }, count: number): string {
 	let text = "";
 
 	for (let col = 0; col < count; col++) {

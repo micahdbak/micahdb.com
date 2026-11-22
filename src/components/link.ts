@@ -84,7 +84,7 @@ export class Link {
 			|| is_hovered !== this.hovered
 		) {
 			const fg = is_hovered ? tscon.Colour.BLACK : tscon.Colour.BRIGHT_CYAN;
-			const bg = is_hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BLACK;
+			const bg = is_hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BG;
 
 			let offset = 0;
 
@@ -99,9 +99,9 @@ export class Link {
 					return cell;
 				}
 
-				const char_code = (text_cell & 0xff) || 32;
+				const char_code = tscon.unpackCell(text_cell).char_code || 32;
 
-				return ((fg & 0xf) << 12) | ((bg & 0xf) << 8) | char_code;
+				return tscon.packCell(char_code, fg, bg);
 			});
 
 			this.glyphs = glyphs;

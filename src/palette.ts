@@ -14,12 +14,11 @@ export function paletteColour(
 /**
  * The site's terminal palette, taken from the `vague` Neovim colourscheme.
  *
- * The sixteen entries follow the scheme's `:terminal` colours, except
- * {@link tscon.Colour.BLACK}, which is the frame background and so uses the
- * scheme's editor background rather than its `line` colour.
+ * Explicit black uses Vague's ruler colour. The last two entries use
+ * its editor foreground and background.
  */
 export const PALETTE = new tscon.Palette([
-	[0x14, 0x14, 0x15], // Colour.BLACK         bg
+	tscon.DEFAULT_COLOURS[tscon.Colour.BLACK]!, // Vague line
 	[0xd8, 0x64, 0x7e], // Colour.RED           error
 	[0x7f, 0xa5, 0x63], // Colour.GREEN         plus
 	[0xf3, 0xbe, 0x7c], // Colour.ORANGE        warning
@@ -35,4 +34,6 @@ export const PALETTE = new tscon.Palette([
 	[0xc9, 0xb1, 0xca], // Colour.BRIGHT_MAGENTA
 	[0xbe, 0xbe, 0xda], // Colour.BRIGHT_CYAN
 	[0xf7, 0xf7, 0xf7], // Colour.WHITE
+	tscon.DEFAULT_COLOURS[tscon.Colour.FG]!,
+	tscon.DEFAULT_COLOURS[tscon.Colour.BG]!,
 ]);

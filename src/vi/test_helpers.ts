@@ -5,14 +5,40 @@ import * as tscon from "@micahdb/tscon";
  * `Terminal.draw`, so view tests can assert on the rendered characters.
  */
 export class RecordingGL extends tscon.HeadlessGL2 {
-	cells: Uint16Array | null = null;
+	cells: Uint32Array | null = null;
+	private array_buffer: WebGLBuffer | null = null;
+	private terminal_buffer: WebGLBuffer | null = null;
+
+	override bindBuffer(target: number, buffer: WebGLBuffer | null): void {
+		if (target === this.ARRAY_BUFFER) {
+			this.array_buffer = buffer;
+		}
+
+		super.bindBuffer(target, buffer);
+	}
+
+	override vertexAttribIPointer(
+		index: number,
+		size: number,
+		type: number,
+		stride: number,
+		offset: number
+	): void {
+		if (type === this.UNSIGNED_INT) {
+			this.terminal_buffer = this.array_buffer;
+		}
+
+		super.vertexAttribIPointer(index, size, type, stride, offset);
+	}
+
 
 	override bufferData(
 		target: number,
 		data: ArrayBufferView | ArrayBuffer | null,
 		usage: number
 	): void {
-		if (data instanceof Uint16Array) {
+		if (target === this.ARRAY_BUFFER && this.array_buffer === this.terminal_buffer
+			&& data instanceof Uint32Array) {
 			this.cells = data.slice();
 		}
 
@@ -84,8 +110,8 @@ export function screenText(
 	let text = "";
 
 	for (let col = 0; col < cols; col++) {
-		const cell = cells[row * canvas.cols + col] ?? 0;
-		text += (cell & 0xff) >= 33 ? String.fromCharCode(cell & 0xff) : " ";
+		const { char_code } = tscon.unpackCell(cells[row * canvas.cols + col] ?? 0);
+		text += char_code >= 33 ? String.fromCharCode(char_code) : " ";
 	}
 
 	return text.replace(/ +$/, "");

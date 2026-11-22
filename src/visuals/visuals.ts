@@ -117,6 +117,7 @@ export abstract class Visuals {
 
 	render() {
 		const gl = this.canvas.gl;
+		const viewport: Int32Array = gl.getParameter(gl.VIEWPORT);
 
 		const now = performance.now();
 		const delta = Math.min(0.1, (now - this.last_time) / 1000);
@@ -138,7 +139,7 @@ export abstract class Visuals {
 		//gl.generateMipmap(gl.TEXTURE_2D);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+		gl.viewport(viewport[0]!, viewport[1]!, viewport[2]!, viewport[3]!);
 		gl.disable(gl.DEPTH_TEST);
 	}
 

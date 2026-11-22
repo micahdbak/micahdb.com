@@ -56,11 +56,11 @@ function recolour(colours: Colours, desired: string[]): string {
 function spanClasses({ fg, bg }: Colours): string[] {
 	const classes: string[] = [];
 
-	if (bg !== tscon.Colour.BLACK) {
+	if (bg !== tscon.Colour.BG) {
 		classes.push(`b${bg}`);
 	}
 
-	if (fg !== tscon.Colour.WHITE) {
+	if (fg !== tscon.Colour.FG) {
 		classes.push(`f${fg}`);
 	}
 
@@ -86,7 +86,11 @@ function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 // one buffer line as HTML rows. The emulator compiles a line at a time, so a
 // line starts at the default colours whatever the line above left set
 function sourceToHtml(source: string, cols: number, wrap: tscon.Wrap): string {
-	const colours: Colours = { fg: tscon.Colour.WHITE, bg: tscon.Colour.BLACK, spans: [] };
+	const colours: Colours = {
+		fg: tscon.Colour.FG,
+		bg: tscon.Colour.BG,
+		spans: [],
+	};
 	const lines = tscon.textToLines(source, cols, { wrap });
 
 	// a blank line is still a row, even though it wraps to nothing
@@ -120,7 +124,7 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 
 				if (scan.group === 0) {
 					// the emulator's Link component overdraws links in bright cyan
-					const link_colour = `f${tscon.Colour.BRIGHT_CYAN}`;
+					const link_colour = `f${tscon.Colour.BRIGHT_CYAN} b${tscon.Colour.BG}`;
 
 					html.push(
 						`<a href="${escapeHtml(url)}" class="${link_colour}">${escapeHtml(text)}</a>`
@@ -139,7 +143,14 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 			continue;
 		}
 
-		// colour escape sequence
+		if (scan.kind === "clear") {
+			colours.fg = tscon.Colour.FG;
+			colours.bg = tscon.Colour.BG;
+			i += scan.chars;
+			html.push(recolour(colours, []));
+			continue;
+		}
+
 		if (scan.kind === "colour") {
 			const value = Math.min(scan.num, 7) + (scan.bright ? 8 : 0);
 
@@ -195,8 +206,8 @@ function generateCss(): string {
 
 	// text with no escapes draws in the cell grid's default colours, so the
 	// fallback states them rather than inheriting the page's
-	const foreground = hex(PALETTE.colours[tscon.Colour.WHITE]!);
-	const background = hex(PALETTE.colours[tscon.Colour.BLACK]!);
+	const foreground = hex(PALETTE.colours[tscon.Colour.FG]!);
+	const background = hex(PALETTE.colours[tscon.Colour.BG]!);
 
 	rules.push(`#raw pre { color: ${foreground}; background-color: ${background}; }`);
 

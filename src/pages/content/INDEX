@@ -4,34 +4,34 @@ Micah Baker
 \a2{torus|40|80}\a2{model|6|12}
 
 
-	\f0 \F7<- me
+	 <- me
 
 
-\F0.------------------------. \F7
-\F0: \F2Micah Baker\F7's website. \F0: \F7
-\F0'------------------------' \F7
+\F0.------------------------.
+\F0: \F2Micah Baker\c's website. \F0:
+\F0'------------------------'
 
-\f7I am a\F7:		Software Engineer
-\f7Based in\F7:	Vancouver, BC, Canada
-\f7Education\F7:	BSc Computing Science (2022-2028)
-\f7Previously\F7:	\a0{Open WebUI|https://openwebui.com}Open_WebUI (2026),
+\f7I am a\c:		Software Engineer
+\f7Based in\c:	Vancouver, BC, Canada
+\f7Education\c:	BSc Computing Science (2022-2028)
+\f7Previously\c:	\a0{Open WebUI|https://openwebui.com}Open_WebUI (2026),
 		\a0{Improving|https://improving.com}Improving (2024-2025),
 		\a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop (2023-2024)
 
-\f7E-mail\F7:		\a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
-\f7GitHub\F7:		\a0{https://github.com/micahdbak}https://github.com/micahdbak
-\f7LinkedIn\F7:	\a0{https://linkedin.com/in/micahdbak}https://linkedin.com/in/micahdbak
+\f7E-mail\c:		\a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
+\f7GitHub\c:		\a0{https://github.com/micahdbak}https://github.com/micahdbak
+\f7LinkedIn\c:	\a0{https://linkedin.com/in/micahdbak}https://linkedin.com/in/micahdbak
 
 
 
-	This page is a (mostly) functional \f7vi\F7 emulator. \f7vi\F7 is the original 1976
-program which \f7vim\F7, and subsequently \f7neovim\F7, is based on. Learn how to use \f7vi\F7
+	This page is a (mostly) functional \f7vi\c emulator. \f7vi\c is the original 1976
+program which \f7vim\c, and subsequently \f7neovim\c, is based on. Learn how to use \f7vi\c
 with the \a0{vi tutor|/vi.html}vi_tutor (mouse over; computer users only).
 
 
 	This page was built using \a0{@micahdbak/tscon|https://github.com/micahdbak/tscon}@micahdbak/tscon, a WebGL 2.0 text-mode
-graphics library. \f7tscon\F7 is built from from the ground up using browser APIs and
-zero third-party libraries. This page uses several \f7tscon\F7 escape codes; learn
+graphics library. \f7tscon\c is built from from the ground up using browser APIs and
+zero third-party libraries. This page uses several \f7tscon\c escape codes; learn
 how to use them with the \a0{tscon tutor|/tscon.html}tscon_tutor.
 
 

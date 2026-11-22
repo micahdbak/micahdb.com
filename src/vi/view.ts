@@ -9,12 +9,8 @@ const TILDE = new tscon.Glyphs("\\F0~", 1, { wrap: tscon.Wrap.TRUNCATE });
 const TILDE_AT = { row: 0, col: 0, rows: 1, cols: 1 };
 
 const CURSOR_BG = tscon.Colour.WHITE;
-const BAR_COLOUR = tscon.Colour.BRIGHT_BLACK;
+const BAR_COLOUR = tscon.Colour.BLACK;
 const BAR_COLUMN = 80;
-
-// CP437 vertical line; blank cells in the bar column draw it rather than fill
-// a background many steps brighter than Neovim's bar
-const BAR_GLYPH = 0xb3;
 
 export type ViewDependencies = {
 	editor: Editor;
@@ -29,28 +25,6 @@ export type ViewDependencies = {
 type InvertSpan = { from_col: number; to_col: number; blank_bg: number } | null;
 
 type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
-
-// the column bar sits behind whatever text is in the column
-function barCell(cell: number): number {
-	if (cell === 0 || (cell & 0xff) === 32) {
-		return BAR_COLOUR << 12 | BAR_GLYPH;
-	}
-
-	return cell & 0xf0ff | BAR_COLOUR << 8;
-}
-
-// swap the fg (bits 12-15) and bg (bits 8-11) nibbles; a blank sentinel
-// paints as a solid block
-function invertedCell(cell: number, blank_bg: number): number {
-	if (cell === 0) {
-		return (tscon.Colour.BLACK << 12) | (blank_bg << 8) | 32;
-	}
-
-	const fg = (cell >> 12) & 0xf;
-	const bg = (cell >> 8) & 0xf;
-
-	return (bg << 12) | (fg << 8) | (cell & 0xff);
-}
 
 /**
  * Renders one frame: the visible slice of display rows, the tilde rows past
@@ -136,17 +110,31 @@ export class View {
 		const bar_col = display_row.row_in_line === 0 ? this.frame_bar_col : null;
 
 		return glyphs.mapCells((cell, _, col) => {
-			let painted = cell;
+			const inverted = invert !== null && col >= invert.from_col && col < invert.to_col;
+
+			if (col !== bar_col && !inverted) {
+				return cell;
+			}
+
+			const glyph = cell === 0 ? {
+				char_code: 32,
+				foreground: tscon.Colour.FG,
+				background: tscon.Colour.BG,
+			} : tscon.unpackCell(cell);
 
 			if (col === bar_col) {
-				painted = barCell(painted);
+				glyph.background = BAR_COLOUR;
 			}
 
-			if (invert !== null && col >= invert.from_col && col < invert.to_col) {
-				painted = invertedCell(painted, invert.blank_bg);
+			if (inverted) {
+				if (cell === 0 && col !== bar_col) {
+					return tscon.packCell(32, glyph.background, invert.blank_bg);
+				}
+
+				return tscon.packCell(glyph.char_code, glyph.background, glyph.foreground);
 			}
 
-			return painted;
+			return tscon.packCell(glyph.char_code, glyph.foreground, glyph.background);
 		}, { row, col: 0, rows: 1, cols: glyphs.cols });
 	}
 
@@ -259,9 +247,9 @@ export class View {
 		const total = editor.buffer.lineCount();
 		const modified = editor.buffer.modified ? " [+]" : "";
 
-		const separator = "\\F0 • \\f7";
+		const separator = "\\F0 • \\c";
 		const block = `\\f0\\b${mode_bg} ${label} `;
-		const rest = "\\f7\\b0";
+		const rest = "\\c";
 		const file = `"${this.dependencies.filename}"${modified}`;
 		const ruler = `Ln ${position.line + 1}, Col ${position.col + 1}`;
 		const percent = rulerPercent(position.line + 1, total);
