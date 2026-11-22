@@ -1,5 +1,5 @@
 import * as tscon from "@micahdb/tscon";
-import { Link } from "@/components/link.ts";
+import { Link } from "@/link.ts";
 import type { Editor } from "./editor/editor.ts";
 import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Pending } from "./parser.ts";

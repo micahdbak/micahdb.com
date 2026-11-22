@@ -9,7 +9,7 @@ export function donut() {
 	try {
 		// initialize
 
-		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
+		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
 		const terminal = new tscon.Terminal(canvas);
 		const renderer = new tscon.Renderer(canvas);
 

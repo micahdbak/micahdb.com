@@ -1,39 +1,18 @@
 Micah Baker
 ----
+Micah Baker
+\F0===========
 
-\a2{torus|40|80}\a2{model|6|12}
+\F0I am a\c: Software Developer
+\F0Based in\c: Vancouver, BC, Canada
+\F0Currently\c: BSc Computing Science, SFU
 
+\F0E-mail\c: \a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
+\F0LinkedIn\c: \a0{linkedin.com/in/micahdbak|https://linkedin.com/in/micahdbak}linkedin.com/in/micahdbak
+\F0GitHub\c: \a0{github.com/micahdbak|https://github.com/micahdbak}github.com/micahdbak
+\F0X\c: \a0{x.com/micahdbak|https://x.com/micahdbak}x.com/micahdbak
 
-	 <- me
-
-
-\F0.------------------------.
-\F0: \F2Micah Baker\c's website. \F0:
-\F0'------------------------'
-
-\f7I am a\c:		Software Engineer
-\f7Based in\c:	Vancouver, BC, Canada
-\f7Education\c:	BSc Computing Science (2022-2028)
-\f7Previously\c:	\a0{Open WebUI|https://openwebui.com}Open_WebUI (2026),
-		\a0{Improving|https://improving.com}Improving (2024-2025),
-		\a0{Brave Technology Coop|https://brave.coop}Brave_Technology_Coop (2023-2024)
-
-\f7E-mail\c:		\a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
-\f7GitHub\c:		\a0{https://github.com/micahdbak}https://github.com/micahdbak
-\f7LinkedIn\c:	\a0{https://linkedin.com/in/micahdbak}https://linkedin.com/in/micahdbak
-
-
-
-	This page is a (mostly) functional \f7vi\c emulator. \f7vi\c is the original 1976
-program which \f7vim\c, and subsequently \f7neovim\c, is based on. Learn how to use \f7vi\c
-with the \a0{vi tutor|/vi.html}vi_tutor (mouse over; computer users only).
-
-
-	This page was built using \a0{@micahdbak/tscon|https://github.com/micahdbak/tscon}@micahdbak/tscon, a WebGL 2.0 text-mode
-graphics library. \f7tscon\c is built from from the ground up using browser APIs and
-zero third-party libraries. This page uses several \f7tscon\c escape codes; learn
-how to use them with the \a0{tscon tutor|/tscon.html}tscon_tutor.
-
-
-	Also, see this \a0{donut|/donut.html}donut!
-
+\F0See also\c:
+\F0* \c\a0{donut.html|/donut.html}donut.html: 3d spinning donut
+\F0* \c\a0{vi.html|/vi.html}vi.html: Vi tutor
+\F0* \c\a0{tscon.html|/tscon.html}tscon.html: tscon tutor

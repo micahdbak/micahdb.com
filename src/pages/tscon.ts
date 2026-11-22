@@ -9,7 +9,7 @@ export function tscon_page() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 
 	try {
-		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
+		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
 		// the content file carries a title and separator for the static
 		// fallback; the document is everything below them
 		const raw = CONTENT as string;

@@ -326,7 +326,7 @@ describe("view rendering", () => {
 
 		const hovered = cell(row, col);
 
-		expect(tscon.unpackCell(hovered).foreground).toBe(tscon.Colour.BLACK);
+		expect(tscon.unpackCell(hovered).foreground).toBe(tscon.Colour.BG);
 		expect(tscon.unpackCell(hovered).background).toBe(tscon.Colour.BRIGHT_CYAN);
 		expect(canvas.class_name).toBe("pointer");
 		expect(terminal.detail_text).toContain("https://example.com");
@@ -368,7 +368,7 @@ describe("view rendering", () => {
 
 		expect(tscon.unpackCell(first_cell).foreground).toBe(tscon.Colour.BRIGHT_CYAN);
 		expect(tscon.unpackCell(first_cell).background).toBe(tscon.Colour.BG);
-		expect(tscon.unpackCell(second_cell).foreground).toBe(tscon.Colour.BLACK);
+		expect(tscon.unpackCell(second_cell).foreground).toBe(tscon.Colour.BG);
 		expect(tscon.unpackCell(second_cell).background).toBe(tscon.Colour.BRIGHT_CYAN);
 	});
 

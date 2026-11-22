@@ -71,7 +71,7 @@ export class Link {
 				? window.location.origin + this.url
 				: this.url;
 
-			this.terminal.detail_text = " Link: " + detail + " ";
+			this.terminal.detail_text = " " + detail + " ";
 		}
 
 		const spans_changed = !spansEqual(this.current_spans, spans);
@@ -83,7 +83,7 @@ export class Link {
 			|| spans_changed
 			|| is_hovered !== this.hovered
 		) {
-			const fg = is_hovered ? tscon.Colour.BLACK : tscon.Colour.BRIGHT_CYAN;
+			const fg = is_hovered ? tscon.Colour.BG : tscon.Colour.BRIGHT_CYAN;
 			const bg = is_hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BG;
 
 			let offset = 0;
