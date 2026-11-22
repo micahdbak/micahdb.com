@@ -52,17 +52,18 @@ An escape code starts with a backslash, and influences subsequent characters:
   \FX   foreground colour, bright X (X = 0-7)
   \bX   background colour, dark (X = 0-7)
   \BX   background colour, bright (X = 0-7)
+  \c    restore the default foreground and background
 
   Background colours:           Foreground colours:
-\b0<span class="b1"><span class="f0">\b1</span></span><span class="b2"><span class="f0">\b2</span></span><span class="b3"><span class="f0">\b3</span></span><span class="b4"><span class="f0">\b4</span></span><span class="b5"><span class="f0">\b5</span></span><span class="b6"><span class="f0">\b6</span></span><span class="b7"><span class="f0">\b7</span><span class="f7"></span></span><span class="f7">        </span><span class="b8"><span class="f7"></span><span class="f0">\f0</span></span><span class="f0"></span><span class="f1">\f1</span><span class="f2">\f2</span><span class="f3">\f3</span><span class="f4">\f4</span><span class="f5">\f5</span><span class="f6">\f6</span><span class="f7">\f7</span>
-<span class="b8">\B0</span><span class="b9"><span class="f0">\B1</span></span><span class="b10"><span class="f0">\B2</span></span><span class="b11"><span class="f0">\B3</span></span><span class="b12"><span class="f0">\B4</span></span><span class="b13"><span class="f0">\B5</span></span><span class="b14"><span class="f0">\B6</span></span><span class="b15"><span class="f0">\B7</span><span class="f7"></span></span><span class="f7">        </span><span class="f8">\F0</span><span class="f9">\F1</span><span class="f10">\F2</span><span class="f11">\F3</span><span class="f12">\F4</span><span class="f13">\F5</span><span class="f14">\F6</span>\F7<span class="f7"></span>
+<span class="b0"><span class="f7">\b0</span></span><span class="b1"><span class="f7"></span><span class="f0">\b1</span></span><span class="b2"><span class="f0">\b2</span></span><span class="b3"><span class="f0">\b3</span></span><span class="b4"><span class="f0">\b4</span></span><span class="b5"><span class="f0">\b5</span></span><span class="b6"><span class="f0">\b6</span></span><span class="b7"><span class="f0">\b7</span></span>        <span class="f0">\f0</span><span class="f1">\f1</span><span class="f2">\f2</span><span class="f3">\f3</span><span class="f4">\f4</span><span class="f5">\f5</span><span class="f6">\f6</span><span class="f7">\f7</span>
+<span class="b8"><span class="f15">\B0</span></span><span class="b9"><span class="f15"></span><span class="f0">\B1</span></span><span class="b10"><span class="f0">\B2</span></span><span class="b11"><span class="f0">\B3</span></span><span class="b12"><span class="f0">\B4</span></span><span class="b13"><span class="f0">\B5</span></span><span class="b14"><span class="f0">\B6</span></span><span class="b15"><span class="f0">\B7</span></span>        <span class="f8">\F0</span><span class="f9">\F1</span><span class="f10">\F2</span><span class="f11">\F3</span><span class="f12">\F4</span><span class="f13">\F5</span><span class="f14">\F6</span><span class="f15">\F7</span>
 
   \aX           anchor in group X (X = 0-9)
   \aX{options}  anchor in group X with options (X = 0-9)
 
 An anchor can be used to make links, or to render page-specific textures.
 
-Here is an <a href="https://example.com" class="f14">example</a> link.
+Here is an <a href="https://example.com" class="f14 b17">example</a> link.
 
 And here is a photo (of me):
 
@@ -97,7 +98,7 @@ row starts; 00 and FF are blank. Any character outside this grid is blank.
 <span class="f8"> E0</span><span class="f7"> αßΓπΣσµτΦΘΩδ∞φε∩</span>
 <span class="f8"> F0</span><span class="f7"> ≡±≥≤⌠⌡÷≈°∙·√ⁿ²■</span>
 
-See also: <a href="/vi.html" class="f14">vi tutor</a>, <a href="/index.html" class="f14">index</a>
+See also: <a href="/vi.html" class="f14 b17">vi tutor</a>, <a href="/index.html" class="f14 b17">index</a>
 
 </pre>
 </div>

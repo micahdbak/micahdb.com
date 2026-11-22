@@ -1,5 +1,5 @@
-.f0 { color: #141415; }
-.b0 { background-color: #141415; }
+.f0 { color: #252530; }
+.b0 { background-color: #252530; }
 .f1 { color: #d8647e; }
 .b1 { background-color: #d8647e; }
 .f2 { color: #7fa563; }
@@ -30,4 +30,8 @@
 .b14 { background-color: #bebeda; }
 .f15 { color: #f7f7f7; }
 .b15 { background-color: #f7f7f7; }
-#raw pre { color: #f7f7f7; background-color: #141415; }
+.f16 { color: #cdcdcd; }
+.b16 { background-color: #cdcdcd; }
+.f17 { color: #141415; }
+.b17 { background-color: #141415; }
+#raw pre { color: #cdcdcd; background-color: #141415; }
