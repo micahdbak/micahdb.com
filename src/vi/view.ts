@@ -1,5 +1,4 @@
 import * as tscon from "@micahdb/tscon";
-import { Link } from "@/link.ts";
 import type { Editor } from "./editor/editor.ts";
 import type { DisplayRow, ImageAnchor, Layout } from "./layout.ts";
 import type { Pending } from "./parser.ts";
@@ -34,7 +33,6 @@ type ImageRegion = { anchor: ImageAnchor; first_display_row: number };
  * textures show through.
  */
 export class View {
-	private readonly links: Link[] = [];
 	private readonly texture_glyphs = new Map<string, tscon.TexGlyphs>();
 	private frame_regions: ImageRegion[] = [];
 	private frame_bar_col: number | null = null;
@@ -175,42 +173,18 @@ export class View {
 		const { layout, viewport } = this.dependencies;
 		const first = layout.firstRowOfLine;
 		const pad = this.dependencies.pad_cols;
-		const anchors = layout.links();
+		const clip = { row: 0, col: 0, rows: usable, cols: this.terminal.canvas.cols };
 
-		for (const [index, anchor] of anchors.entries()) {
-			const [text = "", url = text] = (anchor.options ?? "").split("|");
-			let link = this.links[index];
-
-			if (link === undefined || link.text !== text || link.url !== url) {
-				link = new Link(this.terminal, text, url);
-				this.links[index] = link;
-			}
-
-			const line = layout.grid(anchor.line);
+		for (const anchor of layout.links()) {
 			const line_screen_row = (first[anchor.line] ?? 0) - viewport.top;
-			const glyphs = link.update(line, anchor.index, line_screen_row, pad);
 
-			for (const span of link.spans) {
-				const screen_row = line_screen_row + span.row;
-
-				if (screen_row < 0 || screen_row >= usable) {
-					continue;
-				}
-
-				this.terminal.blit(
-					glyphs,
-					{ row: span.row, col: span.from, rows: 1, cols: span.to - span.from },
-					{
-						row: screen_row,
-						col: pad + span.from,
-						rows: 1,
-						cols: span.to - span.from
-					}
-				);
-			}
+			anchor.link.draw(
+				this.terminal,
+				layout.grid(anchor.line),
+				{ row: line_screen_row, col: pad },
+				clip
+			);
 		}
-
-		this.links.length = anchors.length;
 	}
 
 	private drawStatus(): void {

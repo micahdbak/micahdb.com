@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import * as tscon from "@micahdb/tscon";
+import { Link } from "@/link.ts";
 import { PALETTE } from "./palette.ts";
 
 const CONTENT_DIR = "src/pages/content";
@@ -13,6 +14,11 @@ interface Colours {
 	bg: number;
 	spans: string[];
 }
+
+type HtmlLink = {
+	url: string;
+	spans: tscon.Spans;
+};
 
 function reconcileSpans(
 	open_spans: string[],
@@ -72,7 +78,7 @@ function escapeHtml(s: string): string {
 }
 
 // converts formatted glyph text into HTML with minimal <span> usage
-function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
+export function textToHtml(text: string, cols: number, wrap: tscon.Wrap): string {
 	if (cols <= 0) {
 		return "";
 	}
@@ -91,14 +97,18 @@ function sourceToHtml(source: string, cols: number, wrap: tscon.Wrap): string {
 		bg: tscon.Colour.BG,
 		spans: [],
 	};
-	const lines = tscon.textToLines(source, cols, { wrap });
+	const glyphs = new tscon.Glyphs(source, cols, { wrap });
+	const links = Link.parse(glyphs).map((link) => ({
+		url: link.url,
+		spans: glyphs.spansFor(link.start, link.end),
+	}));
 
 	// a blank line is still a row, even though it wraps to nothing
-	const display = lines.length === 0 ? [""] : lines;
+	const display = glyphs.wrappedText.length === 0 ? [""] : glyphs.wrappedText;
 
 	return display
 		.map((line, at) => {
-			const html = rowToHtml(line, cols, colours);
+			const html = rowToHtml(line, at, cols, colours, links);
 
 			// the colours a line leaves set close with it
 			return at === display.length - 1 ? html + recolour(colours, []) : html;
@@ -106,35 +116,60 @@ function sourceToHtml(source: string, cols: number, wrap: tscon.Wrap): string {
 		.join("\n");
 }
 
+function linkAt(links: HtmlLink[], row: number, col: number): string | null {
+	for (const link of links) {
+		if (link.spans.contains(row, col)) {
+			return link.url;
+		}
+	}
+
+	return null;
+}
+
 // one display row of source text, with its colours left open for the next row
-function rowToHtml(line: string, cols: number, colours: Colours): string {
+function rowToHtml(
+	line: string,
+	row: number,
+	cols: number,
+	colours: Colours,
+	links: HtmlLink[]
+): string {
 	const html: string[] = [];
+	const link_colour = `f${tscon.Colour.BRIGHT_CYAN} b${tscon.Colour.BG}`;
 
 	let col = 0;
+	let open_url: string | null = null;
+
+	const setLink = (url: string | null): void => {
+		if (url === open_url) {
+			return;
+		}
+
+		if (open_url !== null) {
+			html.push("</a>");
+		}
+
+		if (url !== null) {
+			html.push(`<a href="${escapeHtml(url)}" class="${link_colour}">`);
+		}
+
+		open_url = url;
+	};
 
 	for (let i = 0; i < line.length; ) {
 		const scan = tscon.scanEscapeAt(line, i);
 
 		// anchor escape sequence
-		// \a0{Display Text|URL} : link
+		// \a0{href} display \a1 : link
+		// \a0href\a1 : link whose href is its display text
 		// \a9{Display Text|#anchor} : section anchor
 		if (scan.kind === "anchor") {
-			if (scan.options !== null && (scan.group === 0 || scan.group === 9)) {
+			if (scan.options !== null && scan.group === 9) {
 				const [text = "", url = text] = scan.options.split("|");
+				const anchor_id = url.startsWith("#") ? url.slice(1) : url;
 
-				if (scan.group === 0) {
-					// the emulator's Link component overdraws links in bright cyan
-					const link_colour = `f${tscon.Colour.BRIGHT_CYAN} b${tscon.Colour.BG}`;
-
-					html.push(
-						`<a href="${escapeHtml(url)}" class="${link_colour}">${escapeHtml(text)}</a>`
-					);
-				} else {
-					const anchor_id = url.startsWith("#") ? url.slice(1) : url;
-
-					html.push(`<span id="${escapeHtml(anchor_id)}">${escapeHtml(text)}</span>`);
-				}
-
+				setLink(linkAt(links, row, col));
+				html.push(`<span id="${escapeHtml(anchor_id)}">${escapeHtml(text)}</span>`);
 				i += text.length;
 				col += text.length;
 			}
@@ -144,15 +179,23 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 		}
 
 		if (scan.kind === "clear") {
+			const active = open_url;
+
+			setLink(null);
 			colours.fg = tscon.Colour.FG;
 			colours.bg = tscon.Colour.BG;
 			i += scan.chars;
 			html.push(recolour(colours, []));
+			setLink(active);
+
 			continue;
 		}
 
 		if (scan.kind === "colour") {
 			const value = Math.min(scan.num, 7) + (scan.bright ? 8 : 0);
+			const active = open_url;
+
+			setLink(null);
 
 			if (scan.attribute === "fg") {
 				colours.fg = value;
@@ -162,6 +205,7 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 
 			i += scan.chars;
 			html.push(recolour(colours, spanClasses(colours)));
+			setLink(active);
 
 			continue;
 		}
@@ -173,6 +217,7 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 		if (visible === "\t") {
 			const tab_chars = Math.min(tscon.TAB_WIDTH - (col % tscon.TAB_WIDTH), cols - col);
 
+			setLink(linkAt(links, row, col));
 			col += tab_chars;
 			html.push(" ".repeat(Math.max(tab_chars, 0)));
 
@@ -184,10 +229,13 @@ function rowToHtml(line: string, cols: number, colours: Colours): string {
 			break;
 		}
 
+		setLink(linkAt(links, row, col));
 		html.push(escapeHtml(visible));
 		col++;
 		i += scan.chars;
 	}
+
+	setLink(null);
 
 	return html.join("");
 }
@@ -297,4 +345,6 @@ function main() {
 	generate(CONTENT_DIR, OUTPUT_DIR);
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

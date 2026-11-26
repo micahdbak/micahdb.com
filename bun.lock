@@ -5,7 +5,7 @@
     "": {
       "name": "micahdb.com",
       "dependencies": {
-        "@micahdb/tscon": "0.5.1",
+        "@micahdb/tscon": "0.6.0",
       },
       "devDependencies": {
         "@types/bun": "^1.4.3",
@@ -16,7 +16,7 @@
     },
   },
   "packages": {
-    "@micahdb/tscon": ["@micahdb/tscon@0.5.1", "", {}, "sha512-RUoM8YggISEUjKptSiuTKknBKvt19T/7rqMwDtoKHoehAuN6u0INGZURg0ENtWlY3Zy5vd+rJMWWFtamRU7r8A=="],
+    "@micahdb/tscon": ["@micahdb/tscon@0.6.0", "", {}, "sha512-oFCdpnMgHELfHKok3AcbYuuRhP9zgLXjIzVFb9kN8Y4CyjpS03+gf/bOMUt3AGqWh4I7XU9/9X9+lgNdpXzuxA=="],
 
     "@nodelib/fs.scandir": ["@nodelib/fs.scandir@2.1.5", "", { "dependencies": { "@nodelib/fs.stat": "2.0.5", "run-parallel": "^1.1.9" } }, "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="],
 

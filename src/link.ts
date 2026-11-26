@@ -1,116 +1,141 @@
 import * as tscon from "@micahdb/tscon";
 
 /**
- * A rendered link. Each instance owns the decorated line grid and the spans
- * that `View` copies to the terminal for that link. The payload text's glyphs
- * are drawn over those spans; the following source glyphs only determine the
- * link's wrap geometry and hit targets.
+ * A link parsed from groups 0 and 1 of a compiled grid. The display text is
+ * the source range from `start` (inclusive) to `end` (exclusive); drawing
+ * recolours those cells and leaves their characters untouched.
  */
 export class Link {
-	readonly text: string;
 	readonly url: string;
-
-	private readonly terminal: tscon.Terminal;
-	private readonly text_glyphs: tscon.Glyphs;
+	readonly start: number;
+	readonly end: number;
 
 	private line: tscon.Glyphs | null = null;
-	private current_spans: tscon.CellSpan[] = [];
+	private spans: tscon.Spans | null = null;
+	private decorated: tscon.Spans | null = null;
 	private hovered: boolean | null = null;
-	private glyphs: tscon.Glyphs | null = null;
 
-	constructor(terminal: tscon.Terminal, text: string, url: string) {
-		this.terminal = terminal;
-		this.text = text;
+	constructor(url: string, start: number, end: number) {
 		this.url = url;
-		this.text_glyphs = new tscon.Glyphs(text, text.length, {
-			wrap: tscon.Wrap.TRUNCATE,
-		});
-	}
-
-	/** The spans of the current decorated line grid that this link occupies. */
-	get spans(): readonly tscon.CellSpan[] {
-		return this.current_spans;
+		this.start = start;
+		this.end = end;
 	}
 
 	/**
-	 * Update the link's decoration for the current line grid and return the
-	 * decorated grid. Reuses the previous block unless the line, spans, or
-	 * hover state changed.
+	 * Pair group 0 openers with group 1 terminators in source order.
+	 *
+	 * An opener with options uses them as the URL; a bare opener uses its
+	 * display text. Empty links and unmatched anchors produce no link, and a
+	 * new opener replaces an unfinished one.
 	 */
-	update(
-		line: tscon.Glyphs,
-		source_index: number,
-		line_screen_row: number,
-		pad_cols: number
-	): tscon.Glyphs {
-		const canvas = this.terminal.canvas;
-		const spans = line.spansFor(source_index, source_index + this.text.length);
-		const is_hovered = spans.some((span) => {
-			return canvas.mouseAt(
-				line_screen_row + span.row,
-				pad_cols + span.from,
-				1,
-				span.to - span.from
-			);
-		});
-		const was_hovered = spans.some((span) => {
-			return canvas.mouseDownAt(
-				line_screen_row + span.row,
-				pad_cols + span.from,
-				1,
-				span.to - span.from
-			);
+	static parse(glyphs: tscon.Glyphs): Link[] {
+		const events: { group: number; anchor: tscon.Anchor }[] = [];
+
+		for (const group of [0, 1]) {
+			for (const anchor of glyphs.anchors[group] ?? []) {
+				events.push({ group, anchor });
+			}
+		}
+
+		events.sort((left, right) => {
+			return left.anchor.start - right.anchor.start
+				|| left.anchor.end - right.anchor.end
+				|| right.group - left.group;
 		});
 
-		if (is_hovered && was_hovered && canvas.mouse_click) {
+		const links: Link[] = [];
+		let opener: tscon.Anchor | null = null;
+
+		for (const event of events) {
+			if (event.group === 0) {
+				opener = event.anchor;
+				continue;
+			}
+
+			if (opener === null) {
+				continue;
+			}
+
+			const start = opener.end;
+			const end = event.anchor.start;
+			const url = opener.options ?? glyphs.sourceText.slice(start, end);
+
+			if (end > start && url.length > 0) {
+				links.push(new Link(url, start, end));
+			}
+
+			opener = null;
+		}
+
+		return links;
+	}
+
+	/**
+	 * Draw the link's cells at a line grid's origin and handle hover and
+	 * clicks. The decorated copy is reused until the line, spans, or hover
+	 * state changes.
+	 */
+	draw(
+		terminal: tscon.Terminal,
+		line: tscon.Glyphs,
+		origin: tscon.Cell,
+		clip?: tscon.Rect
+	): void {
+		const canvas = terminal.canvas;
+		const spans = line.spansFor(this.start, this.end);
+		const hovered = this.inside(canvas.mouse_row, canvas.mouse_col, spans, origin);
+		const pressed = this.inside(canvas.mouse_down_row, canvas.mouse_down_col, spans, origin);
+
+		if (hovered && pressed && canvas.mouse_click) {
 			this.activate();
-		} else if (is_hovered) {
+		} else if (hovered) {
 			canvas.class_name = "pointer";
 
 			const detail = this.url.startsWith("#")
 				? window.location.origin + this.url
 				: this.url;
 
-			this.terminal.detail_text = " " + detail + " ";
+			terminal.detail_text = " " + detail + " ";
 		}
 
-		const spans_changed = !spansEqual(this.current_spans, spans);
-		let glyphs = this.glyphs;
+		let decorated = this.decorated;
 
 		if (
-			glyphs === null
+			decorated === null
 			|| line !== this.line
-			|| spans_changed
-			|| is_hovered !== this.hovered
+			|| this.spans === null
+			|| !spans.equals(this.spans)
+			|| hovered !== this.hovered
 		) {
-			const fg = is_hovered ? tscon.Colour.BG : tscon.Colour.BRIGHT_CYAN;
-			const bg = is_hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BG;
+			const foreground = hovered ? tscon.Colour.BG : tscon.Colour.BRIGHT_CYAN;
+			const background = hovered ? tscon.Colour.BRIGHT_CYAN : tscon.Colour.BG;
 
-			let offset = 0;
+			decorated = spans.mapCells((cell) => {
+				const char_code = tscon.unpackCell(cell).char_code || 32;
 
-			glyphs = line.mapCells((cell, row, col) => {
-				if (!inSpans(spans, row, col)) {
-					return cell;
-				}
-
-				const text_cell = this.text_glyphs.data[offset++];
-
-				if (text_cell === undefined) {
-					return cell;
-				}
-
-				const char_code = tscon.unpackCell(text_cell).char_code || 32;
-
-				return tscon.packCell(char_code, fg, bg);
+				return tscon.packCell(char_code, foreground, background);
 			});
 
-			this.glyphs = glyphs;
+			this.decorated = decorated;
 			this.line = line;
-			this.current_spans = spans;
-			this.hovered = is_hovered;
+			this.spans = spans;
+			this.hovered = hovered;
 		}
 
-		return glyphs;
+		decorated.blit(terminal, origin, clip);
+	}
+
+	private inside(
+		row: number | undefined,
+		col: number | undefined,
+		spans: tscon.Spans,
+		origin: tscon.Cell
+	): boolean {
+		if (row === undefined || col === undefined) {
+			return false;
+		}
+
+		return spans.contains(row - origin.row, col - origin.col);
 	}
 
 	private activate(): void {
@@ -127,31 +152,4 @@ export class Link {
 			window.open(this.url, "_blank");
 		}
 	}
-}
-
-function spansEqual(a: readonly tscon.CellSpan[], b: readonly tscon.CellSpan[]): boolean {
-	if (a.length !== b.length) {
-		return false;
-	}
-
-	for (let index = 0; index < a.length; index++) {
-		const left = a[index]!;
-		const right = b[index]!;
-
-		if (left.row !== right.row || left.from !== right.from || left.to !== right.to) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-function inSpans(spans: readonly tscon.CellSpan[], row: number, col: number): boolean {
-	for (const span of spans) {
-		if (span.row === row && col >= span.from && col < span.to) {
-			return true;
-		}
-	}
-
-	return false;
 }

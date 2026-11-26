@@ -7,12 +7,12 @@ Micah Baker
 \F0Based in\c: Vancouver, BC, Canada
 \F0Currently\c: BSc Computing Science, SFU
 
-\F0E-mail\c: \a0{<micah_baker@sfu.ca>|mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>
-\F0LinkedIn\c: \a0{linkedin.com/in/micahdbak|https://linkedin.com/in/micahdbak}linkedin.com/in/micahdbak
-\F0GitHub\c: \a0{github.com/micahdbak|https://github.com/micahdbak}github.com/micahdbak
-\F0X\c: \a0{x.com/micahdbak|https://x.com/micahdbak}x.com/micahdbak
+\F0E-mail\c: \a0{mailto:micah_baker@sfu.ca}<micah_baker@sfu.ca>\a1
+\F0LinkedIn\c: \a0{https://linkedin.com/in/micahdbak}linkedin.com/in/micahdbak\a1
+\F0GitHub\c: \a0{https://github.com/micahdbak}github.com/micahdbak\a1
+\F0X\c: \a0{https://x.com/micahdbak}x.com/micahdbak\a1
 
 \F0See also\c:
-\F0* \c\a0{donut.html|/donut.html}donut.html: 3d spinning donut
-\F0* \c\a0{vi.html|/vi.html}vi.html: Vi tutor
-\F0* \c\a0{tscon.html|/tscon.html}tscon.html: tscon tutor
+\F0* \c\a0{/donut.html}donut.html\a1: 3d spinning donut
+\F0* \c\a0{/vi.html}vi.html\a1: Vi tutor
+\F0* \c\a0{/tscon.html}tscon.html\a1: tscon tutor

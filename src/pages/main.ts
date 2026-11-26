@@ -18,12 +18,7 @@ export function main() {
 	const content = raw.slice(second_nl + 1, -1);
 
 	const glyphs = new tscon.Glyphs(content, 40, { wrap: tscon.Wrap.TRUNCATE });
-
-	let links = [];
-	for (const anchor of glyphs.anchors[0] ?? []) {
-		const [text = "", url = text] = (anchor.options ?? "").split("|");
-		links.push(new Link(terminal, text, url));
-	}
+	const links = Link.parse(glyphs);
 
 	const torus = new TorusVisuals(canvas);
 	void torus.init();
@@ -70,32 +65,8 @@ export function main() {
 		const dst = { row, col, rows, cols };
 		terminal.blit(glyphs, src, dst);
 
-		for (const [i, link] of links.entries()) {
-			const anchor = glyphs.anchors[0]?.[i];
-
-			if (anchor === undefined) {
-				continue;
-			}
-
-			const lglyphs = link.update(glyphs, anchor.index, row, col);
-
-			for (const span of link.spans) {
-				const from = span.from;
-				const to = Math.min(span.to, cols);
-
-				if (from >= to || span.row >= rows) {
-					continue;
-				}
-
-				const src = { row: span.row, col: from, rows: 1, cols: to - from };
-				const dst = {
-					row: row + span.row,
-					col: col + from,
-					rows: 1,
-					cols: to - from
-				};
-				terminal.blit(lglyphs, src, dst);
-			}
+		for (const link of links) {
+			link.draw(terminal, glyphs, { row, col }, dst);
 		}
 
 		drawAndRequest();

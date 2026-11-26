@@ -399,10 +399,11 @@ Clicking works on every lesson line above. Go on; nothing is fragile here.
 \F0-------------------------------------------------------------------------------
 
 This document can hold links and images. They are written as anchors in
-the source text and rendered when the cursor is elsewhere. Underscores
-stand in for spaces in the text of a link, so it never splits across rows:
+the source text and rendered when the cursor is elsewhere. A link opens
+with \\a0{href}, shows the text that follows, and closes with \\a1.
+Without braces, the display text is also the href.
 
-  \a0{GitHub|https://github.com/micahdbak}GitHub, \a0{LinkedIn|https://linkedin.com/in/micahdbak}LinkedIn, and the \a0{main_page|/index.html}main_page.
+  \a0{https://github.com/micahdbak}GitHub\a1, \a0{https://linkedin.com/in/micahdbak}LinkedIn\a1, and the \a0{/index.html}main page\a1.
 
 1. Move the cursor onto the line above: it renders raw -- escapes and
    all -- so you can edit the source directly. Move away, and it
@@ -433,5 +434,5 @@ listed above behaves as the UNIX original does, save the few liberties
 confessed along the way, and all of it lives only until reload. When in
 doubt, press Esc, then u.
 
-See also: \a0{tscon tutor|/tscon.html}tscon_tutor, \a0{index|/index.html}index
+See also: \a0{/tscon.html}tscon tutor\a1, \a0{/index.html}index\a1
 

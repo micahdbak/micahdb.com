@@ -1,15 +1,19 @@
 import * as tscon from "@micahdb/tscon";
+import { Link } from "@/link.ts";
 import { Pos } from "./buffer.ts";
 import type { Buffer } from "./buffer.ts";
 
 export type DisplayRow = { line: number; row_in_line: number };
 
+/** A parsed link on a buffer line. */
 export type LinkAnchor = {
 	line: number;
-	row_in_line: number;
-	col: number;
-	index: number;
-	options: string | null;
+	link: Link;
+};
+
+type CompiledLine = {
+	glyphs: tscon.Glyphs;
+	links: Link[];
 };
 
 /**
@@ -80,12 +84,12 @@ function imageExtent(
 /**
  * Owns the wrap of every logical line at the current width: each line's
  * compiled {@link tscon.Glyphs} -- cells, anchors, and the source-to-cell map
- * in one object -- plus the flat display-row table and the buffer/screen
- * conversions over them. A buffer line corresponds to exactly one source
- * line; anchor payloads must close on their own line.
+ * -- and its parsed links, plus the flat display-row table and the
+ * buffer/screen conversions over them. A buffer line corresponds to exactly
+ * one source line; anchor payloads must close on their own line.
  */
 export class Layout {
-	private readonly lines: (tscon.Glyphs | undefined)[] = [];
+	private readonly lines: (CompiledLine | undefined)[] = [];
 	private display_rows_cache: DisplayRow[] | null = null;
 	private raw_line: number | null = null;
 
@@ -142,11 +146,11 @@ export class Layout {
 	}
 
 	grid(line: number): tscon.Glyphs {
-		return this.compile(line);
+		return this.compile(line).glyphs;
 	}
 
 	lineRowCount(line: number): number {
-		return this.compile(line).rows;
+		return this.compile(line).glyphs.rows;
 	}
 
 	get displayRows(): DisplayRow[] {
@@ -157,7 +161,7 @@ export class Layout {
 		const rows: DisplayRow[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			for (let row_in_line = 0; row_in_line < this.compile(line).rows; row_in_line++) {
+			for (let row_in_line = 0; row_in_line < this.compile(line).glyphs.rows; row_in_line++) {
 				rows.push({ line, row_in_line });
 			}
 		}
@@ -181,7 +185,7 @@ export class Layout {
 
 	// the visible cell of a buffer position, wrap included
 	bufferToScreen(position: Pos): tscon.Cell {
-		return this.compile(position.line).cursorCell(position.col);
+		return this.compile(position.line).glyphs.cursorCell(position.col);
 	}
 
 	/**
@@ -191,7 +195,7 @@ export class Layout {
 	 * character.
 	 */
 	bufferAtVisibleCol(line: number, row_in_line: number, col: number): Pos {
-		return new Pos(line, this.compile(line).cursorIndex(row_in_line, col));
+		return new Pos(line, this.compile(line).glyphs.cursorIndex(row_in_line, col));
 	}
 
 	screenToBuffer(screen_row: number, screen_col: number): Pos | null {
@@ -220,19 +224,8 @@ export class Layout {
 		const links: LinkAnchor[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			for (const anchor of this.compile(line).anchors[0] ?? []) {
-				// a bare \a0 without a payload is not a link
-				if (anchor.options === null) {
-					continue;
-				}
-
-				links.push({
-					line,
-					row_in_line: anchor.row,
-					col: anchor.col,
-					index: anchor.index,
-					options: anchor.options,
-				});
+			for (const link of this.compile(line).links) {
+				links.push({ line, link });
 			}
 		}
 
@@ -243,7 +236,7 @@ export class Layout {
 		const images: ImageAnchor[] = [];
 
 		for (let line = 0; line < this.buffer.lineCount(); line++) {
-			for (const anchor of this.compile(line).anchors[2] ?? []) {
+			for (const anchor of this.compile(line).glyphs.anchors[2] ?? []) {
 				const extent = imageExtent(anchor.options ?? "", this.image_limits);
 
 				if (extent === null) {
@@ -257,7 +250,7 @@ export class Layout {
 		return images;
 	}
 
-	private compile(line: number): tscon.Glyphs {
+	private compile(line: number): CompiledLine {
 		const cached = this.lines[line];
 
 		if (cached !== undefined) {
@@ -271,10 +264,14 @@ export class Layout {
 		// other line compiles escapes away -- links and image regions read
 		// back out of the compiled anchors, and a payload that never closes
 		// renders as raw text on its own
-		const compiled = new tscon.Glyphs(text, this.wrap_width, {
+		const glyphs = new tscon.Glyphs(text, this.wrap_width, {
 			wrap: tscon.Wrap.HARD,
 			raw: line === this.raw_line && tscon.hasEscape(text),
 		});
+		const compiled = {
+			glyphs,
+			links: Link.parse(glyphs),
+		};
 
 		this.lines[line] = compiled;
 		return compiled;

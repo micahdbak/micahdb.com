@@ -219,8 +219,8 @@ describe("wrap-aware vertical motion", () => {
 	});
 
 	test("k enters a raw anchor line at its bottom row", () => {
-		const links = BACKSLASH + "a0{GitHub|https://github.com/micahdbak}GitHub, "
-			+ BACKSLASH + "a0{LinkedIn|https://linkedin.com/in/micahdbak}LinkedIn";
+		const links = BACKSLASH + "a0{https://github.com/micahdbak}GitHub" + BACKSLASH + "a1, "
+			+ BACKSLASH + "a0{https://linkedin.com/in/micahdbak}LinkedIn" + BACKSLASH + "a1";
 
 		const editor = editorWith(links + "\nbelow", 30);
 
@@ -239,8 +239,8 @@ describe("wrap-aware vertical motion", () => {
 	});
 
 	test("j enters a raw anchor line at its top row", () => {
-		const links = BACKSLASH + "a0{GitHub|https://github.com/micahdbak}GitHub, "
-			+ BACKSLASH + "a0{LinkedIn|https://linkedin.com/in/micahdbak}LinkedIn";
+		const links = BACKSLASH + "a0{https://github.com/micahdbak}GitHub" + BACKSLASH + "a1, "
+			+ BACKSLASH + "a0{https://linkedin.com/in/micahdbak}LinkedIn" + BACKSLASH + "a1";
 
 		const editor = editorWith(links, 30);
 

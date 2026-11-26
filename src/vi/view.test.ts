@@ -189,9 +189,9 @@ describe("view rendering", () => {
 
 		const first_screen_row = editor.layout.firstRowOfLine[link_line]! - viewport.top;
 
-		// hard wrap at 20: "GitHub, LinkedIn, an" / "d the main_page."
+		// hard wrap at 20: "GitHub, LinkedIn, an" / "d the main page."
 		expect(text(first_screen_row)).toContain("GitHub, LinkedIn");
-		expect(text(first_screen_row + 1)).toContain("the main_page");
+		expect(text(first_screen_row + 1)).toContain("the main page");
 	});
 
 	test("image region cells leave the texture visible", () => {
@@ -227,21 +227,20 @@ describe("view rendering", () => {
 		expect(glyphs).toEqual(tscon.textureGlyphs(6, 12, tscon.TexGlyphMode.SAMPLE));
 	});
 
-	test("link payload glyphs overdraw the wrapped source glyphs", () => {
+	test("link cells keep their own text, spaces included", () => {
 		const content =
-			"\\a0{Docs Page|https://example.com}Docs_Page\nother";
+			"\\a0{https://example.com}Docs Page\\a1\nother";
 		const { editor, viewport, frame, cell } = harness(20, content);
 
 		editor.placeCursor(new Pos(1, 0));
 		frame();
 		frame();
 
-		const link = editor.layout.links()[0]!;
-		const spans = editor.layout
-			.grid(link.line)
-			.spansFor(link.index, link.index + "Docs Page".length);
-		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
-		const span = spans[0]!;
+		const anchor = editor.layout.links()[0]!;
+		const link = anchor.link;
+		const spans = editor.layout.grid(anchor.line).spansFor(link.start, link.end);
+		const line_screen_row = (editor.layout.firstRowOfLine[anchor.line] ?? 0) - viewport.top;
+		const span = [...spans][0]!;
 		const space = cell(line_screen_row + span.row, 2 + span.from + 4);
 
 		expect(tscon.unpackCell(space).char_code).toBe(32);
@@ -251,17 +250,18 @@ describe("view rendering", () => {
 
 	test("a hard-wrapped link is styled on every wrapped row", () => {
 		const content =
-			"pre \\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text post\nother";
+			"pre \\a0{https://example.com}Very_Long_Link_Text\\a1 post\nother";
 		const { editor, viewport, frame, cell, text } = harness(20, content);
 
 		editor.placeCursor(new Pos(1, 0));
 		frame();
 		frame();
 
-		const link = editor.layout.links()[0]!;
-		const line = editor.layout.grid(link.line);
-		const spans = line.spansFor(link.index, link.index + 19);
-		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+		const anchor = editor.layout.links()[0]!;
+		const link = anchor.link;
+		const line = editor.layout.grid(anchor.line);
+		const spans = [...line.spansFor(link.start, link.end)];
+		const line_screen_row = (editor.layout.firstRowOfLine[anchor.line] ?? 0) - viewport.top;
 
 		expect(spans.length).toBeGreaterThan(1);
 
@@ -278,19 +278,20 @@ describe("view rendering", () => {
 
 	test("a tab before a hard-wrapped link keeps spans aligned", () => {
 		const content =
-			"x\t\\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text tail\nother";
+			"x\t\\a0{https://example.com}Very_Long_Link_Text\\a1 tail\nother";
 		const { editor, viewport, frame, cell } = harness(20, content);
 
 		editor.placeCursor(new Pos(1, 0));
 		frame();
 		frame();
 
-		const link = editor.layout.links()[0]!;
-		const line = editor.layout.grid(link.line);
-		const spans = line.spansFor(link.index, link.index + 19);
-		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+		const anchor = editor.layout.links()[0]!;
+		const link = anchor.link;
+		const line = editor.layout.grid(anchor.line);
+		const spans = line.spansFor(link.start, link.end);
+		const line_screen_row = (editor.layout.firstRowOfLine[anchor.line] ?? 0) - viewport.top;
 
-		expect(spans).toEqual([
+		expect([...spans]).toEqual([
 			{ row: 0, from: 8, to: 20 },
 			{ row: 1, from: 0, to: 7 },
 		]);
@@ -305,18 +306,19 @@ describe("view rendering", () => {
 
 	test("hover and click work on a wrapped link's continuation row", () => {
 		const content =
-			"pre \\a0{Very_Long_Link_Text|https://example.com}Very_Long_Link_Text post\nother";
+			"pre \\a0{https://example.com}Very_Long_Link_Text\\a1 post\nother";
 		const { editor, host, canvas, viewport, terminal, frame, cell } = harness(20, content);
 
 		editor.placeCursor(new Pos(1, 0));
 		frame();
 		frame();
 
-		const link = editor.layout.links()[0]!;
-		const line = editor.layout.grid(link.line);
-		const spans = line.spansFor(link.index, link.index + 19);
+		const anchor = editor.layout.links()[0]!;
+		const link = anchor.link;
+		const line = editor.layout.grid(anchor.line);
+		const spans = [...line.spansFor(link.start, link.end)];
 		const span = spans[spans.length - 1]!;
-		const line_screen_row = (editor.layout.firstRowOfLine[link.line] ?? 0) - viewport.top;
+		const line_screen_row = (editor.layout.firstRowOfLine[anchor.line] ?? 0) - viewport.top;
 		const row = line_screen_row + span.row;
 		const col = 2 + span.from;
 		const point = pointAtCell(host, canvas, row, col);
@@ -346,18 +348,18 @@ describe("view rendering", () => {
 
 	test("identical links on one line keep independent hover state", () => {
 		const content =
-			"\\a0{Same|https://example.com}Same and \\a0{Same|https://example.com}Same\nother";
+			"\\a0{https://example.com}Same\\a1 and \\a0{https://example.com}Same\\a1\nother";
 		const { editor, host, canvas, viewport, frame, cell } = harness(20, content);
 
 		editor.placeCursor(new Pos(1, 0));
 		frame();
 		frame();
 
-		const links = editor.layout.links();
-		const line = editor.layout.grid(links[0]!.line);
-		const first_spans = line.spansFor(links[0]!.index, links[0]!.index + 4);
-		const second_spans = line.spansFor(links[1]!.index, links[1]!.index + 4);
-		const line_screen_row = (editor.layout.firstRowOfLine[links[0]!.line] ?? 0) - viewport.top;
+		const anchors = editor.layout.links();
+		const line = editor.layout.grid(anchors[0]!.line);
+		const first_spans = [...line.spansFor(anchors[0]!.link.start, anchors[0]!.link.end)];
+		const second_spans = [...line.spansFor(anchors[1]!.link.start, anchors[1]!.link.end)];
+		const line_screen_row = (editor.layout.firstRowOfLine[anchors[0]!.line] ?? 0) - viewport.top;
 		const second = second_spans[0]!;
 
 		host.pointerAtCell(line_screen_row + second.row, 2 + second.from, canvas.rows, canvas.cols);
@@ -381,17 +383,20 @@ describe("view rendering", () => {
 		const opened: string[] = [];
 		(globalThis as { window: unknown }).window = { open: (url: string) => opened.push(url) };
 
-		const link = editor.layout.links()[0]!;
-		const link_display_row = (editor.layout.firstRowOfLine[link.line] ?? 0) + link.row_in_line;
+		const anchor = editor.layout.links()[0]!;
+		const line = editor.layout.grid(anchor.line);
+		const spans = [...line.spansFor(anchor.link.start, anchor.link.end)];
+		const first_span = spans[0]!;
+		const link_display_row = (editor.layout.firstRowOfLine[anchor.line] ?? 0) + first_span.row;
 
 		// cursor away from the link's line, so the line renders as links
-		editor.placeCursor(new Pos(link.line + 5, 0));
+		editor.placeCursor(new Pos(anchor.line + 5, 0));
 		frame();
 		frame();
 
 		// press and release on the link's screen cell
 		const row = link_display_row - viewport.top;
-		const col = link.col + 2;
+		const col = first_span.from + 2;
 		const point = pointAtCell(host, canvas, row, col);
 
 		host.pointerAtCell(row, col, canvas.rows, canvas.cols);
@@ -404,6 +409,6 @@ describe("view rendering", () => {
 		input.placeClick();
 
 		expect(opened).toEqual(["https://github.com/micahdbak"]);
-		expect(editor.cursor.pos.line).toBe(link.line);
+		expect(editor.cursor.pos.line).toBe(anchor.line);
 	});
 });
