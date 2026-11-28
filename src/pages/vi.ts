@@ -10,8 +10,8 @@ export function vi_page() {
 
 	try {
 		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
-		// the content file carries a title and separator for the static
-		// fallback; the document is everything below them
+		canvas.focus();
+
 		const raw = CONTENT as string;
 		const first_nl = raw.indexOf("\n");
 		const second_nl = first_nl + 1 + raw.slice(first_nl + 1, -1).indexOf("\n");

@@ -92,7 +92,9 @@ describe("keyboard", () => {
 
 describe("tab", () => {
 	test("tab is captured so the browser keeps focus", () => {
-		const { press } = harness("abc");
+		const { host, press } = harness("abc");
+
+		host.focus();
 
 		const prevented = press("Tab");
 
@@ -101,8 +103,9 @@ describe("tab", () => {
 	});
 
 	test("tab inserts a real tab in insert mode", () => {
-		const { editor, press } = harness("abc");
+		const { editor, host, press } = harness("abc");
 
+		host.focus();
 		editor.key("i");
 		press("Tab");
 
@@ -110,7 +113,9 @@ describe("tab", () => {
 	});
 
 	test("tab is ignored in normal mode", () => {
-		const { editor, press } = harness("abc");
+		const { editor, host, press } = harness("abc");
+
+		host.focus();
 
 		press("Tab");
 

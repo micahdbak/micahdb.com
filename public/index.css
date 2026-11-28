@@ -56,6 +56,11 @@ body.pointer {
 	-webkit-user-select: none;
 }
 
+/* the canvas takes focus for the keyboard; no visible focus ring */
+#webgl:focus {
+	outline: none;
+}
+
 .hidden {
 	display: none;
 }
