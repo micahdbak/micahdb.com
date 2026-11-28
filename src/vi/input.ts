@@ -64,7 +64,7 @@ export class Input {
 
 	// polled once per frame, before rendering
 	update(): void {
-		if (this.canvas.mouse_down) {
+		if (this.canvas.click.pressed()) {
 			this.stopMomentum();
 			this.updatePressed();
 			return;
@@ -73,10 +73,6 @@ export class Input {
 		if (this.dragging) {
 			this.dragging = false;
 			this.drag = null;
-			this.canvas.mouse_owner = "";
-
-			// a drag never activates a link
-			this.canvas.mouse_click = false;
 		}
 
 		this.coast();
@@ -94,30 +90,32 @@ export class Input {
 	 * line to its raw form and swallow the click
 	 */
 	placeClick(): void {
-		if (this.canvas.mouse_click) {
+		if (this.canvas.click.consume()) {
 			this.placeFromMouse();
 		}
 	}
 
 	private updatePressed(): void {
-		const { mouse_row, mouse_col, mouse_down_row, mouse_down_col } = this.canvas;
+		const click = this.canvas.click;
+		const { mouse_row, mouse_col } = this.canvas;
+		const { down_row, down_col } = click;
 		const positioned =
 			mouse_row !== undefined && mouse_col !== undefined
-			&& mouse_down_row !== undefined && mouse_down_col !== undefined;
+			&& down_row !== undefined && down_col !== undefined;
 
 		if (!positioned) {
 			return;
 		}
 
 		if (!this.dragging) {
-			const moved = mouse_row !== mouse_down_row || mouse_col !== mouse_down_col;
+			const moved = mouse_row !== down_row || mouse_col !== down_col;
 
 			// a drag claims the mouse only while nothing else owns it
-			if (!moved || this.canvas.mouse_owner !== "") {
+			if (!moved || click.owner !== "") {
 				return;
 			}
 
-			this.startDrag(mouse_down_row, mouse_down_col);
+			this.startDrag(down_row, down_col);
 		}
 
 		const drag = this.drag;
@@ -140,8 +138,11 @@ export class Input {
 	}
 
 	private startDrag(row: number, col: number): void {
+		if (!this.canvas.click.claim("vi")) {
+			return;
+		}
+
 		this.dragging = true;
-		this.canvas.mouse_owner = "vi";
 		this.drag = { start_row: row, start_top: this.viewport.top, last_row: row };
 
 		const anchor = this.screenToBuffer(row, col);
@@ -184,11 +185,13 @@ export class Input {
 	}
 
 	private placeFromMouse(): void {
-		if (this.canvas.mouse_row === undefined || this.canvas.mouse_col === undefined) {
+		const { row, col } = this.canvas.click;
+
+		if (row === undefined || col === undefined) {
 			return;
 		}
 
-		const position = this.screenToBuffer(this.canvas.mouse_row, this.canvas.mouse_col);
+		const position = this.screenToBuffer(row, col);
 
 		if (position !== null) {
 			this.editor.placeCursor(position);

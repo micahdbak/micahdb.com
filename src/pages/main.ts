@@ -40,7 +40,7 @@ export function main() {
 		terminal.clear();
 
 		const drawAndRequest = () => {
-			canvas.mouse_click = false;
+			canvas.click.clear();
 			terminal.draw();
 
 			if (canvas.class_name !== document.body.className) {

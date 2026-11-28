@@ -5,7 +5,7 @@ import { TorusVisuals } from "@/visuals/torus.ts";
 
 export function donut() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
-	const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
+	const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true, interactive: false });
 
 	const terminal = new tscon.Terminal(canvas);
 	const renderer = new tscon.Renderer(canvas);
@@ -57,7 +57,6 @@ export function donut() {
 		terminal.clear();
 		terminal.draw();
 
-		canvas.mouse_click = false;
 		requestAnimationFrame(loop);
 	};
 	loop();

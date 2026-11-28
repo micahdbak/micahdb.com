@@ -79,9 +79,11 @@ export class Link {
 		const canvas = terminal.canvas;
 		const spans = line.spansFor(this.start, this.end);
 		const hovered = this.inside(canvas.mouse_row, canvas.mouse_col, spans, origin);
-		const pressed = this.inside(canvas.mouse_down_row, canvas.mouse_down_col, spans, origin);
+		const click = canvas.click;
+		const pressed = this.inside(click.down_row, click.down_col, spans, origin);
+		const released = this.inside(click.row, click.col, spans, origin);
 
-		if (hovered && pressed && canvas.mouse_click) {
+		if (pressed && released && click.consume()) {
 			this.activate();
 		} else if (hovered) {
 			canvas.class_name = "pointer";

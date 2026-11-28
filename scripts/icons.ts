@@ -1,5 +1,5 @@
-// public/favicon.svg is the original; this rasterises it into the favicon
-// PNGs, the .ico beside them, and the social preview image
+// Draws the favicons and social preview from the site's JetBrains Mono font,
+// with white text on a [rounded (favicons)] black background
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -17,15 +17,7 @@ type Point = readonly [number, number];
 
 type Segment =
 	| { readonly kind: "line"; readonly to: Point }
-	| { readonly kind: "quad"; readonly control: Point; readonly to: Point }
-	| {
-			readonly kind: "cubic";
-			readonly control1: Point;
-			readonly control2: Point;
-			readonly to: Point;
-	  };
-
-type Cubic = Extract<Segment, { readonly kind: "cubic" }>;
+	| { readonly kind: "quad"; readonly control: Point; readonly to: Point };
 
 interface Contour {
 	readonly start: Point;
@@ -39,8 +31,28 @@ interface Box {
 	readonly height: number;
 }
 
+interface FontPoint {
+	readonly x: number;
+	readonly y: number;
+	readonly on: boolean;
+}
+
+interface Glyph {
+	readonly contours: readonly Contour[];
+	readonly advance: number;
+}
+
+interface Icon {
+	readonly polylines: readonly Point[][];
+	readonly bounds: Box;
+}
+
 const OUTPUT_DIR = "build";
-const SVG_PATH = join("public", "favicon.svg");
+const FONT_PATH = join("public", "fonts", "JetBrainsMono-Regular.ttf");
+
+const PLATE_RADIUS = 0.156; // as a share of the plate's width
+const BACKGROUND: Colour = [0x00, 0x00, 0x00];
+const FOREGROUND: Colour = [0xff, 0xff, 0xff];
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
@@ -48,253 +60,252 @@ const OG_ICON_SIZE = 512;
 
 const FLATTEN_STEPS = 8;
 
-const OUTPUTS = [
+const FAVICON_OUTPUTS = [
 	{ size: 16, file: "favicon-16.png", ico: true },
 	{ size: 32, file: "favicon-32.png", ico: true },
 	{ size: 48, file: "favicon-48.png", ico: true },
 	{ size: 180, file: "apple-touch-icon.png", ico: false },
 ];
 
-// the attributes of the one tag named `name`, as written in the svg
-function element(svg: string, name: string): Map<string, string> {
-	const tag = svg.match(new RegExp(`<${name}\\b[^>]*>`));
-	const attributes = new Map<string, string>();
+function fontTable(font: DataView, name: string): DataView {
+	for (let i = 0, count = font.getUint16(4); i < count; i++) {
+		const record = 12 + i * 16;
+		const tag = String.fromCharCode(...[0, 1, 2, 3].map((at) => font.getUint8(record + at)));
 
-	if (tag === null) {
-		throw new Error(`the svg has no <${name}> element`);
+		if (tag === name) {
+			const offset = font.getUint32(record + 8);
+			const length = font.getUint32(record + 12);
+
+			return new DataView(font.buffer, font.byteOffset + offset, length);
+		}
 	}
 
-	for (const [, key = "", value = ""] of tag[0].matchAll(/([a-zA-Z-]+)="([^"]*)"/g)) {
-		attributes.set(key, value);
-	}
-
-	return attributes;
+	throw new Error(`the font has no ${name} table`);
 }
 
-function measure(attributes: Map<string, string>, name: string, fallback?: number): number {
-	const text = attributes.get(name);
+// the font's unicode-to-glyph subtable; format 4 covers every drawn character
+function unicodeCmap(cmap: DataView): DataView {
+	for (let i = 0, count = cmap.getUint16(2); i < count; i++) {
+		const record = 4 + i * 8;
+		const platform = cmap.getUint16(record);
+		const encoding = cmap.getUint16(record + 2);
+		const subtable = new DataView(cmap.buffer, cmap.byteOffset + cmap.getUint32(record + 4));
 
-	if (text === undefined) {
-		if (fallback !== undefined) {
-			return fallback;
+		if ((platform === 0 || (platform === 3 && encoding === 1)) && subtable.getUint16(0) === 4) {
+			return subtable;
+		}
+	}
+
+	throw new Error("the font has no unicode cmap in format 4");
+}
+
+function glyphIndex(cmap: DataView, code: number): number {
+	const segments = cmap.getUint16(6) / 2;
+	const ends = 14;
+	const starts = ends + segments * 2 + 2;
+	const deltas = starts + segments * 2;
+	const ranges = deltas + segments * 2;
+
+	for (let i = 0; i < segments; i++) {
+		if (code > cmap.getUint16(ends + i * 2)) {
+			continue;
 		}
 
-		throw new Error(`an svg element is missing its ${name} attribute`);
+		const start = cmap.getUint16(starts + i * 2);
+
+		if (code < start) {
+			return 0;
+		}
+
+		const delta = cmap.getInt16(deltas + i * 2);
+		const range = cmap.getUint16(ranges + i * 2);
+
+		if (range === 0) {
+			return (code + delta) & 0xffff;
+		}
+
+		const at = ranges + i * 2 + range + (code - start) * 2;
+		const glyph = at + 2 <= cmap.byteLength ? cmap.getUint16(at) : 0;
+
+		return glyph === 0 ? 0 : (glyph + delta) & 0xffff;
 	}
 
-	const value = Number(text);
-
-	if (Number.isNaN(value)) {
-		throw new Error(`the svg attribute ${name}="${text}" is not a number`);
-	}
-
-	return value;
+	return 0;
 }
 
-function colour(attributes: Map<string, string>): Colour {
-	const fill = attributes.get("fill") ?? "#000000";
+// flags arrive in runs, and each coordinate is a delta from the one before
+function glyphPoints(glyph: DataView, ends: readonly number[]): FontPoint[] {
+	const flags: number[] = [];
+	const point_count = ends[ends.length - 1]! + 1;
+	let at = 10 + ends.length * 2;
 
-	if (fill === "none") {
-		throw new Error("an svg element has no fill to rasterise");
-	}
+	at += 2 + glyph.getUint16(at);
 
-	const digits = fill.replace(/^#/, "");
-	const full = digits.length === 3 ? [...digits].map((digit) => digit + digit).join("") : digits;
-
-	if (!/^[0-9a-f]{6}$/i.test(full)) {
-		throw new Error(`the svg colour ${fill} is not a #rgb or #rrggbb value`);
-	}
-
-	return [
-		Number.parseInt(full.slice(0, 2), 16),
-		Number.parseInt(full.slice(2, 4), 16),
-		Number.parseInt(full.slice(4, 6), 16),
-	];
-}
-
-function viewBox(attributes: Map<string, string>): Box {
-	const text = attributes.get("viewBox");
-	const values = text?.trim().split(/[\s,]+/).map(Number) ?? [];
-
-	if (values.length !== 4 || values.some((value) => Number.isNaN(value))) {
-		throw new Error(`the svg viewBox ${text} is not four numbers`);
-	}
-
-	const [x, y, width, height] = values as [number, number, number, number];
-
-	if (width !== height) {
-		throw new Error("the svg viewBox has to be square");
-	}
-
-	return { x, y, width, height };
-}
-
-// `m`/`l` and their relatives; `a` (arcs) is the one command left out
-function parsePath(d: string): Contour[] {
-	const tokens = d.match(/[a-zA-Z]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?/g);
-
-	if (tokens === null) {
-		throw new Error("the svg path holds no commands");
-	}
-
-	const contours: Contour[] = [];
-
-	let at = 0;
-	let command = "";
-	let current: Point = [0, 0];
-	let origin: Point = [0, 0];
-	let segments: Segment[] = [];
-	let control: Point | null = null;
-
-	const number = (): number => {
-		const token = tokens[at];
+	while (flags.length < point_count) {
+		const flag = glyph.getUint8(at);
 
 		at += 1;
+		flags.push(flag);
 
-		if (token === undefined) {
-			throw new Error("the svg path ends part-way through a command");
-		}
+		if ((flag & 0x08) !== 0) {
+			const repeat = glyph.getUint8(at);
 
-		const value = Number(token);
-
-		if (Number.isNaN(value)) {
-			throw new Error(`the svg path wants a number where ${token} appears`);
-		}
-
-		return value;
-	};
-
-	const point = (relative: boolean): Point => {
-		const x = number();
-		const y = number();
-
-		return relative ? [current[0] + x, current[1] + y] : [x, y];
-	};
-
-	const add = (segment: Segment): void => {
-		segments.push(segment);
-		current = segment.to;
-
-		if (segment.kind === "quad") {
-			control = segment.control;
-		} else if (segment.kind === "cubic") {
-			control = segment.control2;
-		} else {
-			control = null;
-		}
-	};
-
-	const close = (): void => {
-		if (segments.length > 0) {
-			contours.push({ start: origin, segments });
-			segments = [];
-		}
-	};
-
-	while (at < tokens.length) {
-		const token = tokens[at]!;
-
-		if (/[a-zA-Z]/.test(token)) {
-			command = token;
 			at += 1;
-		} else if (command === "") {
-			throw new Error("the svg path has coordinates before any command");
-		}
 
-		const kind = command.toUpperCase();
-		const relative = command !== kind;
-
-		switch (kind) {
-			case "M": {
-				close();
-				origin = point(relative);
-				current = origin;
-				command = relative ? "l" : "L";
-				control = null;
-
-				break;
-			}
-
-			case "L": {
-				add({ kind: "line", to: point(relative) });
-
-				break;
-			}
-
-			case "H": {
-				const x = number();
-
-				add({ kind: "line", to: [relative ? current[0] + x : x, current[1]] });
-
-				break;
-			}
-
-			case "V": {
-				const y = number();
-
-				add({ kind: "line", to: [current[0], relative ? current[1] + y : y] });
-
-				break;
-			}
-
-			case "C": {
-				const control1 = point(relative);
-				const control2 = point(relative);
-
-				add({ kind: "cubic", control1, control2, to: point(relative) });
-
-				break;
-			}
-
-			case "S": {
-				const control2 = point(relative);
-
-				add({ kind: "cubic", control1: reflect(control, current), control2, to: point(relative) });
-
-				break;
-			}
-
-			case "Q": {
-				const handle = point(relative);
-
-				add({ kind: "quad", control: handle, to: point(relative) });
-
-				break;
-			}
-
-			case "T": {
-				add({ kind: "quad", control: reflect(control, current), to: point(relative) });
-
-				break;
-			}
-
-			case "Z": {
-				close();
-				current = origin;
-				command = "";
-				control = null;
-
-				break;
-			}
-
-			default: {
-				throw new Error(`the svg path command ${command} is not supported`);
+			for (let i = 0; i <= repeat; i++) {
+				flags.push(flag);
 			}
 		}
 	}
 
-	close();
+	const [xs, after_x] = axis(glyph, flags, 0x02, 0x10, at);
+	const [ys] = axis(glyph, flags, 0x04, 0x20, after_x);
+
+	return flags.map((flag, i) => ({ x: xs[i]!, y: ys[i]!, on: (flag & 0x01) !== 0 }));
+}
+
+// one axis of point coordinates; all the x deltas precede all the y deltas
+function axis(
+	glyph: DataView,
+	flags: readonly number[],
+	short: number,
+	same: number,
+	at: number
+): [number[], number] {
+	const values: number[] = [];
+
+	let value = 0;
+
+	for (const flag of flags) {
+		if ((flag & short) !== 0) {
+			value += glyph.getUint8(at) * (flag & same ? 1 : -1);
+			at += 1;
+		} else if ((flag & same) === 0) {
+			value += glyph.getInt16(at);
+			at += 2;
+		}
+
+		values.push(value);
+	}
+
+	return [values, at];
+}
+
+function locaOffsets(loca: DataView, long_offsets: boolean): number[] {
+	const size = long_offsets ? 4 : 2;
+
+	return Array.from({ length: loca.byteLength / size }, (_, i) => {
+		return long_offsets ? loca.getUint32(i * 4) : loca.getUint16(i * 2) * 2;
+	});
+}
+
+function glyphContours(glyf: DataView, offsets: readonly number[], index: number): Contour[] {
+	const start = offsets[index]!;
+	const end = offsets[index + 1]!;
+
+	if (end <= start) {
+		return [];
+	}
+
+	const glyph = new DataView(glyf.buffer, glyf.byteOffset + start, end - start);
+	const count = glyph.getInt16(0);
+
+	if (count <= 0) {
+		return []; // composite glyphs are not among the drawn characters
+	}
+
+	const ends = Array.from({ length: count }, (_, i) => glyph.getUint16(10 + i * 2));
+	const points = glyphPoints(glyph, ends);
+	const contours: Contour[] = [];
+
+	let from = 0;
+
+	for (const to of ends) {
+		const contour = contourFrom(points.slice(from, to + 1));
+
+		from = to + 1;
+
+		if (contour !== null) {
+			contours.push(contour);
+		}
+	}
 
 	return contours;
 }
 
-// the control point an S or T continues from, mirrored through the current point
-function reflect(control: Point | null, current: Point): Point {
-	if (control === null) {
-		return current;
+// the quadratic outline of one loop, filling in the points TrueType implies
+// between two consecutive off-curve points
+function contourFrom(points: readonly FontPoint[]): Contour | null {
+	if (points.length === 0) {
+		return null;
 	}
 
-	return [2 * current[0] - control[0], 2 * current[1] - control[1]];
+	const first = points[0]!;
+	const last = points[points.length - 1]!;
+
+	let start: Point;
+	let rest: readonly FontPoint[];
+
+	if (first.on) {
+		start = [first.x, first.y];
+		rest = points.slice(1);
+	} else if (last.on) {
+		start = [last.x, last.y];
+		rest = points.slice(0, -1);
+	} else {
+		start = midpoint([last.x, last.y], [first.x, first.y]);
+		rest = points;
+	}
+
+	const segments: Segment[] = [];
+
+	let control: Point | null = null;
+
+	for (const point of rest) {
+		const to: Point = [point.x, point.y];
+
+		if (!point.on) {
+			if (control !== null) {
+				segments.push({ kind: "quad", control, to: midpoint(control, to) });
+			}
+
+			control = to;
+		} else if (control !== null) {
+			segments.push({ kind: "quad", control, to });
+			control = null;
+		} else {
+			segments.push({ kind: "line", to });
+		}
+	}
+
+	if (control !== null) {
+		segments.push({ kind: "quad", control, to: start });
+	}
+
+	return { start, segments };
+}
+
+function readFont(path: string, text: string): ReadonlyMap<string, Glyph> {
+	const bytes = readFileSync(path);
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+	const cmap = unicodeCmap(fontTable(view, "cmap"));
+	const glyf = fontTable(view, "glyf");
+	const long_offsets = fontTable(view, "head").getInt16(50) === 1;
+	const offsets = locaOffsets(fontTable(view, "loca"), long_offsets);
+	const hmtx = fontTable(view, "hmtx");
+	const metric_count = fontTable(view, "hhea").getUint16(34);
+	const glyphs = new Map<string, Glyph>();
+
+	for (const char of text) {
+		const index = glyphIndex(cmap, char.codePointAt(0)!);
+
+		glyphs.set(char, {
+			contours: glyphContours(glyf, offsets, index),
+			advance: hmtx.getUint16(Math.min(index, metric_count - 1) * 4),
+		});
+	}
+
+	return glyphs;
 }
 
 function contourToPolyline({ start, segments }: Contour, steps: number): Point[] {
@@ -307,14 +318,7 @@ function contourToPolyline({ start, segments }: Contour, steps: number): Point[]
 			points.push(segment.to);
 		} else {
 			for (let i = 1; i <= steps; i++) {
-				const t = i / steps;
-				const u = 1 - t;
-
-				points.push(
-					segment.kind === "quad"
-						? quadAt(from, segment.control, segment.to, u, t)
-						: cubicAt(from, segment, u, t)
-				);
+				points.push(quadAt(from, segment.control, segment.to, i / steps));
 			}
 		}
 
@@ -324,83 +328,94 @@ function contourToPolyline({ start, segments }: Contour, steps: number): Point[]
 	return points;
 }
 
-function quadAt(from: Point, control: Point, to: Point, u: number, t: number): Point {
+function quadAt(from: Point, control: Point, to: Point, t: number): Point {
+	const u = 1 - t;
+
 	return [
 		u * u * from[0] + 2 * u * t * control[0] + t * t * to[0],
 		u * u * from[1] + 2 * u * t * control[1] + t * t * to[1],
 	];
 }
 
-function cubicAt(from: Point, { control1, control2, to }: Cubic, u: number, t: number): Point {
-	const a = u * u * u;
-	const b = 3 * u * u * t;
-	const c = 3 * u * t * t;
-	const d = t * t * t;
-
-	return [
-		a * from[0] + b * control1[0] + c * control2[0] + d * to[0],
-		a * from[1] + b * control1[1] + c * control2[1] + d * to[1],
-	];
+function midpoint(a: Point, b: Point): Point {
+	return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 }
 
-function readIcon() {
-	const svg = readFileSync(SVG_PATH, "utf8");
-	const view = viewBox(element(svg, "svg"));
-	const rect = element(svg, "rect");
-	const path = element(svg, "path");
-	const data = path.get("d");
+function boundingBox(points: readonly Point[]): Box {
+	const xs = points.map(([x]) => x);
+	const ys = points.map(([, y]) => y);
+	const x = Math.min(...xs);
+	const y = Math.min(...ys);
 
-	if (data === undefined) {
-		throw new Error("the svg <path> is missing its d attribute");
+	return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+}
+
+// every glyph's loops, in font units and along one baseline
+function glyphPolylines(font: ReadonlyMap<string, Glyph>, text: string): Point[][] {
+	const polylines: Point[][] = [];
+
+	let pen = 0;
+
+	for (const char of text) {
+		const glyph = font.get(char);
+
+		if (glyph === undefined) {
+			throw new Error(`the font has no glyph for ${char}`);
+		}
+
+		for (const contour of glyph.contours) {
+			const polyline = contourToPolyline(contour, FLATTEN_STEPS).map(([x, y]): Point => {
+				return [x + pen, y];
+			});
+
+			polylines.push(polyline);
+		}
+
+		pen += glyph.advance;
 	}
 
-	const polylines = parsePath(data).map((contour) => contourToPolyline(contour, FLATTEN_STEPS));
-	const points = polylines.flat();
-
-	return {
-		view,
-		plate: {
-			x: measure(rect, "x", 0),
-			y: measure(rect, "y", 0),
-			width: measure(rect, "width"),
-			height: measure(rect, "height"),
-			radius: measure(rect, "rx", 0),
-		},
-		background: colour(rect),
-		foreground: colour(path),
-		polylines,
-		x_min: Math.min(...points.map(([x]) => x)),
-		x_max: Math.max(...points.map(([x]) => x)),
-		y_min: Math.min(...points.map(([, y]) => y)),
-		y_max: Math.max(...points.map(([, y]) => y)),
-	};
+	return polylines;
 }
 
-const ICON = readIcon();
+function readIcon(text: string, text_width: number): Icon {
+	const polylines = glyphPolylines(readFont(FONT_PATH, text), text);
+	const ink = boundingBox(polylines.flat());
+	const scale = text_width / ink.width;
+	const centre: Point = [ink.x + ink.width / 2, ink.y + ink.height / 2];
+
+	// font units are y-up, the plate is a unit square with y running down
+	const placed = polylines.map((polyline) =>
+		polyline.map(([x, y]): Point => {
+			return [0.5 + (x - centre[0]) * scale, 0.5 - (y - centre[1]) * scale];
+		})
+	);
+
+	return { polylines: placed, bounds: boundingBox(placed.flat()) };
+}
+
+// a lone ">" stays legible in a tab, where "mdb>" turns to mush
+const FAVICON = readIcon(">", 0.46);
+const PREVIEW = readIcon("mdb>", 0.84);
 
 // distance to the plate's rounded rectangle, negative inside it
 function plateDistance(x: number, y: number): number {
-	const plate = ICON.plate;
-	const half_width = plate.width / 2;
-	const half_height = plate.height / 2;
-	const inner_x = Math.max(half_width - plate.radius, 0);
-	const inner_y = Math.max(half_height - plate.radius, 0);
-	const qx = Math.abs(x - (plate.x + half_width)) - inner_x;
-	const qy = Math.abs(y - (plate.y + half_height)) - inner_y;
+	const inner = 0.5 - PLATE_RADIUS;
+	const qx = Math.abs(x - 0.5) - inner;
+	const qy = Math.abs(y - 0.5) - inner;
 	const outside = Math.hypot(Math.max(qx, 0), Math.max(qy, 0));
 
-	return outside + Math.min(Math.max(qx, qy), 0) - plate.radius;
+	return outside + Math.min(Math.max(qx, qy), 0) - PLATE_RADIUS;
 }
 
 function coverage(distance: number, units_per_pixel: number): number {
 	return Math.min(Math.max(0.5 - distance / units_per_pixel, 0), 1);
 }
 
-// the non-zero winding number of the closed polylines around the point
-function winding(x: number, y: number): number {
+// the non-zero winding fill rule
+function winding(icon: Icon, x: number, y: number): number {
 	let total = 0;
 
-	for (const polyline of ICON.polylines) {
+	for (const polyline of icon.polylines) {
 		for (let i = 0; i < polyline.length; i++) {
 			const a = polyline[i]!;
 			const b = polyline[(i + 1) % polyline.length]!;
@@ -420,12 +435,14 @@ function winding(x: number, y: number): number {
 	return total;
 }
 
-function insideFill(x: number, y: number): boolean {
-	if (x < ICON.x_min || x > ICON.x_max || y < ICON.y_min || y > ICON.y_max) {
+function insideFill(icon: Icon, x: number, y: number): boolean {
+	const { x: left, y: top, width, height } = icon.bounds;
+
+	if (x < left || x > left + width || y < top || y > top + height) {
 		return false;
 	}
 
-	return winding(x, y) !== 0;
+	return winding(icon, x, y) !== 0;
 }
 
 // the tab-sized icons are the ones on screen, so they get the finer sampling
@@ -437,15 +454,21 @@ function sampleCount(size: number): number {
 	return size <= 64 ? 8 : 4;
 }
 
-function inkCoverage(col: number, row: number, samples: number, units_per_pixel: number): number {
+function inkCoverage(
+	icon: Icon,
+	col: number,
+	row: number,
+	samples: number,
+	units_per_pixel: number
+): number {
 	let hits = 0;
 
 	for (let sy = 0; sy < samples; sy++) {
 		for (let sx = 0; sx < samples; sx++) {
-			const x = ICON.view.x + (col + (sx + 0.5) / samples) * units_per_pixel;
-			const y = ICON.view.y + (row + (sy + 0.5) / samples) * units_per_pixel;
+			const x = (col + (sx + 0.5) / samples) * units_per_pixel;
+			const y = (row + (sy + 0.5) / samples) * units_per_pixel;
 
-			if (insideFill(x, y)) {
+			if (insideFill(icon, x, y)) {
 				hits += 1;
 			}
 		}
@@ -454,27 +477,27 @@ function inkCoverage(col: number, row: number, samples: number, units_per_pixel:
 	return hits / (samples * samples);
 }
 
-function renderIcon(size: number): Raster {
-	const units_per_pixel = ICON.view.width / size;
+function renderIcon(icon: Icon, size: number): Raster {
+	const units_per_pixel = 1 / size;
 	const samples = sampleCount(size);
 	const pixels = new Uint8Array(size * size * 4);
 
 	for (let row = 0; row < size; row++) {
 		for (let col = 0; col < size; col++) {
-			const x = ICON.view.x + (col + 0.5) * units_per_pixel;
-			const y = ICON.view.y + (row + 0.5) * units_per_pixel;
+			const x = (col + 0.5) * units_per_pixel;
+			const y = (row + 0.5) * units_per_pixel;
 			const plate = coverage(plateDistance(x, y), units_per_pixel);
 
 			if (plate === 0) {
 				continue;
 			}
 
-			const ink = inkCoverage(col, row, samples, units_per_pixel);
+			const ink = inkCoverage(icon, col, row, samples, units_per_pixel);
 			const offset = (row * size + col) * 4;
 
 			for (let channel = 0; channel < 3; channel++) {
-				const background = ICON.background[channel]!;
-				const foreground = ICON.foreground[channel]!;
+				const background = BACKGROUND[channel]!;
+				const foreground = FOREGROUND[channel]!;
 
 				pixels[offset + channel] = Math.round(background + (foreground - background) * ink);
 			}
@@ -489,7 +512,7 @@ function renderIcon(size: number): Raster {
 // the icon centred on a black card, for link previews
 function renderOg(): Raster {
 	const pixels = new Uint8Array(OG_WIDTH * OG_HEIGHT * 4);
-	const icon = renderIcon(OG_ICON_SIZE);
+	const icon = renderIcon(PREVIEW, OG_ICON_SIZE);
 	const left = Math.floor((OG_WIDTH - icon.width) / 2);
 	const top = Math.floor((OG_HEIGHT - icon.height) / 2);
 
@@ -621,7 +644,9 @@ function main() {
 	mkdirSync(OUTPUT_DIR, { recursive: true });
 	mkdirSync(join(OUTPUT_DIR, "images"), { recursive: true });
 
-	const pngs = OUTPUTS.map((output) => ({ ...output, png: encodePng(renderIcon(output.size)) }));
+	const pngs = FAVICON_OUTPUTS.map((output) => {
+		return { ...output, png: encodePng(renderIcon(FAVICON, output.size)) };
+	});
 
 	for (const { file, png } of pngs) {
 		const path = join(OUTPUT_DIR, file);

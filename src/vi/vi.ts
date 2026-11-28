@@ -135,7 +135,7 @@ export class Vi {
 			canvas.clear();
 			this.terminal.clear();
 			this.terminal.draw();
-			canvas.mouse_click = false;
+			canvas.click.clear();
 			requestAnimationFrame(this.frame);
 			return;
 		}
@@ -193,7 +193,7 @@ export class Vi {
 		 */
 		this.input.placeClick();
 
-		canvas.mouse_click = false;
+		canvas.click.clear();
 
 		if (canvas.class_name !== document.body.className) {
 			document.body.className = canvas.class_name;
