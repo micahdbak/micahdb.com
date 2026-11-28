@@ -6,11 +6,9 @@
   "scripts": {
     "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
-    "build:public": "mkdir -p build && cp -r ./public/* ./build",
-    "build:html": "bun run src/generate.ts",
-    "build:favicon": "bun run scripts/favicon.ts",
-    "build": "bun run typecheck && bun run build:favicon && bun run build:public && bun run build:html && bun build ./src/index.ts --minify --outdir ./build",
-    "dev": "bun run build:public && bun run build:html && bun build ./src/index.ts --outdir ./build --watch",
+    "build:public": "mkdir -p build && cp -r ./public/* ./build && bun run scripts/palette.ts && bun run scripts/icons.ts",
+    "build": "rm -rf build && bun run typecheck && bun run build:public && bun build ./src/index.ts --minify --outdir ./build",
+    "dev": "bun run build:public && bun build ./src/index.ts --outdir ./build --watch",
     "deploy": "bun run build && gh-pages -d build"
   },
   "dependencies": {

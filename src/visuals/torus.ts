@@ -36,9 +36,9 @@ export class TorusVisuals extends Visuals {
 		this.blinn_phong = new BlinnPhongIndicesProgram(gl, torusMesh(32, 24, 4, 1));
 
 		[this.texture, this.normal, this.roughness] = await Promise.all([
-			tscon.loadTexture(gl, "/images/texture.png"),
-			tscon.loadTexture(gl, "/images/normal.png"),
-			tscon.loadTexture(gl, "/images/roughness.png")
+			tscon.loadTexture(gl, "/images/torus/texture.png"),
+			tscon.loadTexture(gl, "/images/torus/normal.png"),
+			tscon.loadTexture(gl, "/images/torus/roughness.png")
 		]);
 
 		this.is_ready = true;

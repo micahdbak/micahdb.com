@@ -14,34 +14,18 @@ async function render() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	const raw = document.getElementById("raw") as HTMLElement;
-	const canvas = document.getElementById("webgl") as HTMLCanvasElement;
-	const gl = canvas.getContext("webgl2") as WebGL2RenderingContext;
-
-	if (gl) {
-		raw.className = "hidden";
-		canvas.className = "";
-	}
-
-	try {
-		switch (window.location.pathname) {
-			case "/donut.html":
-				donut();
-				break;
-			case "/vi.html":
-				vi_page();
-				break;
-			case "/tscon.html":
-				tscon_page();
-				break;
-			default:
-				main();
-				break;
-		}
-	} catch (e) {
-		console.log(e);
-
-		raw.className = "";
-		canvas.className = "hidden";
+	switch (window.location.pathname) {
+		case "/donut.html":
+			donut();
+			break;
+		case "/vi.html":
+			vi_page();
+			break;
+		case "/tscon.html":
+			tscon_page();
+			break;
+		default:
+			main();
+			break;
 	}
 }

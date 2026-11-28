@@ -1,7 +1,7 @@
-// public/favicon.svg is the original; this rasterises it into the PNGs and the
-// .ico beside it, for browsers that do not take SVG icons
+// public/favicon.svg is the original; this rasterises it into the favicon
+// PNGs, the .ico beside them, and the social preview image
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { deflateSync } from "node:zlib";
 
@@ -39,8 +39,12 @@ interface Box {
 	readonly height: number;
 }
 
-const OUTPUT_DIR = "public";
-const SVG_PATH = join(OUTPUT_DIR, "favicon.svg");
+const OUTPUT_DIR = "build";
+const SVG_PATH = join("public", "favicon.svg");
+
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
+const OG_ICON_SIZE = 512;
 
 const FLATTEN_STEPS = 8;
 
@@ -482,6 +486,38 @@ function renderIcon(size: number): Raster {
 	return { width: size, height: size, pixels };
 }
 
+// the icon centred on a black card, for link previews
+function renderOg(): Raster {
+	const pixels = new Uint8Array(OG_WIDTH * OG_HEIGHT * 4);
+	const icon = renderIcon(OG_ICON_SIZE);
+	const left = Math.floor((OG_WIDTH - icon.width) / 2);
+	const top = Math.floor((OG_HEIGHT - icon.height) / 2);
+
+	// the card is opaque black, so only the alpha needs setting
+	for (let i = 3; i < pixels.length; i += 4) {
+		pixels[i] = 255;
+	}
+
+	for (let row = 0; row < icon.height; row++) {
+		for (let col = 0; col < icon.width; col++) {
+			const from = (row * icon.width + col) * 4;
+			const alpha = icon.pixels[from + 3]! / 255;
+
+			if (alpha === 0) {
+				continue;
+			}
+
+			const to = ((row + top) * OG_WIDTH + col + left) * 4;
+
+			for (let channel = 0; channel < 3; channel++) {
+				pixels[to + channel] = Math.round(icon.pixels[from + channel]! * alpha);
+			}
+		}
+	}
+
+	return { width: OG_WIDTH, height: OG_HEIGHT, pixels };
+}
+
 const CRC_TABLE = new Uint32Array(
 	Array.from({ length: 256 }, (_, index) => {
 		let crc = index;
@@ -582,6 +618,9 @@ function encodeIco(entries: readonly { size: number; png: Uint8Array }[]): Uint8
 }
 
 function main() {
+	mkdirSync(OUTPUT_DIR, { recursive: true });
+	mkdirSync(join(OUTPUT_DIR, "images"), { recursive: true });
+
 	const pngs = OUTPUTS.map((output) => ({ ...output, png: encodePng(renderIcon(output.size)) }));
 
 	for (const { file, png } of pngs) {
@@ -595,6 +634,11 @@ function main() {
 
 	writeFileSync(ico_path, encodeIco(pngs.filter(({ ico }) => ico)));
 	console.log(`wrote ${ico_path}`);
+
+	const og_path = join(OUTPUT_DIR, "images", "og.png");
+
+	writeFileSync(og_path, encodePng(renderOg()));
+	console.log(`wrote ${og_path}`);
 }
 
 main();

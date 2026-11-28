@@ -30,20 +30,6 @@ body.pointer {
 	cursor: pointer;
 }
 
-#raw {
-	margin: 0;
-	padding: 0;
-}
-
-#raw pre {
-	font-family: "JetBrains Mono", monospace;
-	font-size: 14px;
-	line-height: 1.2;
-	margin: 0;
-	padding: 1rem;
-	white-space: pre;
-}
-
 #webgl {
 	position: fixed;
 	top: 0;
@@ -56,11 +42,6 @@ body.pointer {
 	-webkit-user-select: none;
 }
 
-/* the canvas takes focus for the keyboard; no visible focus ring */
 #webgl:focus {
 	outline: none;
-}
-
-.hidden {
-	display: none;
 }
