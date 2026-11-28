@@ -4,15 +4,15 @@
   "type": "module",
   "module": "src/index.ts",
   "scripts": {
-    "lint": "oxlint src",
+    "lint": "oxlint src scripts --import-plugin --promise-plugin --node-plugin",
     "typecheck": "tsc --noEmit",
-    "build:public": "mkdir -p build && cp -r ./public/* ./build && bun run scripts/palette.ts && bun run scripts/icons.ts",
+    "build:public": "mkdir -p build && cp -r ./public/* ./build && bun run scripts/css.ts && bun run scripts/icons.ts",
     "build": "rm -rf build && bun run typecheck && bun run build:public && bun build ./src/index.ts --minify --outdir ./build",
     "dev": "bun run build:public && bun build ./src/index.ts --outdir ./build --watch",
     "deploy": "bun run build && gh-pages -d build"
   },
   "dependencies": {
-    "@micahdb/tscon": "0.6.2"
+    "@micahdb/tscon": "0.6.3"
   },
   "devDependencies": {
     "@types/bun": "^1.4.3",

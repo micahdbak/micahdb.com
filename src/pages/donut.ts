@@ -5,90 +5,60 @@ import { TorusVisuals } from "@/visuals/torus.ts";
 
 export function donut() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
+	const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
 
-	try {
-		// initialize
+	const terminal = new tscon.Terminal(canvas);
+	const renderer = new tscon.Renderer(canvas);
 
-		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
-		const terminal = new tscon.Terminal(canvas);
-		const renderer = new tscon.Renderer(canvas);
+	let font: WebGLTexture | null = null;
+	const load_font = async () => {
+		font = await tscon.loadTexture(canvas.gl, "/images/font.png");
+	};
+	void load_font();
 
-		// font
+	const torus = new TorusVisuals(canvas);
+	void torus.init();
 
-		let font: WebGLTexture | null = null;
+	let tglyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
+	torus.resize(canvas.rows, canvas.cols);
 
-		const load_font = async () => {
-			font = await tscon.loadTexture(canvas.gl, "/images/font.png");
-		};
-		void load_font();
+	let resized = false;
+	canvas.addEventListener("resize", () => {
+		resized = true;
+	});
 
-		// visuals
-
-		const visuals = new TorusVisuals(canvas);
-		void visuals.init();
-
-		let visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
-		visuals.resize(canvas.rows, canvas.cols);
-
-		// main draw loop
-
-		let resized = false;
-
-		canvas.addEventListener("resize", () => {
-			resized = true;
-		});
-
-		const draw = () => {
-			// too small to render; just clear and return
-			if (canvas.rows < 8 || canvas.cols < 16) {
-				canvas.clear();
-				terminal.clear();
-				terminal.draw();
-				requestAnimationFrame(draw);
-				return;
-			}
-
-			if (resized) {
-				resized = false;
-
-				visuals_glyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
-				visuals.resize(canvas.rows, canvas.cols);
-			}
-
-			if (font !== null && canvas.user_font === null) {
-				canvas.user_font = font;
-				terminal.use_user_font = true;
-				renderer.use_user_font = true;
-			}
-
+	const loop = () => {
+		if (canvas.rows < 8 || canvas.cols < 16) {
 			canvas.clear();
-
-			// visuals
-
-			visuals.render();
-			renderer.draw(visuals_glyphs, visuals.render_target, {
-				row: 0,
-				col: 0,
-				rows: visuals_glyphs.rows,
-				cols: visuals_glyphs.cols
-			});
-
-			// content
-
 			terminal.clear();
 			terminal.draw();
+			requestAnimationFrame(loop);
+			return;
+		}
 
-			canvas.mouse_click = false;
+		if (resized) {
+			resized = false;
+			tglyphs = tscon.textureGlyphs(canvas.rows, canvas.cols, tscon.TexGlyphMode.BG_GLYPHS);
+			torus.resize(canvas.rows, canvas.cols);
+		}
 
-			if (canvas.class_name !== document.body.className) {
-				document.body.className = canvas.class_name;
-			}
+		if (font !== null && canvas.user_font === null) {
+			canvas.user_font = font;
+			terminal.use_user_font = true;
+			renderer.use_user_font = true;
+		}
 
-			requestAnimationFrame(draw);
-		};
+		canvas.clear();
 
-		requestAnimationFrame(draw);
-	} catch (err) {
-		console.error(err);
-	}
+		torus.render();
+		const trect = { row: 0, col: 0, rows: tglyphs.rows, cols: tglyphs.cols };
+		renderer.draw(tglyphs, torus.render_target, trect);
+
+		terminal.clear();
+		terminal.draw();
+
+		canvas.mouse_click = false;
+		requestAnimationFrame(loop);
+	};
+	loop();
 }

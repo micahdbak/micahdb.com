@@ -1,10 +1,5 @@
 import * as tscon from "@micahdb/tscon";
 
-/**
- * A link parsed from groups 0 and 1 of a compiled grid. The display text is
- * the source range from `start` (inclusive) to `end` (exclusive); drawing
- * recolours those cells and leaves their characters untouched.
- */
 export class Link {
 	readonly url: string;
 	readonly start: number;

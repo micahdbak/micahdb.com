@@ -1,39 +1,24 @@
 import * as tscon from "@micahdb/tscon";
 
-/** The normalised `[R, G, B]` of one palette entry, as the canvas holds it. */
-export function paletteColour(
-	canvas: tscon.Canvas,
-	colour: tscon.Colour
-): readonly [number, number, number] {
-	const offset = colour * 3;
-	const palette = canvas.palette;
+const VAGUE_COLOURS: readonly tscon.Rgb[] = [
+	[0x25, 0x25, 0x30], // tscon.Colour.BLACK
+	[0xd8, 0x64, 0x7e], // tscon.Colour.RED
+	[0x7f, 0xa5, 0x63], // tscon.Colour.GREEN
+	[0xf3, 0xbe, 0x7c], // tscon.Colour.ORANGE
+	[0x6e, 0x94, 0xb2], // tscon.Colour.BLUE
+	[0xbb, 0x9d, 0xbd], // tscon.Colour.MAGENTA
+	[0xae, 0xae, 0xd1], // tscon.Colour.CYAN
+	[0xcd, 0xcd, 0xcd], // tscon.Colour.GREY
+	[0x60, 0x60, 0x79], // tscon.Colour.BRIGHT_BLACK
+	[0xe0, 0x83, 0x98], // tscon.Colour.BRIGHT_RED
+	[0x99, 0xb7, 0x82], // tscon.Colour.BRIGHT_GREEN
+	[0xf5, 0xcb, 0x96], // tscon.Colour.YELLOW
+	[0x8b, 0xa9, 0xc1], // tscon.Colour.BRIGHT_BLUE
+	[0xc9, 0xb1, 0xca], // tscon.Colour.BRIGHT_MAGENTA
+	[0xbe, 0xbe, 0xda], // tscon.Colour.BRIGHT_CYAN
+	[0xd7, 0xd7, 0xd7], // tscon.Colour.WHITE
+	[0xcd, 0xcd, 0xcd], // tscon.Colour.FG
+	[0x14, 0x14, 0x15], // tscon.Colour.BG
+];
 
-	return [palette[offset]!, palette[offset + 1]!, palette[offset + 2]!];
-}
-
-/**
- * The site's terminal palette, taken from the `vague` Neovim colourscheme.
- *
- * Explicit black uses Vague's ruler colour. The last two entries use
- * its editor foreground and background.
- */
-export const PALETTE = new tscon.Palette([
-	tscon.DEFAULT_COLOURS[tscon.Colour.BLACK]!, // Vague line
-	[0xd8, 0x64, 0x7e], // Colour.RED           error
-	[0x7f, 0xa5, 0x63], // Colour.GREEN         plus
-	[0xf3, 0xbe, 0x7c], // Colour.ORANGE        warning
-	[0x6e, 0x94, 0xb2], // Colour.BLUE          keyword
-	[0xbb, 0x9d, 0xbd], // Colour.MAGENTA       parameter
-	[0xae, 0xae, 0xd1], // Colour.CYAN          constant
-	[0xcd, 0xcd, 0xcd], // Colour.GREY          fg
-	[0x60, 0x60, 0x79], // Colour.BRIGHT_BLACK  comment
-	[0xe0, 0x83, 0x98], // Colour.BRIGHT_RED
-	[0x99, 0xb7, 0x82], // Colour.BRIGHT_GREEN
-	[0xf5, 0xcb, 0x96], // Colour.YELLOW
-	[0x8b, 0xa9, 0xc1], // Colour.BRIGHT_BLUE
-	[0xc9, 0xb1, 0xca], // Colour.BRIGHT_MAGENTA
-	[0xbe, 0xbe, 0xda], // Colour.BRIGHT_CYAN
-	[0xf7, 0xf7, 0xf7], // Colour.WHITE
-	tscon.DEFAULT_COLOURS[tscon.Colour.FG]!,
-	tscon.DEFAULT_COLOURS[tscon.Colour.BG]!,
-]);
+export const PALETTE = new tscon.Palette(VAGUE_COLOURS);

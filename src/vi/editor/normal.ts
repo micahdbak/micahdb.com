@@ -83,14 +83,14 @@ export function moveDisplay(editor: Editor, count: number, down: boolean): void 
 	editor.cursor.pos = at;
 }
 
-const FIND_NAMES = ["f", "F", "t", "T"];
+const FIND_NAMES = new Set(["f", "F", "t", "T"]);
 
 /**
  * F/F/t/T record their target for ; and , -- as motions and as operator
  * targets alike
  */
 function recordCharSearch(editor: Editor, motion: MotionDescription): void {
-	if (!FIND_NAMES.includes(motion.name)) {
+	if (!FIND_NAMES.has(motion.name)) {
 		return;
 	}
 

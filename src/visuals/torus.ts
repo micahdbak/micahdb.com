@@ -5,9 +5,6 @@ import { torusMesh } from "./meshes/torus.ts";
 import { BlinnPhongIndicesProgram } from "./programs/blinn_phong_indices.ts";
 
 export class TorusVisuals extends Visuals {
-	// the light orbits the view axis, this far in front of the torus and
-	// this far off it, so the ring's far inner wall is never lit and no
-	// glow shows through the hole
 	static readonly LIGHT_RADIUS = 4.0;
 	static readonly LIGHT_DEPTH = 5.0;
 

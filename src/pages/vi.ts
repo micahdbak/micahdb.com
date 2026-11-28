@@ -7,23 +7,18 @@ import CONTENT from "./content/VI" with { type: "text" };
 
 export function vi_page() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
+	const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
+	canvas.focus();
 
-	try {
-		const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE, stretch: true });
-		canvas.focus();
+	const raw = CONTENT as string;
+	const first_nl = raw.indexOf("\n");
+	const second_nl = first_nl + 1 + raw.slice(first_nl + 1, -1).indexOf("\n");
+	const content = raw.slice(second_nl + 1, -1);
 
-		const raw = CONTENT as string;
-		const first_nl = raw.indexOf("\n");
-		const second_nl = first_nl + 1 + raw.slice(first_nl + 1, -1).indexOf("\n");
-		const content = raw.slice(second_nl + 1, -1);
-
-		new Vi({
-			canvas,
-			content,
-			filename: "VI",
-			font_path: "/images/font.png",
-		});
-	} catch (err) {
-		console.error(err);
-	}
+	new Vi({
+		canvas,
+		content,
+		filename: "VI",
+		font_path: "/images/font.png",
+	});
 }

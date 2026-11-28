@@ -9,6 +9,8 @@ import CONTENT from "./content/INDEX" with { type: "text" };
 export function main() {
 	const canvas_el = document.getElementById("webgl") as HTMLCanvasElement;
 	const canvas = tscon.Canvas.from(canvas_el, { palette: PALETTE });
+	canvas.focus();
+
 	const terminal = new tscon.Terminal(canvas);
 	const renderer = new tscon.Renderer(canvas);
 

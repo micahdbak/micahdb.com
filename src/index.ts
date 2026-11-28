@@ -14,18 +14,22 @@ async function render() {
 if (window.location.pathname === "/cp437.html") {
 	await render();
 } else {
-	switch (window.location.pathname) {
-		case "/donut.html":
-			donut();
-			break;
-		case "/vi.html":
-			vi_page();
-			break;
-		case "/tscon.html":
-			tscon_page();
-			break;
-		default:
-			main();
-			break;
+	try {
+		switch (window.location.pathname) {
+			case "/donut.html":
+				donut();
+				break;
+			case "/vi.html":
+				vi_page();
+				break;
+			case "/tscon.html":
+				tscon_page();
+				break;
+			default:
+				main();
+				break;
+		}
+	} catch (err) {
+		console.log(err);
 	}
 }

@@ -1,16 +1,9 @@
 import * as tscon from "@micahdb/tscon";
-import { paletteColour } from "@/palette.ts";
 
 import { Visuals } from "./visuals.ts";
 import { loadGLB } from "./meshes/gltf.ts";
 import { BlinnPhongIndicesProgram } from "./programs/blinn_phong_indices.ts";
 
-/*
- * Renders a glTF (.glb) model, uniformly scaled and recentered so its center
- * sits at the origin. The camera circles the model at a fixed distance,
- * elevated 30 degrees above the horizontal plane and pointed at the center
- * of the object.
- */
 export class ModelVisuals extends Visuals {
 	private readonly url: string;
 	private readonly texture_path: string;
@@ -35,7 +28,7 @@ export class ModelVisuals extends Visuals {
 		normal_path: string,
 		roughness_path: string
 	) {
-		super(canvas, paletteColour(canvas, tscon.Colour.BG));
+		super(canvas, canvas.paletteColour(tscon.Colour.BG));
 		this.url = url;
 		this.texture_path = texture_path;
 		this.normal_path = normal_path;
