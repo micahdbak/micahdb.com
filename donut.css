@@ -1,0 +1,41 @@
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+	font-display: block;
+}
+
+html {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: var(--bg);
+	color: var(--fg);
+	margin: 0;
+	padding: 0;
+}
+
+#webgl {
+	width: calc(var(--cell-width) * 40);
+	height: calc(var(--cell-height) * 20);
+	max-width: 100svw;
+	max-height: 100svh;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+#webgl:focus {
+	outline: none;
+}
+
+p {
+	font-family: "JetBrains Mono";
+	font-size: var(--cell-size);
+	line-height: var(--cell-height);
+	margin: 0;
+	padding: 0;
+}

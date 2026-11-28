@@ -1,19 +1,11 @@
-@font-face {
-	font-family: "JetBrains Mono";
-	src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
-	font-weight: normal;
-	font-style: normal;
-	font-display: block;
-}
-
 html {
 	margin: 0;
 	padding: 0;
 }
 
 body {
-	background-color: #141415;
-	color: #cdcdcd;
+	background-color: var(--bg);
+	color: var(--fg);
 	margin: 0;
 	padding: 0;
 }
@@ -36,6 +28,7 @@ body.pointer {
 	left: 0;
 	width: 100svw;
 	height: 100svh;
+	z-index: 99;
 	overflow: hidden;
 	touch-action: none;
 	user-select: none;
@@ -44,4 +37,14 @@ body.pointer {
 
 #webgl:focus {
 	outline: none;
+}
+
+#behind {
+	position: fixed;
+	top: 0;
+	left: 0;
+	max-width: 100svw;
+	max-height: 100svh;
+	padding: 0;
+	overflow: hidden;
 }

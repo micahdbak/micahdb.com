@@ -1,0 +1,38 @@
+html {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: var(--bg);
+	margin: 0;
+	padding: 0;
+}
+
+body.grab {
+	cursor: grab;
+}
+
+body.grabbing {
+	cursor: grabbing;
+}
+
+body.pointer {
+	cursor: pointer;
+}
+
+#webgl {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100svw;
+	height: 100svh;
+	overflow: hidden;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+#webgl:focus {
+	outline: none;
+}
